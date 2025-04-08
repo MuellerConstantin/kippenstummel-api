@@ -6,7 +6,7 @@ import { Page } from '../../common/models';
 import { CvmProjection } from '../models';
 import { CvmPageDto, RegisterCvmDto } from './dtos';
 
-@Controller('cvm')
+@Controller({ path: 'cvm', version: '1' })
 export class CvmController {
   constructor(
     private readonly commandBus: CommandBus,
