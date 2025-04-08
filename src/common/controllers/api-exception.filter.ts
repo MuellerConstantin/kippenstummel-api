@@ -1,9 +1,4 @@
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  NotFoundException,
-} from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiErrorDto } from './dtos';
 import { ApiError } from '../models/error';
@@ -20,6 +15,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
       code: exception.code,
       message: exception.message,
       path: request.url,
+      details: exception.details,
     };
 
     response.status(exception.status).json(responseBody);

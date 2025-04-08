@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { VersioningType } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import {
@@ -16,12 +16,14 @@ async function bootstrap() {
   );
   const httpExceptionFilter = app.get<HttpExceptionFilter>(HttpExceptionFilter);
   const apiExceptionFilter = app.get<ApiExceptionFilter>(ApiExceptionFilter);
+  const validationPipe = app.get<ValidationPipe>(ValidationPipe);
 
   app.useGlobalFilters(
     defaultExceptionFilter,
     httpExceptionFilter,
     apiExceptionFilter,
   );
+  app.useGlobalPipes(validationPipe);
   app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,

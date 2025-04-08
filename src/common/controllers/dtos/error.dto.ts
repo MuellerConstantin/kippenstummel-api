@@ -3,4 +3,5 @@ export interface ApiErrorDto {
   timestamp: string;
   path: string;
   message: string;
+  details?: { [key: string]: any }[];
 }

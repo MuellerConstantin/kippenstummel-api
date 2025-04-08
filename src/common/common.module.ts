@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventSourcingModule } from '@ocoda/event-sourcing';
@@ -14,6 +14,7 @@ import {
   ApiExceptionFilter,
 } from './controllers';
 import * as CvmModuleEvents from '../cvm/events';
+import { InvalidPayloadError } from './models/error';
 
 @Module({
   imports: [
@@ -44,7 +45,25 @@ import * as CvmModuleEvents from '../cvm/events';
     }),
   ],
   controllers: [],
-  providers: [DefaultExceptionFilter, HttpExceptionFilter, ApiExceptionFilter],
+  providers: [
+    DefaultExceptionFilter,
+    HttpExceptionFilter,
+    ApiExceptionFilter,
+    {
+      provide: ValidationPipe,
+      useValue: new ValidationPipe({
+        stopAtFirstError: true,
+        exceptionFactory: (errors) => {
+          return new InvalidPayloadError(
+            errors.map((error) => ({
+              property: error.property,
+              message: error.constraints![Object.keys(error.constraints!)[0]],
+            })),
+          );
+        },
+      }),
+    },
+  ],
   exports: [EventSourcingModule],
 })
 export class CommonModule {}

@@ -1,4 +1,13 @@
-export interface RegisterCvmDto {
-  longitude: number;
-  latitude: number;
+import { IsNumber, IsLongitude, IsLatitude, IsDefined } from 'class-validator';
+
+export class RegisterCvmDto {
+  @IsDefined()
+  @IsNumber()
+  @IsLongitude()
+  public longitude: number;
+
+  @IsDefined()
+  @IsNumber()
+  @IsLatitude()
+  public latitude: number;
 }
