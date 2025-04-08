@@ -1,16 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
-import { EventSourcingModule } from '@ocoda/event-sourcing';
-import {
-  MongoDBSnapshotStore,
-  type MongoDBSnapshotStoreConfig,
-  MongoDBEventStore,
-  type MongoDBEventStoreConfig,
-} from '@ocoda/event-sourcing-mongodb';
+import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { CommonModule } from './common/common.module';
+import { CvmModule } from './cvm/cvm.module';
 
 @Module({
   imports: [
@@ -33,33 +25,10 @@ import { AppService } from './app.service';
         abortEarly: true,
       },
     }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGO_URI'),
-      }),
-      inject: [ConfigService],
-    }),
-    EventSourcingModule.forRootAsync<
-      MongoDBEventStoreConfig,
-      MongoDBSnapshotStoreConfig
-    >({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        events: [],
-        eventStore: {
-          driver: MongoDBEventStore,
-          url: configService.get<string>('MONGO_URI')!,
-        },
-        snapshotStore: {
-          driver: MongoDBSnapshotStore,
-          url: configService.get<string>('MONGO_URI')!,
-        },
-      }),
-      inject: [ConfigService],
-    }),
+    CommonModule,
+    CvmModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
