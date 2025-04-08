@@ -19,6 +19,7 @@ import { CvmModule } from './cvm/cvm.module';
           .required(),
         PORT: Joi.number().default(8080),
         MONGO_URI: Joi.string().uri().required(),
+        REDIS_URI: Joi.string().uri().required(),
       }),
       validationOptions: {
         allowUnknown: true,

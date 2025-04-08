@@ -15,6 +15,8 @@ import {
 } from './controllers';
 import * as CvmModuleEvents from '../cvm/events';
 import { InvalidPayloadError } from './models/error';
+import { CacheModule } from '@nestjs/cache-manager';
+import { createKeyv, Keyv } from '@keyv/redis';
 
 @Module({
   imports: [
@@ -43,6 +45,15 @@ import { InvalidPayloadError } from './models/error';
       }),
       inject: [ConfigService],
     }),
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        return {
+          stores: [createKeyv({ url: configService.get<string>('REDIS_URI') })],
+        };
+      },
+      inject: [ConfigService],
+    }),
   ],
   controllers: [],
   providers: [
@@ -64,6 +75,6 @@ import { InvalidPayloadError } from './models/error';
       }),
     },
   ],
-  exports: [EventSourcingModule],
+  exports: [EventSourcingModule, CacheModule],
 })
 export class CommonModule {}
