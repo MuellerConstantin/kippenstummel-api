@@ -8,6 +8,11 @@ import {
   MongoDBEventStore,
   type MongoDBEventStoreConfig,
 } from '@ocoda/event-sourcing-mongodb';
+import {
+  DefaultExceptionFilter,
+  HttpExceptionFilter,
+  ApiExceptionFilter,
+} from './controllers';
 import * as CvmModuleEvents from '../cvm/events';
 
 @Module({
@@ -39,7 +44,7 @@ import * as CvmModuleEvents from '../cvm/events';
     }),
   ],
   controllers: [],
-  providers: [],
+  providers: [DefaultExceptionFilter, HttpExceptionFilter, ApiExceptionFilter],
   exports: [EventSourcingModule],
 })
 export class CommonModule {}

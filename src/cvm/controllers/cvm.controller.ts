@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@ocoda/event-sourcing';
 import { GetAllQuery } from '../queries';
 import { RegisterCvmCommand } from '../commands';
