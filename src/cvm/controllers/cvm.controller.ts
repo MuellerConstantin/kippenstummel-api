@@ -5,6 +5,7 @@ import { RegisterCvmCommand } from '../commands';
 import { Page } from '../../common/models';
 import { CvmProjection } from '../models';
 import { CvmPageDto, RegisterCvmDto } from './dtos';
+import { GetAllCvmQueryDto } from './dtos/get-all-cvm-query.dto';
 
 @Controller({ path: 'cvm', version: '1' })
 export class CvmController {
@@ -14,17 +15,16 @@ export class CvmController {
   ) {}
 
   @Post()
-  async open(@Body() body: RegisterCvmDto): Promise<void> {
+  async register(@Body() body: RegisterCvmDto): Promise<void> {
     const command = new RegisterCvmCommand(body.longitude, body.latitude);
 
     await this.commandBus.execute<RegisterCvmCommand>(command);
   }
 
   @Get()
-  async get(
-    @Query('page') page?: string,
-    @Query('perPage') perPage?: string,
-  ): Promise<CvmPageDto> {
+  async getAll(@Query() queryParams?: GetAllCvmQueryDto): Promise<CvmPageDto> {
+    const { page, perPage } = queryParams || {};
+
     const pageable =
       Number(page) && Number(perPage)
         ? { page: Number(page), perPage: Number(perPage) }

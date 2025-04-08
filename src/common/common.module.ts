@@ -63,6 +63,7 @@ import { createKeyv, Keyv } from '@keyv/redis';
     {
       provide: ValidationPipe,
       useValue: new ValidationPipe({
+        transform: true,
         stopAtFirstError: true,
         exceptionFactory: (errors) => {
           return new InvalidPayloadError(
