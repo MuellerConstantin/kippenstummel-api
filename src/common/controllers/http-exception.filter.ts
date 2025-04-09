@@ -5,10 +5,16 @@ import {
   HttpException,
   NotFoundException,
   Logger,
+  ForbiddenException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ApiErrorDto } from './dtos';
-import { ApiError, InternalError, NotFoundError } from '../models/error';
+import {
+  AccessDeniedError,
+  ApiError,
+  InternalError,
+  NotFoundError,
+} from '../models/error';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -23,6 +29,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof NotFoundException) {
       apiError = new NotFoundError(exception);
+    } else if (exception instanceof ForbiddenException) {
+      apiError = new AccessDeniedError(exception);
     } else {
       apiError = new InternalError(exception);
 

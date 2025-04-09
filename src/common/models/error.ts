@@ -4,6 +4,7 @@ export enum ApiErrorCode {
   INVALID_PAYLOAD_ERROR = 'INVALID_PAYLOAD_ERROR',
   MALFORMED_POW_STAMP_ERROR = 'MALFORMED_POW_STAMP_ERROR',
   INVALID_POW_STAMP_ERROR = 'INVALID_POW_STAMP_ERROR',
+  ACCESS_DENIED_ERROR = 'ACCESS_DENIED_ERROR',
 }
 
 export const ApiErrorMessages: Record<ApiErrorCode, string> = {
@@ -12,14 +13,16 @@ export const ApiErrorMessages: Record<ApiErrorCode, string> = {
   [ApiErrorCode.INVALID_PAYLOAD_ERROR]: 'Payload validation failed',
   [ApiErrorCode.MALFORMED_POW_STAMP_ERROR]: 'Malformed PoW stamp',
   [ApiErrorCode.INVALID_POW_STAMP_ERROR]: 'Invalid PoW stamp',
+  [ApiErrorCode.ACCESS_DENIED_ERROR]: 'Access denied',
 };
 
 export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
   [ApiErrorCode.INTERNAL_ERROR]: 500,
   [ApiErrorCode.NOT_FOUND_ERROR]: 404,
   [ApiErrorCode.INVALID_PAYLOAD_ERROR]: 422,
-  [ApiErrorCode.MALFORMED_POW_STAMP_ERROR]: 401,
-  [ApiErrorCode.INVALID_POW_STAMP_ERROR]: 401,
+  [ApiErrorCode.MALFORMED_POW_STAMP_ERROR]: 403,
+  [ApiErrorCode.INVALID_POW_STAMP_ERROR]: 403,
+  [ApiErrorCode.ACCESS_DENIED_ERROR]: 403,
 };
 
 export abstract class ApiError extends Error {
@@ -91,5 +94,11 @@ export class MalformedPoWStampError extends ApiError {
 export class InvalidPoWStampError extends ApiError {
   constructor(cause?: any) {
     super(ApiErrorCode.INVALID_POW_STAMP_ERROR, undefined, cause);
+  }
+}
+
+export class AccessDeniedError extends ApiError {
+  constructor(cause?: any) {
+    super(ApiErrorCode.ACCESS_DENIED_ERROR, undefined, cause);
   }
 }

@@ -73,7 +73,7 @@ export class PoWService {
       throw new InvalidPoWStampError();
     }
 
-    await this.cacheManager.del(stamp.nonce);
+    await this.cacheManager.del(`pow:${stamp.nonce}`);
   }
 
   public static async solveChallenge(stamp: PoWStamp): Promise<PoWStamp> {
