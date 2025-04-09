@@ -8,15 +8,16 @@ import {
   MongoDBEventStore,
   type MongoDBEventStoreConfig,
 } from '@ocoda/event-sourcing-mongodb';
+import { CacheModule } from '@nestjs/cache-manager';
+import { createKeyv } from '@keyv/redis';
 import {
   DefaultExceptionFilter,
   HttpExceptionFilter,
   ApiExceptionFilter,
 } from './controllers';
-import * as CvmModuleEvents from '../cvm/events';
+import { PoWService } from './services';
 import { InvalidPayloadError } from './models/error';
-import { CacheModule } from '@nestjs/cache-manager';
-import { createKeyv, Keyv } from '@keyv/redis';
+import * as CvmModuleEvents from '../cvm/events';
 
 @Module({
   imports: [
@@ -75,7 +76,8 @@ import { createKeyv, Keyv } from '@keyv/redis';
         },
       }),
     },
+    PoWService,
   ],
-  exports: [EventSourcingModule, CacheModule],
+  exports: [EventSourcingModule, CacheModule, PoWService],
 })
 export class CommonModule {}

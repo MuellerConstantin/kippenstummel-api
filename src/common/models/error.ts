@@ -2,18 +2,24 @@ export enum ApiErrorCode {
   INTERNAL_ERROR = 'INTERNAL_ERROR',
   NOT_FOUND_ERROR = 'NOT_FOUND_ERROR',
   INVALID_PAYLOAD_ERROR = 'INVALID_PAYLOAD_ERROR',
+  MALFORMED_POW_STAMP_ERROR = 'MALFORMED_POW_STAMP_ERROR',
+  INVALID_POW_STAMP_ERROR = 'INVALID_POW_STAMP_ERROR',
 }
 
 export const ApiErrorMessages: Record<ApiErrorCode, string> = {
   [ApiErrorCode.INTERNAL_ERROR]: 'Internal error occured',
   [ApiErrorCode.NOT_FOUND_ERROR]: 'Resource not found',
   [ApiErrorCode.INVALID_PAYLOAD_ERROR]: 'Payload validation failed',
+  [ApiErrorCode.MALFORMED_POW_STAMP_ERROR]: 'Malformed PoW stamp',
+  [ApiErrorCode.INVALID_POW_STAMP_ERROR]: 'Invalid PoW stamp',
 };
 
 export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
   [ApiErrorCode.INTERNAL_ERROR]: 500,
   [ApiErrorCode.NOT_FOUND_ERROR]: 404,
   [ApiErrorCode.INVALID_PAYLOAD_ERROR]: 422,
+  [ApiErrorCode.MALFORMED_POW_STAMP_ERROR]: 401,
+  [ApiErrorCode.INVALID_POW_STAMP_ERROR]: 401,
 };
 
 export abstract class ApiError extends Error {
@@ -73,5 +79,17 @@ export class NotFoundError extends ApiError {
 export class InvalidPayloadError extends ApiError {
   constructor(details?: { [key: string]: any }[], cause?: any) {
     super(ApiErrorCode.INVALID_PAYLOAD_ERROR, details, cause);
+  }
+}
+
+export class MalformedPoWStampError extends ApiError {
+  constructor(cause?: any) {
+    super(ApiErrorCode.MALFORMED_POW_STAMP_ERROR, undefined, cause);
+  }
+}
+
+export class InvalidPoWStampError extends ApiError {
+  constructor(cause?: any) {
+    super(ApiErrorCode.INVALID_POW_STAMP_ERROR, undefined, cause);
   }
 }

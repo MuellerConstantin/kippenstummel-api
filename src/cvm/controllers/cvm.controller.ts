@@ -22,13 +22,13 @@ export class CvmController {
   }
 
   @Get()
-  async getAll(@Query() queryParams?: GetAllCvmQueryDto): Promise<CvmPageDto> {
-    const { page, perPage } = queryParams || {};
+  async getAll(@Query() queryParams: GetAllCvmQueryDto): Promise<CvmPageDto> {
+    const { page, perPage } = queryParams;
 
-    const pageable =
-      Number(page) && Number(perPage)
-        ? { page: Number(page), perPage: Number(perPage) }
-        : undefined;
+    const pageable = {
+      page: Number(page) || 0,
+      perPage: Number(perPage) || 25,
+    };
     const query = new GetAllQuery(pageable);
 
     const result = await this.queryBus.execute<
