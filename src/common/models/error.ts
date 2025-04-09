@@ -5,6 +5,7 @@ export enum ApiErrorCode {
   MALFORMED_POW_STAMP_ERROR = 'MALFORMED_POW_STAMP_ERROR',
   INVALID_POW_STAMP_ERROR = 'INVALID_POW_STAMP_ERROR',
   ACCESS_DENIED_ERROR = 'ACCESS_DENIED_ERROR',
+  INVALID_IDENT_TOKEN_ERROR = 'INVALID_IDENT_TOKEN_ERROR',
 }
 
 export const ApiErrorMessages: Record<ApiErrorCode, string> = {
@@ -14,6 +15,7 @@ export const ApiErrorMessages: Record<ApiErrorCode, string> = {
   [ApiErrorCode.MALFORMED_POW_STAMP_ERROR]: 'Malformed PoW stamp',
   [ApiErrorCode.INVALID_POW_STAMP_ERROR]: 'Invalid PoW stamp',
   [ApiErrorCode.ACCESS_DENIED_ERROR]: 'Access denied',
+  [ApiErrorCode.INVALID_IDENT_TOKEN_ERROR]: 'Invalid ident token',
 };
 
 export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
@@ -23,6 +25,7 @@ export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
   [ApiErrorCode.MALFORMED_POW_STAMP_ERROR]: 403,
   [ApiErrorCode.INVALID_POW_STAMP_ERROR]: 403,
   [ApiErrorCode.ACCESS_DENIED_ERROR]: 403,
+  [ApiErrorCode.INVALID_IDENT_TOKEN_ERROR]: 401,
 };
 
 export abstract class ApiError extends Error {
@@ -100,5 +103,11 @@ export class InvalidPoWStampError extends ApiError {
 export class AccessDeniedError extends ApiError {
   constructor(cause?: any) {
     super(ApiErrorCode.ACCESS_DENIED_ERROR, undefined, cause);
+  }
+}
+
+export class InvalidIdentTokenError extends ApiError {
+  constructor(cause?: any) {
+    super(ApiErrorCode.INVALID_IDENT_TOKEN_ERROR, undefined, cause);
   }
 }

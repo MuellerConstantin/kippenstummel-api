@@ -9,4 +9,5 @@ export {
   NotFoundError,
   MalformedPoWStampError,
   InvalidPoWStampError,
+  InvalidIdentTokenError,
 } from './error';

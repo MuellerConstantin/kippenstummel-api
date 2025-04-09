@@ -16,6 +16,7 @@ import {
   HttpExceptionFilter,
   ApiExceptionFilter,
   PoWGuard,
+  IdentGuard,
 } from './controllers';
 import { IdentService, PoWService } from './services';
 import { InvalidPayloadError } from './models/error';
@@ -75,6 +76,7 @@ import * as CvmModuleEvents from '../cvm/events';
     HttpExceptionFilter,
     ApiExceptionFilter,
     PoWGuard,
+    IdentGuard,
     {
       provide: ValidationPipe,
       useValue: new ValidationPipe({
@@ -99,6 +101,7 @@ import * as CvmModuleEvents from '../cvm/events';
     PoWService,
     PoWGuard,
     IdentService,
+    IdentGuard,
   ],
 })
 export class CommonModule {}
