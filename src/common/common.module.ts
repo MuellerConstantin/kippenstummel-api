@@ -10,13 +10,14 @@ import {
 } from '@ocoda/event-sourcing-mongodb';
 import { CacheModule } from '@nestjs/cache-manager';
 import { createKeyv } from '@keyv/redis';
+import { JwtModule } from '@nestjs/jwt';
 import {
   DefaultExceptionFilter,
   HttpExceptionFilter,
   ApiExceptionFilter,
   PoWGuard,
 } from './controllers';
-import { PoWService } from './services';
+import { IdentService, PoWService } from './services';
 import { InvalidPayloadError } from './models/error';
 import * as CvmModuleEvents from '../cvm/events';
 
@@ -56,6 +57,17 @@ import * as CvmModuleEvents from '../cvm/events';
       },
       inject: [ConfigService],
     }),
+    JwtModule.registerAsync({
+      global: true,
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('IDENT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<number>('IDENT_EXPIRES_IN'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [],
   providers: [
@@ -79,7 +91,14 @@ import * as CvmModuleEvents from '../cvm/events';
       }),
     },
     PoWService,
+    IdentService,
   ],
-  exports: [EventSourcingModule, CacheModule, PoWService, PoWGuard],
+  exports: [
+    EventSourcingModule,
+    CacheModule,
+    PoWService,
+    PoWGuard,
+    IdentService,
+  ],
 })
 export class CommonModule {}

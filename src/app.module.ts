@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
 import { CommonModule } from './common/common.module';
 import { CvmModule } from './cvm/cvm.module';
-import { PoWModule } from './pow/pow.module';
+import { IdentModule } from './ident/ident.module';
 
 @Module({
   imports: [
@@ -24,6 +24,8 @@ import { PoWModule } from './pow/pow.module';
         REDIS_URI: Joi.string().uri().required(),
         POW_DIFFICULTY: Joi.number().default(20),
         POW_EXPIRES_IN: Joi.number().default(60),
+        IDENT_SECRET: Joi.string().required(),
+        IDENT_EXPIRES_IN: Joi.number().default(60 * 60 * 24 * 7),
       }),
       validationOptions: {
         allowUnknown: true,
@@ -32,7 +34,7 @@ import { PoWModule } from './pow/pow.module';
     }),
     CommonModule,
     CvmModule,
-    PoWModule,
+    IdentModule,
   ],
   controllers: [],
   providers: [],

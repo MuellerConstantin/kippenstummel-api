@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Response } from '@nestjs/common';
+import { Controller, Get, Response } from '@nestjs/common';
 import { Response as ExpressResponse } from 'express';
 import { PoWService } from '../../common/services';
 

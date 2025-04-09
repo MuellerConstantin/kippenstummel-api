@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { CommonModule } from '../common/common.module';
-import { PoWController } from './controllers';
+import { PoWController, IdentController } from './controllers';
 
 @Module({
   imports: [CommonModule],
-  controllers: [PoWController],
+  controllers: [PoWController, IdentController],
   exports: [],
 })
-export class PoWModule {}
+export class IdentModule {}

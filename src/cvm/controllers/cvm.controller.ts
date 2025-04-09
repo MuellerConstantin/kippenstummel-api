@@ -6,7 +6,6 @@ import { Page } from '../../common/models';
 import { CvmProjection } from '../models';
 import { CvmPageDto, RegisterCvmDto } from './dtos';
 import { GetAllCvmQueryDto } from './dtos/get-all-cvm-query.dto';
-import { PoWGuard } from '../../common/controllers';
 
 @Controller({ path: 'cvm', version: '1' })
 export class CvmController {
@@ -15,7 +14,6 @@ export class CvmController {
     private readonly queryBus: QueryBus,
   ) {}
 
-  @UseGuards(PoWGuard)
   @Post()
   async register(@Body() body: RegisterCvmDto): Promise<void> {
     const command = new RegisterCvmCommand(body.longitude, body.latitude);
