@@ -11,8 +11,8 @@ export class PoWService {
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  protected generateNonce(length = 16) {
-    return crypto.randomBytes(length).toString('hex');
+  protected generateNonce() {
+    return crypto.randomBytes(16).toString('hex');
   }
 
   public async generateChallenge(): Promise<PoWStamp> {

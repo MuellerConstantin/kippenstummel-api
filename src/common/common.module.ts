@@ -17,8 +17,9 @@ import {
   ApiExceptionFilter,
   PoWGuard,
   IdentGuard,
+  CaptchaGuard,
 } from './controllers';
-import { IdentService, PoWService } from './services';
+import { CaptchaService, IdentService, PoWService } from './services';
 import { InvalidPayloadError } from './models/error';
 import * as CvmModuleEvents from '../cvm/events';
 
@@ -77,6 +78,7 @@ import * as CvmModuleEvents from '../cvm/events';
     ApiExceptionFilter,
     PoWGuard,
     IdentGuard,
+    CaptchaGuard,
     {
       provide: ValidationPipe,
       useValue: new ValidationPipe({
@@ -94,6 +96,7 @@ import * as CvmModuleEvents from '../cvm/events';
     },
     PoWService,
     IdentService,
+    CaptchaService,
   ],
   exports: [
     EventSourcingModule,
@@ -102,6 +105,8 @@ import * as CvmModuleEvents from '../cvm/events';
     PoWGuard,
     IdentService,
     IdentGuard,
+    CaptchaService,
+    CaptchaGuard,
   ],
 })
 export class CommonModule {}
