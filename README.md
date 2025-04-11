@@ -3,7 +3,7 @@
 > Backend API for Kippenstummel.
 
 ![](https://img.shields.io/badge/Node.js-20-green?logo=node.js)
-![](https://img.shields.io/badge/NestJS-10-E0234E?logo=nestjs)
+![](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs)
 
 ## Table of contents
 
