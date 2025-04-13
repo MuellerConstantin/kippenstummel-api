@@ -1,11 +1,16 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@ocoda/event-sourcing';
-import { GetAllQuery } from '../queries';
+import { GetAllQuery, GetAllWithinQuery } from '../queries';
 import { RegisterCvmCommand } from '../commands';
 import { Page } from '../../common/models';
 import { CvmProjection } from '../models';
-import { CvmPageDto, RegisterCvmDto } from './dtos';
-import { GetAllCvmQueryDto } from './dtos/get-all-cvm-query.dto';
+import {
+  CvmPageDto,
+  RegisterCvmDto,
+  GetAllCvmQueryDto,
+  GetAllCvmWithinQueryDto,
+  CvmDto,
+} from './dtos';
 import { IdentGuard } from '../../common/controllers';
 
 @Controller({ path: 'cvm', version: '1' })
@@ -42,5 +47,23 @@ export class CvmController {
       content: result.content,
       info: result.info,
     };
+  }
+
+  @Get('/within')
+  async getAllWithin(
+    @Query() queryParams: GetAllCvmWithinQueryDto,
+  ): Promise<CvmDto[]> {
+    const { bottomLeftLon, bottomLeftLat, topRightLon, topRightLat } =
+      queryParams;
+    const bottomLeft = { longitude: bottomLeftLon, latitude: bottomLeftLat };
+    const topRight = { longitude: topRightLon, latitude: topRightLat };
+
+    const query = new GetAllWithinQuery(bottomLeft, topRight);
+    const result = await this.queryBus.execute<
+      GetAllWithinQuery,
+      CvmProjection[]
+    >(query);
+
+    return result;
   }
 }

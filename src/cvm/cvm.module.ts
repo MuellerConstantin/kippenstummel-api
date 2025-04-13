@@ -8,7 +8,7 @@ import {
   CvmSchema,
 } from './repositories';
 import { RegisterCvmCommandHandler } from './commands';
-import { GetAllQueryHandler } from './queries';
+import { GetAllQueryHandler, GetAllWithinQueryHandler } from './queries';
 import { CvmController } from './controllers';
 
 @Module({
@@ -22,6 +22,7 @@ import { CvmController } from './controllers';
     CvmSnapshotRepository,
     RegisterCvmCommandHandler,
     GetAllQueryHandler,
+    GetAllWithinQueryHandler,
   ],
 })
 export class CvmModule {}
