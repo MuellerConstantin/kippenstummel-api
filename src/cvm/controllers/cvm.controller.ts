@@ -53,10 +53,14 @@ export class CvmController {
   async getAllWithin(
     @Query() queryParams: GetAllCvmWithinQueryDto,
   ): Promise<CvmDto[]> {
-    const { bottomLeftLon, bottomLeftLat, topRightLon, topRightLat } =
-      queryParams;
-    const bottomLeft = { longitude: bottomLeftLon, latitude: bottomLeftLat };
-    const topRight = { longitude: topRightLon, latitude: topRightLat };
+    const bottomLeft = {
+      longitude: queryParams.bottomLeftCoordinates[0],
+      latitude: queryParams.bottomLeftCoordinates[1],
+    };
+    const topRight = {
+      longitude: queryParams.topRightCoordinates[0],
+      latitude: queryParams.topRightCoordinates[1],
+    };
 
     const query = new GetAllWithinQuery(bottomLeft, topRight);
     const result = await this.queryBus.execute<

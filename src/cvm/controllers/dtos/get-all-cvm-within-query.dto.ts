@@ -1,20 +1,19 @@
-import { Transform } from 'class-transformer';
-import { IsLatitude, IsLongitude, IsOptional } from 'class-validator';
+import { IsLatLong } from 'class-validator';
 
 export class GetAllCvmWithinQueryDto {
-  @IsLongitude()
-  @Transform(({ value }) => Number(value))
-  public bottomLeftLon: number;
+  @IsLatLong()
+  public bottomLeft: string;
 
-  @IsLatitude()
-  @Transform(({ value }) => Number(value))
-  public bottomLeftLat: number;
+  @IsLatLong()
+  public topRight: string;
 
-  @IsLongitude()
-  @Transform(({ value }) => Number(value))
-  public topRightLon: number;
+  get bottomLeftCoordinates(): [number, number] {
+    const [latitude, longitude] = this.bottomLeft.split(',').map(Number);
+    return [longitude, latitude];
+  }
 
-  @IsLatitude()
-  @Transform(({ value }) => Number(value))
-  public topRightLat: number;
+  get topRightCoordinates(): [number, number] {
+    const [latitude, longitude] = this.topRight.split(',').map(Number);
+    return [longitude, latitude];
+  }
 }
