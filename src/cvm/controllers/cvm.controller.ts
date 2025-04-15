@@ -3,13 +3,14 @@ import { CommandBus, QueryBus } from '@ocoda/event-sourcing';
 import { GetAllQuery, GetAllWithinQuery } from '../queries';
 import { RegisterCvmCommand } from '../commands';
 import { Page } from '../../common/models';
-import { CvmProjection } from '../models';
+import { CvmClusterProjection, CvmProjection } from '../models';
 import {
   CvmPageDto,
   RegisterCvmDto,
   GetAllCvmQueryDto,
   GetAllCvmWithinQueryDto,
   CvmDto,
+  CvmClusterDto,
 } from './dtos';
 import { IdentGuard } from '../../common/controllers';
 
@@ -52,7 +53,7 @@ export class CvmController {
   @Get('/within')
   async getAllWithin(
     @Query() queryParams: GetAllCvmWithinQueryDto,
-  ): Promise<CvmDto[]> {
+  ): Promise<(CvmDto | CvmClusterDto)[]> {
     const bottomLeft = {
       longitude: queryParams.bottomLeftCoordinates[0],
       latitude: queryParams.bottomLeftCoordinates[1],
@@ -62,10 +63,10 @@ export class CvmController {
       latitude: queryParams.topRightCoordinates[1],
     };
 
-    const query = new GetAllWithinQuery(bottomLeft, topRight);
+    const query = new GetAllWithinQuery(bottomLeft, topRight, queryParams.zoom);
     const result = await this.queryBus.execute<
       GetAllWithinQuery,
-      CvmProjection[]
+      (CvmProjection | CvmClusterProjection)[]
     >(query);
 
     return result;

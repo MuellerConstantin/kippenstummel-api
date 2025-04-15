@@ -3,3 +3,11 @@ export interface CvmProjection {
   longitude: number;
   latitude: number;
 }
+
+export interface CvmClusterProjection {
+  id: string;
+  cluster: true;
+  longitude: number;
+  latitude: number;
+  count: number;
+}
