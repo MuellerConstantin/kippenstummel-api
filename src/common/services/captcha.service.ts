@@ -26,14 +26,16 @@ export class CaptchaService {
     const text = this.generateText();
     const expiresIn = this.configService.get<number>('CAPTCHA_EXPIRES_IN')!;
 
-    const width = 200;
-    const height = 70;
+    const scale = 3;
+    const width = 200 * scale;
+    const height = 70 * scale;
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext('2d');
 
     // Background
     ctx.fillStyle = '#f0f0f0';
     ctx.fillRect(0, 0, width, height);
+    ctx.lineWidth = 1.5 * scale;
 
     // Noise
     for (let index = 0; index < 10; index++) {
@@ -45,14 +47,14 @@ export class CaptchaService {
     }
 
     // Text
-    ctx.font = '32px Sans';
+    ctx.font = `${32 * scale}px Sans`;
     ctx.fillStyle = '#333';
     const charSpacing = width / (text.length + 1);
 
     for (let index = 0; index < text.length; index++) {
       const char = text[index];
       const x = charSpacing * (index + 1);
-      const y = 45 + Math.random() * 10;
+      const y = 45 * scale + Math.random() * (10 * scale);
 
       ctx.save();
       ctx.translate(x, y);
