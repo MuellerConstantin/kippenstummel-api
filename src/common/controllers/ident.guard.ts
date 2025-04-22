@@ -1,5 +1,4 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { Request } from 'express';
 import { IdentService } from '../services';
 import { InvalidIdentTokenError } from '../models';
 
@@ -9,7 +8,7 @@ export class IdentGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const identToken = IdentGuard.extractTokenFromHeader(request);
+    const identToken = request.headers['x-ident'];
 
     if (!identToken) {
       throw new InvalidIdentTokenError();
@@ -20,10 +19,5 @@ export class IdentGuard implements CanActivate {
     request['fingerprint'] = fingerprint;
 
     return true;
-  }
-
-  private static extractTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined;
   }
 }
