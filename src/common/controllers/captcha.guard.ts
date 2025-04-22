@@ -1,7 +1,10 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 import { CaptchaService } from '../services';
-import { MalformedCaptchaStampError, PoWStamp } from '../models';
+import {
+  InvalidCaptchaStampError,
+  MalformedCaptchaStampError,
+} from '../models';
 
 @Injectable()
 export class CaptchaGuard implements CanActivate {
@@ -12,7 +15,7 @@ export class CaptchaGuard implements CanActivate {
     const captchaHeader = request.headers['x-captcha'];
 
     if (typeof captchaHeader !== 'string') {
-      return false;
+      throw new InvalidCaptchaStampError();
     }
 
     const [id, text] = captchaHeader.split(':');

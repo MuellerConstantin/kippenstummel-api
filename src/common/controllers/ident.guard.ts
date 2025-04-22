@@ -12,7 +12,7 @@ export class IdentGuard implements CanActivate {
     const identToken = IdentGuard.extractTokenFromHeader(request);
 
     if (!identToken) {
-      return false;
+      throw new InvalidIdentTokenError();
     }
 
     const fingerprint = await this.identService.verifyIdentToken(identToken);

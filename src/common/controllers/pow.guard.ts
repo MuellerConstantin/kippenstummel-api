@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 import { PoWService } from '../services';
-import { PoWStamp } from '../models';
+import { InvalidPoWStampError, PoWStamp } from '../models';
 
 @Injectable()
 export class PoWGuard implements CanActivate {
@@ -12,7 +12,7 @@ export class PoWGuard implements CanActivate {
     const powHeader = request.headers['x-pow'];
 
     if (typeof powHeader !== 'string') {
-      return false;
+      throw new InvalidPoWStampError();
     }
 
     const stamp = PoWStamp.fromStamp(powHeader);
