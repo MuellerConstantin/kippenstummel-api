@@ -14,7 +14,7 @@ import {
 } from './dtos';
 import { IdentGuard, OAuth2Guard } from '../../common/controllers';
 
-@Controller({ path: 'cvm', version: '1' })
+@Controller({ version: '1' })
 export class CvmController {
   constructor(
     private readonly commandBus: CommandBus,
@@ -22,7 +22,7 @@ export class CvmController {
   ) {}
 
   @UseGuards(IdentGuard)
-  @Post()
+  @Post('cvm')
   async register(@Body() body: RegisterCvmDto): Promise<void> {
     const command = new RegisterCvmCommand(body.longitude, body.latitude);
 
@@ -30,7 +30,7 @@ export class CvmController {
   }
 
   @UseGuards(OAuth2Guard)
-  @Get()
+  @Get('kmc/cvm')
   async getAll(@Query() queryParams: GetAllCvmQueryDto): Promise<CvmPageDto> {
     const { page, perPage } = queryParams;
 
@@ -51,7 +51,7 @@ export class CvmController {
     };
   }
 
-  @Get('/within')
+  @Get('cvm/within')
   async getAllWithin(
     @Query() queryParams: GetAllCvmWithinQueryDto,
   ): Promise<(CvmDto | CvmClusterDto)[]> {
