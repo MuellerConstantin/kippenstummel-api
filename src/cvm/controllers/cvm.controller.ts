@@ -14,6 +14,7 @@ import {
   RegisterCvmCommand,
   DownvoteCvmCommand,
   UpvoteCvmCommand,
+  ImportCvmsCommand,
 } from '../commands';
 import { Page } from '../../common/models';
 import { CvmClusterProjection, CvmProjection } from '../models';
@@ -26,6 +27,7 @@ import {
   CvmClusterDto,
   DownvoteParamsDto,
   UpvoteParamsDto,
+  ImportCvmsDto,
 } from './dtos';
 import { IdentGuard, OAuth2Guard } from '../../common/controllers';
 
@@ -80,6 +82,14 @@ export class CvmController {
       content: result.content,
       info: result.info,
     };
+  }
+
+  @UseGuards(OAuth2Guard)
+  @Post('kmc/cvm')
+  async import(@Body() body: ImportCvmsDto): Promise<void> {
+    const command = new ImportCvmsCommand(body.cvms);
+
+    await this.commandBus.execute<ImportCvmsCommand>(command);
   }
 
   @Get('cvm/within')

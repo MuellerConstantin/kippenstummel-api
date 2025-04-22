@@ -12,3 +12,8 @@ export {
   UpvoteCvmCommandHandler,
   UpvoteCvmCommand,
 } from './upvote-cvm.command';
+
+export {
+  ImportCvmsCommandHandler,
+  ImportCvmsCommand,
+} from './import-cvms.command';

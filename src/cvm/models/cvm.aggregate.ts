@@ -8,6 +8,7 @@ import {
   CvmRegisteredEvent,
   CvmUpvotedEvent,
   CvmDownvotedEvent,
+  CvmSynchronizedEvent,
 } from '../events';
 
 export class CvmId extends UUID {}
@@ -59,6 +60,12 @@ export class CvmAggregate extends AggregateRoot {
     this.applyEvent(new CvmDownvotedEvent(this.id.value));
   }
 
+  public synchronize(longitude: number, latitude: number, score: number): void {
+    this.applyEvent(
+      new CvmSynchronizedEvent(this.id.value, { longitude, latitude }, score),
+    );
+  }
+
   public static register(longitude: number, latitude: number): CvmAggregate {
     const aggregate = new CvmAggregate();
 
@@ -76,6 +83,13 @@ export class CvmAggregate extends AggregateRoot {
   @EventHandler(CvmRegisteredEvent)
   onCvmRegistered(event: CvmRegisteredEvent): void {
     this._id = CvmId.from(event.cvmId);
+    this._longitude = event.position.longitude;
+    this._latitude = event.position.latitude;
+    this._score = event.score;
+  }
+
+  @EventHandler(CvmSynchronizedEvent)
+  onCvmSynchronized(event: CvmSynchronizedEvent): void {
     this._longitude = event.position.longitude;
     this._latitude = event.position.latitude;
     this._score = event.score;

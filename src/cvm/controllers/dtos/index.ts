@@ -6,3 +6,4 @@ export { GetAllCvmWithinQueryDto } from './get-all-cvm-within-query.dto';
 export { CvmClusterDto } from './cvm-cluster.dto';
 export { DownvoteParamsDto } from './downvote-params.dto';
 export { UpvoteParamsDto } from './upvote-params.dto';
+export { ImportCvmsDto } from './import-cvms.dto';

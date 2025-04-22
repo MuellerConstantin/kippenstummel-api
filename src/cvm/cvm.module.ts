@@ -11,6 +11,7 @@ import {
   RegisterCvmCommandHandler,
   UpvoteCvmCommandHandler,
   DownvoteCvmCommandHandler,
+  ImportCvmsCommandHandler,
 } from './commands';
 import { GetAllQueryHandler, GetAllWithinQueryHandler } from './queries';
 import { CvmController } from './controllers';
@@ -27,6 +28,7 @@ import { CvmController } from './controllers';
     RegisterCvmCommandHandler,
     UpvoteCvmCommandHandler,
     DownvoteCvmCommandHandler,
+    ImportCvmsCommandHandler,
     GetAllQueryHandler,
     GetAllWithinQueryHandler,
   ],
