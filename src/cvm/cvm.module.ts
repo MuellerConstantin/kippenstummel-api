@@ -7,7 +7,11 @@ import {
   Cvm,
   CvmSchema,
 } from './repositories';
-import { RegisterCvmCommandHandler } from './commands';
+import {
+  RegisterCvmCommandHandler,
+  UpvoteCvmCommandHandler,
+  DownvoteCvmCommandHandler,
+} from './commands';
 import { GetAllQueryHandler, GetAllWithinQueryHandler } from './queries';
 import { CvmController } from './controllers';
 
@@ -21,6 +25,8 @@ import { CvmController } from './controllers';
     CvmEventStoreRepository,
     CvmSnapshotRepository,
     RegisterCvmCommandHandler,
+    UpvoteCvmCommandHandler,
+    DownvoteCvmCommandHandler,
     GetAllQueryHandler,
     GetAllWithinQueryHandler,
   ],

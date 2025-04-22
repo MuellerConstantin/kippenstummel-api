@@ -4,7 +4,11 @@ import {
   EventHandler,
   UUID,
 } from '@ocoda/event-sourcing';
-import { CvmRegisteredEvent } from '../events';
+import {
+  CvmRegisteredEvent,
+  CvmUpvotedEvent,
+  CvmDownvotedEvent,
+} from '../events';
 
 export class CvmId extends UUID {}
 
@@ -13,6 +17,7 @@ export class CvmAggregate extends AggregateRoot {
   private _id: CvmId;
   private _longitude: number;
   private _latitude: number;
+  private _score: number;
 
   public get id(): CvmId {
     return this._id;
@@ -24,6 +29,10 @@ export class CvmAggregate extends AggregateRoot {
 
   public get latitude(): number {
     return this._latitude;
+  }
+
+  public get score(): number {
+    return this._score;
   }
 
   public set id(id: CvmId) {
@@ -38,11 +47,27 @@ export class CvmAggregate extends AggregateRoot {
     this._latitude = latitude;
   }
 
+  public set score(score: number) {
+    this._score = score;
+  }
+
+  public upvote(): void {
+    this.applyEvent(new CvmUpvotedEvent(this.id.value));
+  }
+
+  public downvote(): void {
+    this.applyEvent(new CvmDownvotedEvent(this.id.value));
+  }
+
   public static register(longitude: number, latitude: number): CvmAggregate {
     const aggregate = new CvmAggregate();
 
     aggregate.applyEvent(
-      new CvmRegisteredEvent(CvmId.generate().value, { longitude, latitude }),
+      new CvmRegisteredEvent(
+        CvmId.generate().value,
+        { longitude, latitude },
+        0,
+      ),
     );
 
     return aggregate;
@@ -53,5 +78,20 @@ export class CvmAggregate extends AggregateRoot {
     this._id = CvmId.from(event.cvmId);
     this._longitude = event.position.longitude;
     this._latitude = event.position.latitude;
+    this._score = event.score;
+  }
+
+  @EventHandler(CvmUpvotedEvent)
+  onLegatimacyConfirmed(event: CvmUpvotedEvent): void {
+    if (this._score < 5) {
+      this._score += 1;
+    }
+  }
+
+  @EventHandler(CvmDownvotedEvent)
+  onLegatimacyDoubted(event: CvmDownvotedEvent): void {
+    if (this._score > -5) {
+      this._score -= 1;
+    }
   }
 }

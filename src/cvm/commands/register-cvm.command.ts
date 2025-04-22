@@ -5,7 +5,7 @@ import {
 } from '@ocoda/event-sourcing';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CvmAggregate } from '../models';
+import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
 
@@ -46,6 +46,13 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
         command.latitude,
       );
       await this.cvmEventStoreRepository.save(aggregate);
+    } else {
+      const aggregate = await this.cvmEventStoreRepository.load(
+        CvmId.from(result.id),
+      );
+      aggregate!.upvote();
+
+      await this.cvmEventStoreRepository.save(aggregate!);
     }
   }
 }

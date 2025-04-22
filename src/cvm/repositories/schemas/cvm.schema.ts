@@ -24,6 +24,9 @@ export class Cvm {
     type: string;
     coordinates: number[];
   };
+
+  @Prop()
+  score: number;
 }
 
 export const CvmSchema = SchemaFactory.createForClass(Cvm);

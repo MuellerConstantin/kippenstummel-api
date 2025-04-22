@@ -1,7 +1,20 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CommandBus, QueryBus } from '@ocoda/event-sourcing';
 import { GetAllQuery, GetAllWithinQuery } from '../queries';
-import { RegisterCvmCommand } from '../commands';
+import {
+  RegisterCvmCommand,
+  DownvoteCvmCommand,
+  UpvoteCvmCommand,
+} from '../commands';
 import { Page } from '../../common/models';
 import { CvmClusterProjection, CvmProjection } from '../models';
 import {
@@ -11,6 +24,8 @@ import {
   GetAllCvmWithinQueryDto,
   CvmDto,
   CvmClusterDto,
+  DownvoteParamsDto,
+  UpvoteParamsDto,
 } from './dtos';
 import { IdentGuard, OAuth2Guard } from '../../common/controllers';
 
@@ -27,6 +42,22 @@ export class CvmController {
     const command = new RegisterCvmCommand(body.longitude, body.latitude);
 
     await this.commandBus.execute<RegisterCvmCommand>(command);
+  }
+
+  @UseGuards(IdentGuard)
+  @Delete('cvm/:id')
+  async downvote(@Param() params: DownvoteParamsDto): Promise<void> {
+    const command = new DownvoteCvmCommand(params.id);
+
+    await this.commandBus.execute<DownvoteCvmCommand>(command);
+  }
+
+  @UseGuards(IdentGuard)
+  @Post('cvm/:id')
+  async upvote(@Param() params: UpvoteParamsDto): Promise<void> {
+    const command = new UpvoteCvmCommand(params.id);
+
+    await this.commandBus.execute<UpvoteCvmCommand>(command);
   }
 
   @UseGuards(OAuth2Guard)

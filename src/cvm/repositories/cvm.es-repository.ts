@@ -47,6 +47,7 @@ export class CvmEventStoreRepository {
           type: 'Point',
           coordinates: [aggregate.longitude, aggregate.latitude],
         },
+        score: aggregate.score,
       },
       {
         upsert: true,

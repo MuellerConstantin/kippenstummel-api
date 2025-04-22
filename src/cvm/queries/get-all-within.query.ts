@@ -49,6 +49,7 @@ export class GetAllWithinQueryHandler
       },
       properties: {
         id: cvm.id,
+        score: cvm.score,
       },
     }));
 
@@ -89,6 +90,7 @@ export class GetAllWithinQueryHandler
         id: item.properties.id,
         longitude: item.geometry.coordinates[0],
         latitude: item.geometry.coordinates[1],
+        score: item.properties.score,
       };
     });
   }
