@@ -1,5 +1,13 @@
-# Created by https://www.toptal.com/developers/gitignore/api/node,visualstudiocode,webstorm+all,eclipse
-# Edit at https://www.toptal.com/developers/gitignore?templates=node,visualstudiocode,webstorm+all,eclipse
+# Created by https://www.toptal.com/developers/gitignore/api/node,eclipse,webstorm+all,visualstudiocode,certificates
+# Edit at https://www.toptal.com/developers/gitignore?templates=node,eclipse,webstorm+all,visualstudiocode,certificates
+
+### certificates ###
+*.pem
+*.key
+*.crt
+*.cer
+*.der
+*.priv
 
 ### Eclipse ###
 .metadata
@@ -314,7 +322,7 @@ fabric.properties
 !.idea/codeStyles
 !.idea/runConfigurations
 
-# End of https://www.toptal.com/developers/gitignore/api/node,visualstudiocode,webstorm+all,eclipse
+# End of https://www.toptal.com/developers/gitignore/api/node,eclipse,webstorm+all,visualstudiocode,certificates
 
 ### Kippenstummel ###
 

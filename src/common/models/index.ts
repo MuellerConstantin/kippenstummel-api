@@ -14,4 +14,5 @@ export {
   MalformedCaptchaStampError,
   InvalidCaptchaStampError,
   TooManyItemsRequestedError,
+  UnauthenticatedError,
 } from './error';

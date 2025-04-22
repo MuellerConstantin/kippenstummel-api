@@ -11,6 +11,7 @@ import {
 import { CacheModule } from '@nestjs/cache-manager';
 import { createKeyv } from '@keyv/redis';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import {
   DefaultExceptionFilter,
   HttpExceptionFilter,
@@ -18,6 +19,8 @@ import {
   PoWGuard,
   IdentGuard,
   CaptchaGuard,
+  OAuth2Strategy,
+  OAuth2Guard,
 } from './controllers';
 import { CaptchaService, IdentService, PoWService } from './services';
 import { InvalidPayloadError } from './models/error';
@@ -70,6 +73,7 @@ import * as CvmModuleEvents from '../cvm/events';
       }),
       inject: [ConfigService],
     }),
+    PassportModule,
   ],
   controllers: [],
   providers: [
@@ -79,6 +83,8 @@ import * as CvmModuleEvents from '../cvm/events';
     PoWGuard,
     IdentGuard,
     CaptchaGuard,
+    OAuth2Strategy,
+    OAuth2Guard,
     {
       provide: ValidationPipe,
       useValue: new ValidationPipe({

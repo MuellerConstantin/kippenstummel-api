@@ -12,7 +12,7 @@ import {
   CvmDto,
   CvmClusterDto,
 } from './dtos';
-import { IdentGuard } from '../../common/controllers';
+import { IdentGuard, OAuth2Guard } from '../../common/controllers';
 
 @Controller({ path: 'cvm', version: '1' })
 export class CvmController {
@@ -29,6 +29,7 @@ export class CvmController {
     await this.commandBus.execute<RegisterCvmCommand>(command);
   }
 
+  @UseGuards(OAuth2Guard)
   @Get()
   async getAll(@Query() queryParams: GetAllCvmQueryDto): Promise<CvmPageDto> {
     const { page, perPage } = queryParams;

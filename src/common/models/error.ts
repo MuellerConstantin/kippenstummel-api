@@ -9,6 +9,7 @@ export enum ApiErrorCode {
   ACCESS_DENIED_ERROR = 'ACCESS_DENIED_ERROR',
   INVALID_IDENT_TOKEN_ERROR = 'INVALID_IDENT_TOKEN_ERROR',
   TOO_MANY_ITEMS_REQUESTED_ERROR = 'TOO_MANY_ITEMS_REQUESTED_ERROR',
+  UNAUTHENTICATED_ERROR = 'UNAUTHENTICATED_ERROR',
 }
 
 export const ApiErrorMessages: Record<ApiErrorCode, string> = {
@@ -22,6 +23,7 @@ export const ApiErrorMessages: Record<ApiErrorCode, string> = {
   [ApiErrorCode.ACCESS_DENIED_ERROR]: 'Access denied',
   [ApiErrorCode.INVALID_IDENT_TOKEN_ERROR]: 'Invalid ident token',
   [ApiErrorCode.TOO_MANY_ITEMS_REQUESTED_ERROR]: 'Too many items requested',
+  [ApiErrorCode.UNAUTHENTICATED_ERROR]: 'Unauthenticated request',
 };
 
 export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
@@ -35,6 +37,7 @@ export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
   [ApiErrorCode.ACCESS_DENIED_ERROR]: 403,
   [ApiErrorCode.INVALID_IDENT_TOKEN_ERROR]: 401,
   [ApiErrorCode.TOO_MANY_ITEMS_REQUESTED_ERROR]: 429,
+  [ApiErrorCode.UNAUTHENTICATED_ERROR]: 401,
 };
 
 export abstract class ApiError extends Error {
@@ -136,5 +139,11 @@ export class InvalidCaptchaStampError extends ApiError {
 export class TooManyItemsRequestedError extends ApiError {
   constructor(cause?: any) {
     super(ApiErrorCode.TOO_MANY_ITEMS_REQUESTED_ERROR, undefined, cause);
+  }
+}
+
+export class UnauthenticatedError extends ApiError {
+  constructor(cause?: any) {
+    super(ApiErrorCode.UNAUTHENTICATED_ERROR, undefined, cause);
   }
 }
