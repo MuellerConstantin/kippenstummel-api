@@ -27,6 +27,9 @@ export class Cvm {
 
   @Prop()
   score: number;
+
+  @Prop()
+  latestVotes: { fingerprint: string; type: 'upvote' | 'downvote' }[];
 }
 
 export const CvmSchema = SchemaFactory.createForClass(Cvm);

@@ -6,3 +6,4 @@ export { IdentGuard } from './ident.guard';
 export { CaptchaGuard } from './captcha.guard';
 export { OAuth2Strategy } from './oauth2.strategy';
 export { OAuth2Guard } from './oauth2.guard';
+export { Fingerprint } from './ident.decorator';

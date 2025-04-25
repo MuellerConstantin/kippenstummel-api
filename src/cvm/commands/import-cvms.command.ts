@@ -46,7 +46,11 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
         .exec();
 
       if (!result) {
-        const aggregate = CvmAggregate.register(cvm.longitude, cvm.latitude);
+        const aggregate = CvmAggregate.register(
+          cvm.longitude,
+          cvm.latitude,
+          null,
+        );
         await this.cvmEventStoreRepository.save(aggregate);
       } else {
         const aggregate = await this.cvmEventStoreRepository.load(

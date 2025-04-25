@@ -11,7 +11,10 @@ import { Cvm } from '../repositories/schemas';
 import { NotFoundError } from 'src/common/models';
 
 export class UpvoteCvmCommand implements ICommand {
-  constructor(public readonly id: string) {}
+  constructor(
+    public readonly id: string,
+    public readonly fingerprint: string,
+  ) {}
 }
 
 @CommandHandler(UpvoteCvmCommand)
@@ -30,7 +33,7 @@ export class UpvoteCvmCommandHandler implements ICommandHandler {
       throw new NotFoundError();
     }
 
-    aggregate.upvote();
+    aggregate.upvote(command.fingerprint);
 
     await this.cvmEventStoreRepository.save(aggregate);
   }

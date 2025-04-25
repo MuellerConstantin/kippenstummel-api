@@ -29,7 +29,7 @@ import {
   UpvoteParamsDto,
   ImportCvmsDto,
 } from './dtos';
-import { IdentGuard, OAuth2Guard } from '../../common/controllers';
+import { IdentGuard, OAuth2Guard, Fingerprint } from '../../common/controllers';
 
 @Controller({ version: '1' })
 export class CvmController {
@@ -40,24 +40,37 @@ export class CvmController {
 
   @UseGuards(IdentGuard)
   @Post('cvm')
-  async register(@Body() body: RegisterCvmDto): Promise<void> {
-    const command = new RegisterCvmCommand(body.longitude, body.latitude);
+  async register(
+    @Body() body: RegisterCvmDto,
+    @Fingerprint() fingerprint: string,
+  ): Promise<void> {
+    const command = new RegisterCvmCommand(
+      body.longitude,
+      body.latitude,
+      fingerprint,
+    );
 
     await this.commandBus.execute<RegisterCvmCommand>(command);
   }
 
   @UseGuards(IdentGuard)
   @Delete('cvm/:id')
-  async downvote(@Param() params: DownvoteParamsDto): Promise<void> {
-    const command = new DownvoteCvmCommand(params.id);
+  async downvote(
+    @Param() params: DownvoteParamsDto,
+    @Fingerprint() fingerprint: string,
+  ): Promise<void> {
+    const command = new DownvoteCvmCommand(params.id, fingerprint);
 
     await this.commandBus.execute<DownvoteCvmCommand>(command);
   }
 
   @UseGuards(IdentGuard)
   @Post('cvm/:id')
-  async upvote(@Param() params: UpvoteParamsDto): Promise<void> {
-    const command = new UpvoteCvmCommand(params.id);
+  async upvote(
+    @Param() params: UpvoteParamsDto,
+    @Fingerprint() fingerprint: string,
+  ): Promise<void> {
+    const command = new UpvoteCvmCommand(params.id, fingerprint);
 
     await this.commandBus.execute<UpvoteCvmCommand>(command);
   }

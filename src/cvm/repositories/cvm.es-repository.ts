@@ -34,6 +34,11 @@ export class CvmEventStoreRepository {
 
   async save(aggregate: CvmAggregate): Promise<void> {
     const events = aggregate.commit();
+
+    if (events.length === 0) {
+      return;
+    }
+
     const stream = EventStream.for<CvmAggregate>(CvmAggregate, aggregate.id);
 
     await this.eventStore.appendEvents(stream, aggregate.version, events);
@@ -48,6 +53,7 @@ export class CvmEventStoreRepository {
           coordinates: [aggregate.longitude, aggregate.latitude],
         },
         score: aggregate.score,
+        latestVotes: aggregate.latestVotes,
       },
       {
         upsert: true,
