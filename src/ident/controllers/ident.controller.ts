@@ -14,12 +14,12 @@ export class IdentController {
     @Req() request: Request,
     @Body() body: DeviceInfoDto,
   ): Promise<IdentTokenDto> {
-    return {
-      token: await this.identService.generateIdentToken({
-        ip: request.ip!,
-        userAgent: request.headers['user-agent']!,
-        screen: body.screen,
-      }),
-    };
+    return await this.identService.generateIdentToken({
+      ip: request.ip!,
+      acceptLanguage: request.headers['accept-language'] as string,
+      acceptEndcoding: request.headers['accept-encoding'] as string,
+      referer: request.headers['referer'] as string,
+      ...body,
+    });
   }
 }
