@@ -1,19 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import * as mongoose from 'mongoose';
+import { Cvm } from './cvm.schema';
 
 export type CvmTileDocument = HydratedDocument<CvmTile>;
-
-@Schema()
-class CvmTilePositionInfo {
-  @Prop()
-  id: string;
-
-  @Prop()
-  score: number;
-}
-
-export const CvmTilePositionInfoSchema =
-  SchemaFactory.createForClass(CvmTilePositionInfo);
 
 @Schema()
 class CvmTileCluster {
@@ -34,8 +24,8 @@ class CvmTileCluster {
     coordinates: number[];
   };
 
-  @Prop({ type: CvmTilePositionInfoSchema })
-  info: CvmTilePositionInfo;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Cvm' })
+  cvm: Cvm;
 
   @Prop()
   count: number;

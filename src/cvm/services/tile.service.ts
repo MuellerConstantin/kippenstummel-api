@@ -102,22 +102,16 @@ export class CvmTileService {
       },
     });
 
-    const geoJson: PointFeature<{ id: string; score: number }>[] = content.map(
-      (cvm) => ({
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [
-            cvm.position.coordinates[0],
-            cvm.position.coordinates[1],
-          ],
-        },
-        properties: {
-          id: cvm.id,
-          score: cvm.score,
-        },
-      }),
-    );
+    const geoJson: PointFeature<{ cvm: Cvm }>[] = content.map((cvm) => ({
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [cvm.position.coordinates[0], cvm.position.coordinates[1]],
+      },
+      properties: {
+        cvm,
+      },
+    }));
 
     const clustersIndexes = new Supercluster({
       log: false,
@@ -151,12 +145,7 @@ export class CvmTileService {
                   cluster.geometry.coordinates[1],
                 ],
               },
-              info: cluster.properties.cluster
-                ? null
-                : {
-                    id: cluster.properties.id,
-                    score: cluster.properties.score,
-                  },
+              cvm: cluster.properties.cluster ? null : cluster.properties.cvm,
               count: cluster.properties.cluster
                 ? cluster.properties.point_count
                 : null,

@@ -45,6 +45,7 @@ export class GetAllWithinQueryHandler
           z: coord.z,
         })),
       })
+      .populate('clusters.cvm')
       .exec();
 
     return data
@@ -60,10 +61,10 @@ export class GetAllWithinQueryHandler
         }
 
         return {
-          id: item.info.id,
+          id: item.cvm.id,
           longitude: item.position.coordinates[0],
           latitude: item.position.coordinates[1],
-          score: item.info.score,
+          score: item.cvm.score,
         };
       });
   }

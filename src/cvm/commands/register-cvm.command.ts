@@ -43,27 +43,25 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       })
       .exec();
 
-    let aggregate: CvmAggregate;
-
     if (!result) {
-      aggregate = CvmAggregate.register(
+      const aggregate = CvmAggregate.register(
         command.longitude,
         command.latitude,
         command.fingerprint,
       );
       await this.cvmEventStoreRepository.save(aggregate);
+
+      this.cvmTileService.updateTilesByPosition({
+        longitude: aggregate.longitude,
+        latitude: aggregate.latitude,
+      });
     } else {
-      aggregate = (await this.cvmEventStoreRepository.load(
+      const aggregate = (await this.cvmEventStoreRepository.load(
         CvmId.from(result.id),
       ))!;
       aggregate.upvote(command.fingerprint);
 
       await this.cvmEventStoreRepository.save(aggregate!);
     }
-
-    this.cvmTileService.updateTilesByPosition({
-      longitude: aggregate.longitude,
-      latitude: aggregate.latitude,
-    });
   }
 }
