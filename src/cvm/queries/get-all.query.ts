@@ -5,11 +5,7 @@ import {
 } from '@ocoda/event-sourcing';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import {
-  Pageable,
-  Page,
-  TooManyItemsRequestedError,
-} from '../../common/models';
+import { Pageable, Page } from '../../common/models';
 import { CvmProjection } from '../models';
 import { Cvm } from '../repositories/schemas';
 
@@ -24,10 +20,6 @@ export class GetAllQueryHandler
   constructor(@InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>) {}
 
   public async execute(query: GetAllQuery): Promise<Page<CvmProjection>> {
-    if (query.pageable.perPage > 1000) {
-      throw new TooManyItemsRequestedError();
-    }
-
     const skip = query.pageable.page * query.pageable.perPage;
 
     const totalElements = await this.cvmModel.countDocuments();

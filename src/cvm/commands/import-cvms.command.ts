@@ -8,6 +8,7 @@ import { Connection, Model } from 'mongoose';
 import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
+import { CvmTileService } from '../services';
 
 const NEARBY_RADIUS_IN_METERS = 10;
 
@@ -27,6 +28,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
     @InjectConnection() private readonly connection: Connection,
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
+    private readonly cvmTileService: CvmTileService,
   ) {}
 
   async execute(command: ImportCvmsCommand): Promise<void> {
@@ -62,5 +64,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
     });
 
     await Promise.allSettled(operations);
+
+    this.cvmTileService.updateTilesByPositions(command.cvms);
   }
 }

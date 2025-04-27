@@ -8,6 +8,7 @@ import { Model } from 'mongoose';
 import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
+import { CvmTileService } from '../services';
 
 const NEARBY_RADIUS_IN_METERS = 10;
 
@@ -24,6 +25,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
+    private readonly cvmTileService: CvmTileService,
   ) {}
 
   async execute(command: RegisterCvmCommand): Promise<void> {
@@ -41,20 +43,27 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       })
       .exec();
 
+    let aggregate: CvmAggregate;
+
     if (!result) {
-      const aggregate = CvmAggregate.register(
+      aggregate = CvmAggregate.register(
         command.longitude,
         command.latitude,
         command.fingerprint,
       );
       await this.cvmEventStoreRepository.save(aggregate);
     } else {
-      const aggregate = await this.cvmEventStoreRepository.load(
+      aggregate = (await this.cvmEventStoreRepository.load(
         CvmId.from(result.id),
-      );
-      aggregate!.upvote(command.fingerprint);
+      ))!;
+      aggregate.upvote(command.fingerprint);
 
       await this.cvmEventStoreRepository.save(aggregate!);
     }
+
+    this.cvmTileService.updateTilesByPosition({
+      longitude: aggregate.longitude,
+      latitude: aggregate.latitude,
+    });
   }
 }

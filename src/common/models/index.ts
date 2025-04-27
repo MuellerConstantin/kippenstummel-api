@@ -13,6 +13,5 @@ export {
   InvalidIdentTokenError,
   MalformedCaptchaStampError,
   InvalidCaptchaStampError,
-  TooManyItemsRequestedError,
   UnauthenticatedError,
 } from './error';

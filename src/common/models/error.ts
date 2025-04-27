@@ -8,7 +8,6 @@ export enum ApiErrorCode {
   INVALID_CAPTCHA_STAMP_ERROR = 'INVALID_CAPTCHA_STAMP_ERROR',
   ACCESS_DENIED_ERROR = 'ACCESS_DENIED_ERROR',
   INVALID_IDENT_TOKEN_ERROR = 'INVALID_IDENT_TOKEN_ERROR',
-  TOO_MANY_ITEMS_REQUESTED_ERROR = 'TOO_MANY_ITEMS_REQUESTED_ERROR',
   UNAUTHENTICATED_ERROR = 'UNAUTHENTICATED_ERROR',
 }
 
@@ -22,7 +21,6 @@ export const ApiErrorMessages: Record<ApiErrorCode, string> = {
   [ApiErrorCode.INVALID_CAPTCHA_STAMP_ERROR]: 'Invalid Captcha stamp',
   [ApiErrorCode.ACCESS_DENIED_ERROR]: 'Access denied',
   [ApiErrorCode.INVALID_IDENT_TOKEN_ERROR]: 'Invalid ident token',
-  [ApiErrorCode.TOO_MANY_ITEMS_REQUESTED_ERROR]: 'Too many items requested',
   [ApiErrorCode.UNAUTHENTICATED_ERROR]: 'Unauthenticated request',
 };
 
@@ -36,7 +34,6 @@ export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
   [ApiErrorCode.INVALID_CAPTCHA_STAMP_ERROR]: 403,
   [ApiErrorCode.ACCESS_DENIED_ERROR]: 403,
   [ApiErrorCode.INVALID_IDENT_TOKEN_ERROR]: 401,
-  [ApiErrorCode.TOO_MANY_ITEMS_REQUESTED_ERROR]: 429,
   [ApiErrorCode.UNAUTHENTICATED_ERROR]: 401,
 };
 
@@ -133,12 +130,6 @@ export class MalformedCaptchaStampError extends ApiError {
 export class InvalidCaptchaStampError extends ApiError {
   constructor(cause?: any) {
     super(ApiErrorCode.INVALID_CAPTCHA_STAMP_ERROR, undefined, cause);
-  }
-}
-
-export class TooManyItemsRequestedError extends ApiError {
-  constructor(cause?: any) {
-    super(ApiErrorCode.TOO_MANY_ITEMS_REQUESTED_ERROR, undefined, cause);
   }
 }
 

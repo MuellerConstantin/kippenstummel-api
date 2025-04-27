@@ -3,12 +3,11 @@ import {
   type IQueryHandler,
   QueryHandler,
 } from '@ocoda/event-sourcing';
-import type { PointFeature } from 'supercluster';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Cvm } from '../repositories/schemas';
+import { Cvm, CvmTile } from '../repositories/schemas';
 import { CvmClusterProjection, CvmProjection } from '../models';
-import { TooManyItemsRequestedError } from '../../common/models';
+import { CvmTileService } from '../services';
 
 export class GetAllWithinQuery implements IQuery {
   constructor(
@@ -23,74 +22,49 @@ export class GetAllWithinQueryHandler
   implements
     IQueryHandler<GetAllWithinQuery, (CvmProjection | CvmClusterProjection)[]>
 {
-  constructor(@InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>) {}
+  constructor(
+    @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
+    @InjectModel(CvmTile.name) private readonly cvmTileModel: Model<CvmTile>,
+    private readonly cvmTileService: CvmTileService,
+  ) {}
 
   public async execute(
     query: GetAllWithinQuery,
   ): Promise<(CvmProjection | CvmClusterProjection)[]> {
-    const Supercluster = (await import('supercluster')).default;
-
-    const content = await this.cvmModel.find({
-      position: {
-        $geoWithin: {
-          $box: [
-            [query.bottomLeft.longitude, query.bottomLeft.latitude],
-            [query.topRight.longitude, query.topRight.latitude],
-          ],
-        },
-      },
-    });
-
-    const geoJson: PointFeature<{ id: string }>[] = content.map((cvm) => ({
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: [cvm.position.coordinates[0], cvm.position.coordinates[1]],
-      },
-      properties: {
-        id: cvm.id,
-        score: cvm.score,
-      },
-    }));
-
-    const clustersIndexes = new Supercluster({
-      log: false,
-      radius: 80,
-      maxZoom: 17,
-    });
-
-    clustersIndexes.load(geoJson);
-
-    const westLon = query.bottomLeft.longitude;
-    const southLat = query.bottomLeft.latitude;
-    const eastLon = query.topRight.longitude;
-    const northLat = query.topRight.latitude;
-
-    const result = clustersIndexes.getClusters(
-      [westLon, southLat, eastLon, northLat],
+    const tiles = CvmTileService.getTilesWithinBoundingBox(
+      query.bottomLeft,
+      query.topRight,
       query.zoom,
     );
 
-    if (result.length > 1000) {
-      throw new TooManyItemsRequestedError();
-    }
+    const data = await this.cvmTileModel
+      .find({
+        $or: tiles.map((coord) => ({
+          x: coord.x,
+          y: coord.y,
+          z: coord.z,
+        })),
+      })
+      .exec();
 
-    return result.map((item) => {
-      if (item.properties.cluster) {
+    return data
+      .flatMap((item) => item.clusters)
+      .map((item) => {
+        if (item.count !== null) {
+          return {
+            cluster: true,
+            longitude: item.position.coordinates[0],
+            latitude: item.position.coordinates[1],
+            count: item.count,
+          };
+        }
+
         return {
-          cluster: true,
-          longitude: item.geometry.coordinates[0],
-          latitude: item.geometry.coordinates[1],
-          count: item.properties.point_count,
+          id: item.info.id,
+          longitude: item.position.coordinates[0],
+          latitude: item.position.coordinates[1],
+          score: item.info.score,
         };
-      }
-
-      return {
-        id: item.properties.id,
-        longitude: item.geometry.coordinates[0],
-        latitude: item.geometry.coordinates[1],
-        score: item.properties.score,
-      };
-    });
+      });
   }
 }

@@ -13,16 +13,20 @@ import {
   DownvoteCvmCommandHandler,
   ImportCvmsCommandHandler,
 } from './commands';
+import { CvmTileService } from './services';
 import { GetAllQueryHandler, GetAllWithinQueryHandler } from './queries';
 import { CvmController } from './controllers';
+import { CvmTile, CvmTileSchema } from './repositories/schemas';
 
 @Module({
   imports: [
     CommonModule,
     MongooseModule.forFeature([{ name: Cvm.name, schema: CvmSchema }]),
+    MongooseModule.forFeature([{ name: CvmTile.name, schema: CvmTileSchema }]),
   ],
   controllers: [CvmController],
   providers: [
+    CvmTileService,
     CvmEventStoreRepository,
     CvmSnapshotRepository,
     RegisterCvmCommandHandler,
