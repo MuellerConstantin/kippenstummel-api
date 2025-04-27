@@ -78,7 +78,6 @@ export class GetAllWithinQueryHandler
     return result.map((item) => {
       if (item.properties.cluster) {
         return {
-          id: item.properties.cluster_id,
           cluster: true,
           longitude: item.geometry.coordinates[0],
           latitude: item.geometry.coordinates[1],

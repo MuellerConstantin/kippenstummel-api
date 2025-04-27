@@ -6,7 +6,6 @@ export interface CvmProjection {
 }
 
 export interface CvmClusterProjection {
-  id: string;
   cluster: true;
   longitude: number;
   latitude: number;
