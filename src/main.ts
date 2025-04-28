@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { WinstonModule } from 'nest-winston';
+import * as winston from 'winston';
 import { AppModule } from './app.module';
 import {
   ApiExceptionFilter,
@@ -9,7 +11,28 @@ import {
 } from './common/controllers';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: WinstonModule.createLogger({
+      transports: [
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.colorize(),
+            winston.format.timestamp(),
+            winston.format.printf(({ timestamp, level, message, context }) => {
+              return `[${timestamp}] [${level}]${context ? ' [' + context + ']' : ''}: ${message}`;
+            }),
+          ),
+        }),
+        new winston.transports.File({
+          filename: `logs/kippenstummel-${Date.now()}.log`,
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.json(),
+          ),
+        }),
+      ],
+    }),
+  });
   const configService = app.get<ConfigService>(ConfigService);
   const defaultExceptionFilter = app.get<DefaultExceptionFilter>(
     DefaultExceptionFilter,

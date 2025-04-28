@@ -1,4 +1,4 @@
-import { Module, ValidationPipe } from '@nestjs/common';
+import { Module, ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { EventSourcingModule } from '@ocoda/event-sourcing';
@@ -77,6 +77,7 @@ import * as CvmModuleEvents from '../cvm/events';
   ],
   controllers: [],
   providers: [
+    Logger,
     DefaultExceptionFilter,
     HttpExceptionFilter,
     ApiExceptionFilter,
@@ -105,6 +106,7 @@ import * as CvmModuleEvents from '../cvm/events';
     CaptchaService,
   ],
   exports: [
+    Logger,
     EventSourcingModule,
     CacheModule,
     PoWService,
