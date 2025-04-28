@@ -14,6 +14,10 @@ import { IdentModule } from './ident/ident.module';
         `.env.${process.env.NODE_ENV}`,
         '.env.local',
         '.env',
+        `${process.env.CONFIG_DIR || './config'}/.env.${process.env.NODE_ENV}.local`,
+        `${process.env.CONFIG_DIR || './config'}/.env.${process.env.NODE_ENV}`,
+        `${process.env.CONFIG_DIR || './config'}/.env.local`,
+        `${process.env.CONFIG_DIR || './config'}/.env`,
       ],
       validationSchema: Joi.object({
         NODE_ENV: Joi.string()

@@ -24,7 +24,7 @@ async function bootstrap() {
           ),
         }),
         new winston.transports.File({
-          filename: `logs/kippenstummel-${Date.now()}.log`,
+          filename: `${process.env.LOG_DIR || './logs'}/kippenstummel-${Date.now()}.log`,
           format: winston.format.combine(
             winston.format.timestamp(),
             winston.format.json(),
