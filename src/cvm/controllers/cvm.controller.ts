@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   Post,
@@ -28,6 +27,8 @@ import {
   DownvoteParamsDto,
   UpvoteParamsDto,
   ImportCvmsDto,
+  DownvoteCvmDto,
+  UpvoteCvmDto,
 } from './dtos';
 import { IdentGuard, OAuth2Guard, Fingerprint } from '../../common/controllers';
 
@@ -38,8 +39,30 @@ export class CvmController {
     private readonly queryBus: QueryBus,
   ) {}
 
+  @Get('cvms')
+  async getAllWithin(
+    @Query() queryParams: GetAllCvmWithinQueryDto,
+  ): Promise<(CvmDto | CvmClusterDto)[]> {
+    const bottomLeft = {
+      longitude: queryParams.bottomLeftCoordinates[0],
+      latitude: queryParams.bottomLeftCoordinates[1],
+    };
+    const topRight = {
+      longitude: queryParams.topRightCoordinates[0],
+      latitude: queryParams.topRightCoordinates[1],
+    };
+
+    const query = new GetAllWithinQuery(bottomLeft, topRight, queryParams.zoom);
+    const result = await this.queryBus.execute<
+      GetAllWithinQuery,
+      (CvmProjection | CvmClusterProjection)[]
+    >(query);
+
+    return result;
+  }
+
   @UseGuards(IdentGuard)
-  @Post('cvm')
+  @Post('cvms')
   async register(
     @Body() body: RegisterCvmDto,
     @Fingerprint() fingerprint: string,
@@ -54,29 +77,41 @@ export class CvmController {
   }
 
   @UseGuards(IdentGuard)
-  @Delete('cvm/:id')
+  @Post('cvms/:id/downvote')
   async downvote(
     @Param() params: DownvoteParamsDto,
     @Fingerprint() fingerprint: string,
+    @Body() body: DownvoteCvmDto,
   ): Promise<void> {
-    const command = new DownvoteCvmCommand(params.id, fingerprint);
+    const command = new DownvoteCvmCommand(
+      params.id,
+      body.longitude,
+      body.latitude,
+      fingerprint,
+    );
 
     await this.commandBus.execute<DownvoteCvmCommand>(command);
   }
 
   @UseGuards(IdentGuard)
-  @Post('cvm/:id')
+  @Post('cvms/:id/upvote')
   async upvote(
     @Param() params: UpvoteParamsDto,
     @Fingerprint() fingerprint: string,
+    @Body() body: UpvoteCvmDto,
   ): Promise<void> {
-    const command = new UpvoteCvmCommand(params.id, fingerprint);
+    const command = new UpvoteCvmCommand(
+      params.id,
+      body.longitude,
+      body.latitude,
+      fingerprint,
+    );
 
     await this.commandBus.execute<UpvoteCvmCommand>(command);
   }
 
   @UseGuards(OAuth2Guard)
-  @Get('kmc/cvm')
+  @Get('kmc/cvms')
   async getAll(@Query() queryParams: GetAllCvmQueryDto): Promise<CvmPageDto> {
     const { page, perPage } = queryParams;
 
@@ -98,32 +133,10 @@ export class CvmController {
   }
 
   @UseGuards(OAuth2Guard)
-  @Post('kmc/cvm')
+  @Post('kmc/cvms')
   async import(@Body() body: ImportCvmsDto): Promise<void> {
     const command = new ImportCvmsCommand(body.cvms);
 
     await this.commandBus.execute<ImportCvmsCommand>(command);
-  }
-
-  @Get('cvm/within')
-  async getAllWithin(
-    @Query() queryParams: GetAllCvmWithinQueryDto,
-  ): Promise<(CvmDto | CvmClusterDto)[]> {
-    const bottomLeft = {
-      longitude: queryParams.bottomLeftCoordinates[0],
-      latitude: queryParams.bottomLeftCoordinates[1],
-    };
-    const topRight = {
-      longitude: queryParams.topRightCoordinates[0],
-      latitude: queryParams.topRightCoordinates[1],
-    };
-
-    const query = new GetAllWithinQuery(bottomLeft, topRight, queryParams.zoom);
-    const result = await this.queryBus.execute<
-      GetAllWithinQuery,
-      (CvmProjection | CvmClusterProjection)[]
-    >(query);
-
-    return result;
   }
 }

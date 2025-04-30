@@ -13,6 +13,8 @@ import { NotFoundError } from 'src/common/models';
 export class DownvoteCvmCommand implements ICommand {
   constructor(
     public readonly id: string,
+    public readonly voterLongitude: number,
+    public readonly voterLatitude: number,
     public readonly fingerprint: string,
   ) {}
 }

@@ -7,3 +7,5 @@ export { CvmClusterDto } from './cvm-cluster.dto';
 export { DownvoteParamsDto } from './downvote-params.dto';
 export { UpvoteParamsDto } from './upvote-params.dto';
 export { ImportCvmsDto } from './import-cvms.dto';
+export { UpvoteCvmDto } from './upvote-cvm.dto';
+export { DownvoteCvmDto } from './downvote-cvm.dto';
