@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { DeviceInfo, IdentToken, InvalidIdentTokenError } from '../models';
+import { IdentToken, InvalidIdentTokenError } from '../models';
 
 @Injectable()
 export class IdentService {
@@ -11,24 +11,23 @@ export class IdentService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async generateIdentToken(deviceInfo: DeviceInfo): Promise<IdentToken> {
-    const fingerprint = crypto
-      .createHash('sha256')
-      .update(JSON.stringify(deviceInfo))
-      .digest('hex');
+  async generateIdentToken(existingIdentity?: string): Promise<IdentToken> {
+    const identity = existingIdentity || crypto.randomUUID();
 
-    const token = await this.jwtService.signAsync({ fingerprint });
+    const token = await this.jwtService.signAsync({ identity });
 
-    return { identity: fingerprint, token };
+    return { identity, token };
   }
 
   async verifyIdentToken(identToken: string): Promise<string> {
     try {
-      const payload = await this.jwtService.verifyAsync(identToken, {
+      const payload = await this.jwtService.verifyAsync<{
+        identity: string;
+      }>(identToken, {
         secret: this.configService.get<string>('IDENT_SECRET'),
       });
 
-      return payload.fingerprint;
+      return payload.identity;
     } catch {
       throw new InvalidIdentTokenError();
     }
