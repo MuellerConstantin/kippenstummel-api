@@ -45,9 +45,9 @@ export class CvmEventStoreRepository {
     await this.cvmSnapshotRepository.save(aggregate.id, aggregate);
 
     await this.cvmModel.updateOne(
-      { id: aggregate.id.value },
+      { aggregate_id: aggregate.id.value },
       {
-        id: aggregate.id.value,
+        aggregate_id: aggregate.id.value,
         position: {
           type: 'Point',
           coordinates: [aggregate.longitude, aggregate.latitude],

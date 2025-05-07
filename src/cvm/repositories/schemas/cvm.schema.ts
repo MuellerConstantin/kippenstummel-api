@@ -6,7 +6,7 @@ export type CvmDocument = HydratedDocument<Cvm>;
 @Schema({ collection: 'cvms' })
 export class Cvm {
   @Prop()
-  id: string;
+  aggregate_id: string;
 
   @Prop({
     type: {

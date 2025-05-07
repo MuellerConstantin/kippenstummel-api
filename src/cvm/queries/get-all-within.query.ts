@@ -61,7 +61,7 @@ export class GetAllWithinQueryHandler
         }
 
         return {
-          id: item.cvm.id,
+          id: item.cvm.aggregate_id,
           longitude: item.position.coordinates[0],
           latitude: item.position.coordinates[1],
           score: item.cvm.score,
