@@ -18,7 +18,7 @@ export class CaptchaService {
   }
 
   protected generateText() {
-    return crypto.randomBytes(2).toString('hex');
+    return crypto.randomBytes(4).toString('hex');
   }
 
   async generateCaptcha(): Promise<Captcha> {
