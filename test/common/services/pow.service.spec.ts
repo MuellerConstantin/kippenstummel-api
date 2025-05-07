@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { PoWService } from '../../../src/common/services';
 import { InvalidPoWStampError, PoWStamp } from '../../../src/common/models';
 
-const inMemoryCache = new Map();
+const inMemoryCache = new Map<string, string>();
 
 inMemoryCache.set(
   'pow:acd001cd6286c8c14c5415301f8d9dd7',
@@ -68,7 +68,7 @@ describe('PoWService', () => {
         '20:20250409082325:sha256:acd001cd6286c8c14c5415301f8d9dd7:1614433',
       );
 
-      expect(() => powService.verifyChallenge(stamp)).rejects.toThrow(
+      await expect(() => powService.verifyChallenge(stamp)).rejects.toThrow(
         InvalidPoWStampError,
       );
     });
@@ -79,7 +79,7 @@ describe('PoWService', () => {
         '20:20250409082325:sha256:876001caba86c8c14c5415372d8d9dd7',
       );
 
-      expect(() => powService.verifyChallenge(stamp)).rejects.toThrow(
+      await expect(() => powService.verifyChallenge(stamp)).rejects.toThrow(
         InvalidPoWStampError,
       );
     });
@@ -89,12 +89,14 @@ describe('PoWService', () => {
     it('Should solve challenge successfully"', async () => {
       jest.setTimeout(10000);
 
-      const cache = app.get(CACHE_MANAGER);
+      const cache = app.get<Cache>(CACHE_MANAGER);
 
-      const rawStamp = cache.get('pow:acd001cd6286c8c14c5415301f8d9dd7');
-      const stamp = PoWStamp.fromStamp(rawStamp);
+      const rawStamp = await cache.get<string>(
+        'pow:acd001cd6286c8c14c5415301f8d9dd7',
+      );
+      const stamp = PoWStamp.fromStamp(rawStamp!);
 
-      const solvedStamp = await PoWService.solveChallenge(stamp);
+      const solvedStamp = PoWService.solveChallenge(stamp);
 
       expect(solvedStamp).toBeDefined();
       expect(solvedStamp.isSolved).toBe(true);

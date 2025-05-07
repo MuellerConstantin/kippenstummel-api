@@ -1,19 +1,20 @@
-import { ExceptionFilter, Catch, ArgumentsHost, Logger } from '@nestjs/common';
-import { HttpAdapterHost } from '@nestjs/core';
+import { Catch, ArgumentsHost, Logger } from '@nestjs/common';
+import { BaseExceptionFilter } from '@nestjs/core';
+import { Request, Response } from 'express';
 import { ApiErrorDto } from './dtos';
 import { ApiError, InternalError } from '../models/error';
 
 @Catch()
-export class DefaultExceptionFilter implements ExceptionFilter {
+export class DefaultExceptionFilter extends BaseExceptionFilter {
   private readonly logger = new Logger(DefaultExceptionFilter.name);
 
-  constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
-
   catch(exception: unknown, host: ArgumentsHost): void {
-    const { httpAdapter } = this.httpAdapterHost;
     const ctx = host.switchToHttp();
 
-    const apiError: ApiError = new InternalError(exception);
+    const apiError: ApiError =
+      exception instanceof Error
+        ? new InternalError(exception)
+        : new InternalError();
 
     this.logger.error(exception);
 
@@ -21,9 +22,9 @@ export class DefaultExceptionFilter implements ExceptionFilter {
       timestamp: apiError.timestamp.toISOString(),
       code: apiError.code,
       message: apiError.message,
-      path: httpAdapter.getRequestUrl(ctx.getRequest()),
+      path: host.switchToHttp().getRequest<Request>().url,
     };
 
-    httpAdapter.reply(ctx.getResponse(), responseBody, apiError.status);
+    ctx.getResponse<Response>().status(apiError.status).json(responseBody);
   }
 }

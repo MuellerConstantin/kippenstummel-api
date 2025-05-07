@@ -32,11 +32,14 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
   }: ISnapshot<CvmAggregate>): CvmAggregate {
     const aggregate = new CvmAggregate();
 
-    aggregate.id = CvmId.from(id);
-    aggregate.longitude = longitude;
-    aggregate.latitude = latitude;
-    aggregate.score = score;
-    aggregate.latestVotes = latestVotes;
+    aggregate.id = CvmId.from(id as string);
+    aggregate.longitude = longitude as number;
+    aggregate.latitude = latitude as number;
+    aggregate.score = score as number;
+    aggregate.latestVotes = latestVotes as {
+      identity: string;
+      type: 'upvote' | 'downvote';
+    }[];
 
     return aggregate;
   }

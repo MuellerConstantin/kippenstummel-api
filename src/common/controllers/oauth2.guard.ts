@@ -4,9 +4,9 @@ import { UnauthenticatedError } from '../models';
 
 @Injectable()
 export class OAuth2Guard extends AuthGuard('oauth2') {
-  handleRequest(err, user, info) {
+  handleRequest<TUser = string>(err: Error, user: TUser): TUser {
     if (err || !user) {
-      throw new UnauthenticatedError(err);
+      throw new UnauthenticatedError();
     }
 
     return user;

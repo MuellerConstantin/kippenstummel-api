@@ -30,7 +30,7 @@ import * as CvmModuleEvents from '../cvm/events';
   imports: [
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('MONGO_URI'),
       }),
       inject: [ConfigService],
@@ -40,7 +40,7 @@ import * as CvmModuleEvents from '../cvm/events';
       MongoDBSnapshotStoreConfig
     >({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         events: [...Object.values(CvmModuleEvents)],
         eventStore: {
           driver: MongoDBEventStore,
@@ -55,7 +55,7 @@ import * as CvmModuleEvents from '../cvm/events';
     }),
     CacheModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => {
+      useFactory: (configService: ConfigService) => {
         return {
           stores: [createKeyv({ url: configService.get<string>('REDIS_URI') })],
         };
@@ -65,7 +65,7 @@ import * as CvmModuleEvents from '../cvm/events';
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('IDENT_SECRET'),
         signOptions: {
           expiresIn: configService.get<number>('IDENT_EXPIRES_IN'),

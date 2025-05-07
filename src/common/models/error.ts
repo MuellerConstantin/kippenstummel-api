@@ -42,12 +42,12 @@ export abstract class ApiError extends Error {
   private readonly _code: ApiErrorCode;
   private readonly _timestamp: Date;
   private readonly _details?: { [key: string]: any }[];
-  private readonly _cause?: any;
+  private readonly _cause?: Error;
 
   constructor(
     code: ApiErrorCode,
     details?: { [key: string]: any }[],
-    cause?: any,
+    cause?: Error,
   ) {
     super(ApiErrorMessages[code]);
 
@@ -80,61 +80,61 @@ export abstract class ApiError extends Error {
 }
 
 export class InternalError extends ApiError {
-  constructor(cause?: any) {
+  constructor(cause?: Error) {
     super(ApiErrorCode.INTERNAL_ERROR, undefined, cause);
   }
 }
 
 export class NotFoundError extends ApiError {
-  constructor(cause?: any) {
+  constructor(cause?: Error) {
     super(ApiErrorCode.NOT_FOUND_ERROR, undefined, cause);
   }
 }
 
 export class InvalidPayloadError extends ApiError {
-  constructor(details?: { [key: string]: any }[], cause?: any) {
+  constructor(details?: { [key: string]: any }[], cause?: Error) {
     super(ApiErrorCode.INVALID_PAYLOAD_ERROR, details, cause);
   }
 }
 
 export class MalformedPoWStampError extends ApiError {
-  constructor(cause?: any) {
+  constructor(cause?: Error) {
     super(ApiErrorCode.MALFORMED_POW_STAMP_ERROR, undefined, cause);
   }
 }
 
 export class InvalidPoWStampError extends ApiError {
-  constructor(cause?: any) {
+  constructor(cause?: Error) {
     super(ApiErrorCode.INVALID_POW_STAMP_ERROR, undefined, cause);
   }
 }
 
 export class AccessDeniedError extends ApiError {
-  constructor(cause?: any) {
+  constructor(cause?: Error) {
     super(ApiErrorCode.ACCESS_DENIED_ERROR, undefined, cause);
   }
 }
 
 export class InvalidIdentTokenError extends ApiError {
-  constructor(cause?: any) {
+  constructor(cause?: Error) {
     super(ApiErrorCode.INVALID_IDENT_TOKEN_ERROR, undefined, cause);
   }
 }
 
 export class MalformedCaptchaStampError extends ApiError {
-  constructor(cause?: any) {
+  constructor(cause?: Error) {
     super(ApiErrorCode.MALFORMED_CAPTCHA_STAMP_ERROR, undefined, cause);
   }
 }
 
 export class InvalidCaptchaStampError extends ApiError {
-  constructor(cause?: any) {
+  constructor(cause?: Error) {
     super(ApiErrorCode.INVALID_CAPTCHA_STAMP_ERROR, undefined, cause);
   }
 }
 
 export class UnauthenticatedError extends ApiError {
-  constructor(cause?: any) {
+  constructor(cause?: Error) {
     super(ApiErrorCode.UNAUTHENTICATED_ERROR, undefined, cause);
   }
 }

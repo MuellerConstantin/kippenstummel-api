@@ -19,7 +19,7 @@ export class OAuth2Strategy extends PassportStrategy(Strategy, 'oauth2') {
     });
   }
 
-  async validate(payload: any) {
+  validate(payload: { sub: string }) {
     return payload.sub;
   }
 }

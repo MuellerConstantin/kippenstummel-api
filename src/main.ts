@@ -19,7 +19,8 @@ async function bootstrap() {
             winston.format.colorize(),
             winston.format.timestamp(),
             winston.format.printf(({ timestamp, level, message, context }) => {
-              return `[${timestamp}] [${level}]${context ? ' [' + context + ']' : ''}: ${message}`;
+              // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+              return `[${timestamp}] [${level}][${context}]: ${message}`;
             }),
           ),
         }),
@@ -55,4 +56,4 @@ async function bootstrap() {
   await app.listen(configService.get('PORT') ?? 8080);
 }
 
-bootstrap();
+void bootstrap();

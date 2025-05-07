@@ -76,7 +76,7 @@ export class PoWService {
     await this.cacheManager.del(`pow:${stamp.nonce}`);
   }
 
-  public static async solveChallenge(stamp: PoWStamp): Promise<PoWStamp> {
+  public static solveChallenge(stamp: PoWStamp): PoWStamp {
     let counter = 0;
 
     while (true) {

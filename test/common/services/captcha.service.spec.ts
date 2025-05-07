@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { CaptchaService } from '../../../src/common/services';
 
-const inMemoryCache = new Map();
+const inMemoryCache = new Map<string, string>();
 
 describe('PoWService', () => {
   let app: TestingModule;
