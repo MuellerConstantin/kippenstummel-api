@@ -5,6 +5,6 @@ export class CvmRegisteredEvent implements IEvent {
   constructor(
     public readonly cvmId: string,
     public readonly position: { longitude: number; latitude: number },
-    public readonly fingerprint: string | null,
+    public readonly identity: string | null,
   ) {}
 }

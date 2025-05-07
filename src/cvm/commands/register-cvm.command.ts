@@ -17,7 +17,7 @@ export class RegisterCvmCommand implements ICommand {
   constructor(
     public readonly longitude: number,
     public readonly latitude: number,
-    public readonly fingerprint: string,
+    public readonly identity: string,
   ) {}
 }
 
@@ -49,7 +49,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       const aggregate = CvmAggregate.register(
         command.longitude,
         command.latitude,
-        command.fingerprint,
+        command.identity,
       );
       await this.cvmEventStoreRepository.save(aggregate);
 
@@ -65,7 +65,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       const aggregate = (await this.cvmEventStoreRepository.load(
         CvmId.from(result.id),
       ))!;
-      aggregate.upvote(command.fingerprint);
+      aggregate.upvote(command.identity);
 
       await this.cvmEventStoreRepository.save(aggregate);
     }

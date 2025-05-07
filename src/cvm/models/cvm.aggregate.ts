@@ -23,7 +23,7 @@ export class CvmAggregate extends AggregateRoot {
   private _longitude: number;
   private _latitude: number;
   private _score: number;
-  private _latestVotes: { fingerprint: string; type: 'upvote' | 'downvote' }[] =
+  private _latestVotes: { identity: string; type: 'upvote' | 'downvote' }[] =
     [];
 
   public get id(): CvmId {
@@ -43,7 +43,7 @@ export class CvmAggregate extends AggregateRoot {
   }
 
   public get latestVotes(): {
-    fingerprint: string;
+    identity: string;
     type: 'upvote' | 'downvote';
   }[] {
     return this._latestVotes;
@@ -66,7 +66,7 @@ export class CvmAggregate extends AggregateRoot {
   }
 
   public set latestVotes(
-    latestVotes: { fingerprint: string; type: 'upvote' | 'downvote' }[],
+    latestVotes: { identity: string; type: 'upvote' | 'downvote' }[],
   ) {
     if (latestVotes.length > CvmAggregate.MAX_LATEST_VOTES) {
       latestVotes = latestVotes.slice(-CvmAggregate.MAX_LATEST_VOTES);
@@ -75,7 +75,7 @@ export class CvmAggregate extends AggregateRoot {
     this._latestVotes = latestVotes;
   }
 
-  public upvote(fingerprint: string): void {
+  public upvote(identity: string): void {
     if (this._score >= CvmAggregate.MAX_SCORE) {
       return;
     }
@@ -83,30 +83,30 @@ export class CvmAggregate extends AggregateRoot {
     const alreadyVoted = this._latestVotes
       .filter((vote) => vote.type === 'upvote')
       .some((vote) => {
-        return vote.fingerprint === fingerprint;
+        return vote.identity === identity;
       });
 
     if (alreadyVoted) {
       return;
     }
 
-    this.applyEvent(new CvmUpvotedEvent(this.id.value, fingerprint));
+    this.applyEvent(new CvmUpvotedEvent(this.id.value, identity));
   }
 
-  public downvote(fingerprint: string): void {
+  public downvote(identity: string): void {
     if (this._score <= CvmAggregate.MIN_SCORE) {
       return;
     }
 
     const alreadyVoted = this._latestVotes.some((vote) => {
-      return vote.fingerprint === fingerprint && vote.type === 'downvote';
+      return vote.identity === identity && vote.type === 'downvote';
     });
 
     if (alreadyVoted) {
       return;
     }
 
-    this.applyEvent(new CvmDownvotedEvent(this.id.value, fingerprint));
+    this.applyEvent(new CvmDownvotedEvent(this.id.value, identity));
   }
 
   public synchronize(longitude: number, latitude: number, score: number): void {
@@ -118,7 +118,7 @@ export class CvmAggregate extends AggregateRoot {
   public static register(
     longitude: number,
     latitude: number,
-    fingerprint: string | null,
+    identity: string | null,
   ): CvmAggregate {
     const aggregate = new CvmAggregate();
 
@@ -126,7 +126,7 @@ export class CvmAggregate extends AggregateRoot {
       new CvmRegisteredEvent(
         CvmId.generate().value,
         { longitude, latitude },
-        fingerprint,
+        identity,
       ),
     );
 
@@ -140,10 +140,10 @@ export class CvmAggregate extends AggregateRoot {
     this._latitude = event.position.latitude;
     this._score = 0;
 
-    if (event.fingerprint) {
+    if (event.identity) {
       this._latestVotes = [];
       this._latestVotes.push({
-        fingerprint: event.fingerprint,
+        identity: event.identity,
         type: 'upvote',
       });
     }
@@ -162,7 +162,7 @@ export class CvmAggregate extends AggregateRoot {
       this._latestVotes.shift();
     }
 
-    this._latestVotes.push({ fingerprint: event.fingerprint, type: 'upvote' });
+    this._latestVotes.push({ identity: event.identity, type: 'upvote' });
     this._score += 1;
   }
 
@@ -173,7 +173,7 @@ export class CvmAggregate extends AggregateRoot {
     }
 
     this._latestVotes.push({
-      fingerprint: event.fingerprint,
+      identity: event.identity,
       type: 'downvote',
     });
     this._score -= 1;

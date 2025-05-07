@@ -14,9 +14,9 @@ export class IdentGuard implements CanActivate {
       throw new InvalidIdentTokenError();
     }
 
-    const fingerprint = await this.identService.verifyIdentToken(identToken);
+    const identity = await this.identService.verifyIdentToken(identToken);
 
-    request['fingerprint'] = fingerprint;
+    request['identity'] = identity;
 
     return true;
   }

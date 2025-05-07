@@ -15,7 +15,7 @@ export class UpvoteCvmCommand implements ICommand {
     public readonly id: string,
     public readonly voterLongitude: number,
     public readonly voterLatitude: number,
-    public readonly fingerprint: string,
+    public readonly identity: string,
   ) {}
 }
 
@@ -35,7 +35,7 @@ export class UpvoteCvmCommandHandler implements ICommandHandler {
       throw new NotFoundError();
     }
 
-    aggregate.upvote(command.fingerprint);
+    aggregate.upvote(command.identity);
 
     await this.cvmEventStoreRepository.save(aggregate);
   }
