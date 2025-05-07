@@ -113,9 +113,12 @@ export class CvmTileService {
       },
     }));
 
-    const clustersIndexes = new Supercluster({
+    const clustersIndexes = new Supercluster<
+      { cvm: Cvm } & GeoJSON.GeoJsonProperties,
+      { cvm: Cvm } & GeoJSON.GeoJsonProperties
+    >({
       log: false,
-      radius: 80,
+      radius: 40,
       minZoom: 0,
       maxZoom: 17,
     });
@@ -147,7 +150,7 @@ export class CvmTileService {
               },
               cvm: cluster.properties.cluster ? null : cluster.properties.cvm,
               count: cluster.properties.cluster
-                ? cluster.properties.point_count
+                ? (cluster.properties.point_count as number)
                 : null,
             };
           }),
