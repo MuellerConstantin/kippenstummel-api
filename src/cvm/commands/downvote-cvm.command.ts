@@ -3,11 +3,8 @@ import {
   type ICommand,
   type ICommandHandler,
 } from '@ocoda/event-sourcing';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
-import { Cvm } from '../repositories/schemas';
 import { NotFoundError } from 'src/common/models';
 
 export class DownvoteCvmCommand implements ICommand {
@@ -23,7 +20,6 @@ export class DownvoteCvmCommand implements ICommand {
 export class DownvoteCvmCommandHandler implements ICommandHandler {
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
-    @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
   ) {}
 
   async execute(command: DownvoteCvmCommand): Promise<void> {

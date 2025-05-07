@@ -63,7 +63,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
         );
     } else {
       const aggregate = (await this.cvmEventStoreRepository.load(
-        CvmId.from(result.id),
+        CvmId.from(result.aggregate_id),
       ))!;
       aggregate.upvote(command.identity);
 

@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import {
   CommandHandler,
   type ICommand,
@@ -29,6 +30,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     private readonly cvmTileService: CvmTileService,
+    private readonly logger: Logger,
   ) {}
 
   async execute(command: ImportCvmsCommand): Promise<void> {
@@ -56,7 +58,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
         await this.cvmEventStoreRepository.save(aggregate);
       } else {
         const aggregate = await this.cvmEventStoreRepository.load(
-          CvmId.from(result.id),
+          CvmId.from(result.aggregate_id),
         );
         aggregate!.synchronize(cvm.longitude, cvm.latitude, cvm.score);
         await this.cvmEventStoreRepository.save(aggregate!);
@@ -65,6 +67,10 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
 
     await Promise.allSettled(operations);
 
-    this.cvmTileService.updateTilesByPositions(command.cvms);
+    this.cvmTileService
+      .updateTilesByPositions(command.cvms)
+      .catch((err: Error) =>
+        this.logger.error('Failed to update tiles', err.stack),
+      );
   }
 }
