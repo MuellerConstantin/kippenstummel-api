@@ -9,8 +9,8 @@ export class GetAllCvmWithinQueryDto {
   public topRight: string;
 
   @IsNumber()
-  @Min(0)
-  @Max(17)
+  @Min(12)
+  @Max(18)
   @Transform(({ value }) => Number(value))
   public zoom: number;
 

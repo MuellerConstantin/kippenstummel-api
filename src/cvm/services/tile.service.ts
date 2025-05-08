@@ -181,7 +181,8 @@ export class CvmTileService {
   async updateTilesByPositions(
     positions: { longitude: number; latitude: number }[],
   ) {
-    const zoomLevels = Array.from(Array(18).keys());
+    // Supported zoom levels are from 12 to 18
+    const zoomLevels = [...Array(7).keys()].map((n) => n + 12);
     const tiles = zoomLevels
       .map((zoom) =>
         positions
