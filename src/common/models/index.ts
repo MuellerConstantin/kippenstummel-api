@@ -1,7 +1,7 @@
 export { Pageable } from './pageable.model';
 export { Page, PageInfo } from './page.model';
 export { PoWStamp } from './pow.model';
-export { IdentToken } from './ident.model';
+export { IdentToken, IdentInfo } from './ident.model';
 export { Captcha } from './captcha.model';
 export {
   ApiError,
@@ -14,4 +14,5 @@ export {
   MalformedCaptchaStampError,
   InvalidCaptchaStampError,
   UnauthenticatedError,
+  OutOfReachError,
 } from './error';

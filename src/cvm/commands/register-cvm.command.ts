@@ -10,6 +10,7 @@ import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
 import { CvmTileService } from '../services';
+import { IdentService } from 'src/common/services';
 
 const NEARBY_RADIUS_IN_METERS = 10;
 
@@ -27,6 +28,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     private readonly cvmTileService: CvmTileService,
+    private readonly identService: IdentService,
     private readonly logger: Logger,
   ) {}
 
@@ -61,6 +63,19 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
         .catch((err: Error) =>
           this.logger.error('Failed to update tiles', err.stack),
         );
+
+      this.identService
+        .updateIdentityInfo(
+          command.identity,
+          {
+            longitude: command.longitude,
+            latitude: command.latitude,
+          },
+          'registration',
+        )
+        .catch((err: Error) =>
+          this.logger.error('Failed to update identity info', err.stack),
+        );
     } else {
       const aggregate = (await this.cvmEventStoreRepository.load(
         CvmId.from(result.aggregate_id),
@@ -68,6 +83,19 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       aggregate.upvote(command.identity);
 
       await this.cvmEventStoreRepository.save(aggregate);
+
+      this.identService
+        .updateIdentityInfo(
+          command.identity,
+          {
+            longitude: command.longitude,
+            latitude: command.latitude,
+          },
+          'upvote',
+        )
+        .catch((err: Error) =>
+          this.logger.error('Failed to update identity info', err.stack),
+        );
     }
   }
 }

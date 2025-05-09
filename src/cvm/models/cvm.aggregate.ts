@@ -75,9 +75,9 @@ export class CvmAggregate extends AggregateRoot {
     this._latestVotes = latestVotes;
   }
 
-  public upvote(identity: string): void {
+  public upvote(identity: string): boolean {
     if (this._score >= CvmAggregate.MAX_SCORE) {
-      return;
+      return false;
     }
 
     const alreadyVoted = this._latestVotes
@@ -87,15 +87,17 @@ export class CvmAggregate extends AggregateRoot {
       });
 
     if (alreadyVoted) {
-      return;
+      return false;
     }
 
     this.applyEvent(new CvmUpvotedEvent(this.id.value, identity));
+
+    return true;
   }
 
-  public downvote(identity: string): void {
+  public downvote(identity: string): boolean {
     if (this._score <= CvmAggregate.MIN_SCORE) {
-      return;
+      return false;
     }
 
     const alreadyVoted = this._latestVotes.some((vote) => {
@@ -103,10 +105,12 @@ export class CvmAggregate extends AggregateRoot {
     });
 
     if (alreadyVoted) {
-      return;
+      return false;
     }
 
     this.applyEvent(new CvmDownvotedEvent(this.id.value, identity));
+
+    return true;
   }
 
   public synchronize(longitude: number, latitude: number, score: number): void {

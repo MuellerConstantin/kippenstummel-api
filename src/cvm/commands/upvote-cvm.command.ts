@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import {
   CommandHandler,
   type ICommand,
@@ -5,7 +6,9 @@ import {
 } from '@ocoda/event-sourcing';
 import { CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
-import { NotFoundError } from 'src/common/models';
+import { NotFoundError, OutOfReachError } from 'src/common/models';
+import { IdentService } from 'src/common/services';
+import { calculateDistanceInKm } from '../../lib';
 
 export class UpvoteCvmCommand implements ICommand {
   constructor(
@@ -20,6 +23,8 @@ export class UpvoteCvmCommand implements ICommand {
 export class UpvoteCvmCommandHandler implements ICommandHandler {
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
+    private readonly identService: IdentService,
+    private readonly logger: Logger,
   ) {}
 
   async execute(command: UpvoteCvmCommand): Promise<void> {
@@ -31,8 +36,39 @@ export class UpvoteCvmCommandHandler implements ICommandHandler {
       throw new NotFoundError();
     }
 
-    aggregate.upvote(command.identity);
+    const distanceInKm = calculateDistanceInKm(
+      {
+        longitude: aggregate.longitude,
+        latitude: aggregate.latitude,
+      },
+      {
+        longitude: command.voterLongitude,
+        latitude: command.voterLatitude,
+      },
+    );
+
+    // Ensure voter is not too far away
+    if (distanceInKm > 0.5) {
+      throw new OutOfReachError();
+    }
+
+    const upvoted = aggregate.upvote(command.identity);
 
     await this.cvmEventStoreRepository.save(aggregate);
+
+    if (upvoted) {
+      this.identService
+        .updateIdentityInfo(
+          command.identity,
+          {
+            longitude: command.voterLongitude,
+            latitude: command.voterLatitude,
+          },
+          'upvote',
+        )
+        .catch((err: Error) =>
+          this.logger.error('Failed to update identity info', err.stack),
+        );
+    }
   }
 }

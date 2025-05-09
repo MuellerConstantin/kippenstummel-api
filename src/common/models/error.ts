@@ -9,6 +9,7 @@ export enum ApiErrorCode {
   ACCESS_DENIED_ERROR = 'ACCESS_DENIED_ERROR',
   INVALID_IDENT_TOKEN_ERROR = 'INVALID_IDENT_TOKEN_ERROR',
   UNAUTHENTICATED_ERROR = 'UNAUTHENTICATED_ERROR',
+  OUT_OF_REACH_ERROR = 'OUT_OF_REACH_ERROR',
 }
 
 export const ApiErrorMessages: Record<ApiErrorCode, string> = {
@@ -22,6 +23,7 @@ export const ApiErrorMessages: Record<ApiErrorCode, string> = {
   [ApiErrorCode.ACCESS_DENIED_ERROR]: 'Access denied',
   [ApiErrorCode.INVALID_IDENT_TOKEN_ERROR]: 'Invalid ident token',
   [ApiErrorCode.UNAUTHENTICATED_ERROR]: 'Unauthenticated request',
+  [ApiErrorCode.OUT_OF_REACH_ERROR]: 'Out of reach',
 };
 
 export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
@@ -35,6 +37,7 @@ export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
   [ApiErrorCode.ACCESS_DENIED_ERROR]: 403,
   [ApiErrorCode.INVALID_IDENT_TOKEN_ERROR]: 401,
   [ApiErrorCode.UNAUTHENTICATED_ERROR]: 401,
+  [ApiErrorCode.OUT_OF_REACH_ERROR]: 403,
 };
 
 export abstract class ApiError extends Error {
@@ -136,5 +139,11 @@ export class InvalidCaptchaStampError extends ApiError {
 export class UnauthenticatedError extends ApiError {
   constructor(cause?: Error) {
     super(ApiErrorCode.UNAUTHENTICATED_ERROR, undefined, cause);
+  }
+}
+
+export class OutOfReachError extends ApiError {
+  constructor(cause?: Error) {
+    super(ApiErrorCode.OUT_OF_REACH_ERROR, undefined, cause);
   }
 }
