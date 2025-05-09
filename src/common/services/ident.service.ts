@@ -52,7 +52,7 @@ export class IdentService {
     }
   }
 
-  async registerIdentity(identity: string): Promise<void> {
+  async registerIdentity(identity: string): Promise<IdentInfo> {
     const info: IdentInfo = {
       identity,
       issuedAt: new Date().getTime(),
@@ -65,6 +65,8 @@ export class IdentService {
     };
 
     await this.cacheManager.set(`ident:${identity}`, JSON.stringify(info));
+
+    return info;
   }
 
   async unregisterIdentity(identity: string): Promise<void> {
@@ -95,10 +97,10 @@ export class IdentService {
     },
     interaction: 'upvote' | 'downvote' | 'registration',
   ): Promise<void> {
-    const info = await this.getIdentityInfo(identity);
+    let info = await this.getIdentityInfo(identity);
 
     if (!info) {
-      return;
+      info = await this.registerIdentity(identity);
     }
 
     // Check for unrealistic movement
@@ -121,7 +123,7 @@ export class IdentService {
       const previousEwma =
         info.averageInteractionInterval > 0
           ? info.averageInteractionInterval
-          : info.lastInteractionAt;
+          : duration;
 
       info.averageInteractionInterval = calculateEwma(
         previousEwma,
