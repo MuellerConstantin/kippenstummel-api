@@ -118,7 +118,7 @@ export class CvmTileService {
       { cvm: Cvm } & GeoJSON.GeoJsonProperties
     >({
       log: false,
-      radius: 40,
+      radius: CvmTileService.getRadiusForZoom(tile.z),
       minZoom: 0,
       maxZoom: 17,
     });
@@ -204,5 +204,26 @@ export class CvmTileService {
     );
 
     await Promise.all(uniqueTiles.map((tile) => this.updateTile(tile)));
+  }
+
+  static getRadiusForZoom(zoom: number): number {
+    switch (zoom) {
+      case 12:
+        return 80;
+      case 13:
+        return 80;
+      case 14:
+        return 70;
+      case 15:
+        return 50;
+      case 16:
+        return 40;
+      case 17:
+        return 30;
+      case 18:
+        return 30;
+      default:
+        return 100;
+    }
   }
 }
