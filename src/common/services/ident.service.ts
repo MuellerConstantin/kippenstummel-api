@@ -148,6 +148,74 @@ export class IdentService {
     await this.cacheManager.set(`ident:${identity}`, JSON.stringify(info));
   }
 
+  async getIdentityCredibility(identity: string): Promise<number> {
+    const info = await this.getIdentityInfo(identity);
+
+    if (!info) {
+      return 0;
+    }
+
+    let score: number = 100;
+
+    // Unrealistic movement
+    const MAX_UNREALISTIC_PENALTY = 25;
+
+    const movementPenalty = Math.min(
+      info.unrealisticMovementCount * 5,
+      MAX_UNREALISTIC_PENALTY,
+    );
+
+    score -= movementPenalty;
+
+    // Interaction interval
+    const SUSPICIOUS_INTERVAL = 10 * 1000; // 10 seconds
+    const NORMAL_INTERVAL = 120 * 1000; // 2 minutes
+
+    if (info.averageInteractionInterval < SUSPICIOUS_INTERVAL) {
+      score -= 25;
+    } else if (info.averageInteractionInterval < NORMAL_INTERVAL) {
+      const ratio =
+        (NORMAL_INTERVAL - info.averageInteractionInterval) /
+        (NORMAL_INTERVAL - SUSPICIOUS_INTERVAL);
+      score -= ratio * 25;
+    }
+
+    // Voting bias
+    if (info.voting.totalCount >= 10) {
+      const upvoteRatio = info.voting.upvoteCount / info.voting.totalCount;
+      if (upvoteRatio < 0.1 || upvoteRatio > 0.9) {
+        score -= 20;
+      }
+    }
+
+    // Registration behaviour
+    if (info.registrations.totalCount >= 5 && info.voting.totalCount === 0) {
+      score -= 15; // Only registering without voting is suspicious
+    }
+
+    // Low activtity
+    const totalActions = info.voting.totalCount + info.registrations.totalCount;
+
+    if (totalActions < 3) {
+      score -= 10;
+    }
+
+    // New identity penalty
+    const FULL_TRUST_AGE = 2 * 24 * 60 * 60 * 1000; // 2 days
+    const ageMs = Date.now() - info.issuedAt;
+
+    if (ageMs < FULL_TRUST_AGE) {
+      const ageRatio = ageMs / FULL_TRUST_AGE;
+      const agePenalty = (1 - ageRatio) * 40;
+      score -= agePenalty;
+    }
+
+    // Final score
+    score = Math.max(0, Math.min(100, Math.round(score)));
+
+    return score;
+  }
+
   private static isUnrealisticallyMovement(
     lastInteractionPosition: { latitude: number; longitude: number },
     currentPosition: { latitude: number; longitude: number },
