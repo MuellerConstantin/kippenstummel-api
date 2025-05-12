@@ -7,5 +7,6 @@ export class CvmRegisteredEvent implements IEvent {
     public readonly position: { longitude: number; latitude: number },
     public readonly initialScore?: number,
     public readonly identity?: string,
+    public readonly credibility?: number,
   ) {}
 }

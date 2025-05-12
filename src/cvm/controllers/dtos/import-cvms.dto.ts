@@ -6,7 +6,9 @@ import {
   Min,
   Max,
   ValidateNested,
+  IsOptional,
 } from 'class-validator';
+import { constants } from '../../../lib';
 
 export class ImportCvmDto {
   @IsDefined()
@@ -19,11 +21,11 @@ export class ImportCvmDto {
   @IsLatitude()
   public latitude: number;
 
-  @IsDefined()
+  @IsOptional()
   @IsNumber()
-  @Min(-5)
-  @Max(5)
-  public score: number;
+  @Min(constants.MIN_CVM_SCORE)
+  @Max(constants.MAX_CVM_SCORE)
+  public score?: number;
 }
 
 export class ImportCvmsDto {

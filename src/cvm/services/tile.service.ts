@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import type { PointFeature } from 'supercluster';
 import { Cvm, CvmTile } from '../repositories/schemas';
+import { constants } from '../../lib';
 
 @Injectable()
 export class CvmTileService {
@@ -164,7 +165,11 @@ export class CvmTileService {
     longitude: number;
     latitude: number;
   }) {
-    const zoomLevels = Array.from(Array(18).keys());
+    // Supported zoom levels
+    const zoomLevels = [
+      ...Array(constants.MAX_TILE_ZOOM - constants.MIN_TILE_ZOOM + 1).keys(),
+    ].map((n) => n + constants.MIN_TILE_ZOOM);
+
     const tiles = zoomLevels
       .map((zoom) =>
         CvmTileService.latLonToTile(
@@ -181,8 +186,11 @@ export class CvmTileService {
   async updateTilesByPositions(
     positions: { longitude: number; latitude: number }[],
   ) {
-    // Supported zoom levels are from 12 to 18
-    const zoomLevels = [...Array(7).keys()].map((n) => n + 12);
+    // Supported zoom levels
+    const zoomLevels = [
+      ...Array(constants.MAX_TILE_ZOOM - constants.MIN_TILE_ZOOM + 1).keys(),
+    ].map((n) => n + constants.MIN_TILE_ZOOM);
+
     const tiles = zoomLevels
       .map((zoom) =>
         positions

@@ -53,7 +53,6 @@ export class CvmEventStoreRepository {
           coordinates: [aggregate.longitude, aggregate.latitude],
         },
         score: aggregate.score,
-        latestVotes: aggregate.latestVotes,
       },
       {
         upsert: true,

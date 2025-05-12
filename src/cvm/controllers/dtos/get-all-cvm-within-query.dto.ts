@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsLatLong, IsNumber, Max, Min } from 'class-validator';
+import { constants } from '../../../lib';
 
 export class GetAllCvmWithinQueryDto {
   @IsLatLong()
@@ -9,8 +10,8 @@ export class GetAllCvmWithinQueryDto {
   public topRight: string;
 
   @IsNumber()
-  @Min(12)
-  @Max(18)
+  @Min(constants.MIN_TILE_ZOOM)
+  @Max(constants.MAX_TILE_ZOOM)
   @Transform(({ value }) => Number(value))
   public zoom: number;
 

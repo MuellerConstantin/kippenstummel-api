@@ -8,7 +8,7 @@ import { CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { NotFoundError, OutOfReachError } from 'src/common/models';
 import { IdentService } from 'src/common/services';
-import { calculateDistanceInKm } from '../../lib';
+import { calculateDistanceInKm, constants } from '../../lib';
 
 export class UpvoteCvmCommand implements ICommand {
   constructor(
@@ -48,27 +48,28 @@ export class UpvoteCvmCommandHandler implements ICommandHandler {
     );
 
     // Ensure voter is not too far away
-    if (distanceInKm > 0.5) {
+    if (distanceInKm > constants.NEARBY_CVM_RADIUS) {
       throw new OutOfReachError();
     }
 
-    const upvoted = aggregate.upvote(command.identity);
+    const credibility = await this.identService.getIdentityCredibility(
+      command.identity,
+    );
 
+    aggregate.upvote(command.identity, credibility);
     await this.cvmEventStoreRepository.save(aggregate);
 
-    if (upvoted) {
-      this.identService
-        .updateIdentityInfo(
-          command.identity,
-          {
-            longitude: command.voterLongitude,
-            latitude: command.voterLatitude,
-          },
-          'upvote',
-        )
-        .catch((err: Error) =>
-          this.logger.error('Failed to update identity info', err.stack),
-        );
-    }
+    this.identService
+      .updateIdentityInfo(
+        command.identity,
+        {
+          longitude: command.voterLongitude,
+          latitude: command.voterLatitude,
+        },
+        'upvote',
+      )
+      .catch((err: Error) =>
+        this.logger.error('Failed to update identity info', err.stack),
+      );
   }
 }

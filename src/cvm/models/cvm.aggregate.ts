@@ -10,21 +10,16 @@ import {
   CvmDownvotedEvent,
   CvmSynchronizedEvent,
 } from '../events';
+import { constants } from '../../lib';
 
 export class CvmId extends UUID {}
 
 @Aggregate({ streamName: 'cvm' })
 export class CvmAggregate extends AggregateRoot {
-  static readonly MIN_SCORE = -5;
-  static readonly MAX_SCORE = 5;
-  static readonly MAX_LATEST_VOTES = 10;
-
   private _id: CvmId;
   private _longitude: number;
   private _latitude: number;
   private _score: number;
-  private _latestVotes: { identity: string; type: 'upvote' | 'downvote' }[] =
-    [];
 
   public get id(): CvmId {
     return this._id;
@@ -40,13 +35,6 @@ export class CvmAggregate extends AggregateRoot {
 
   public get score(): number {
     return this._score;
-  }
-
-  public get latestVotes(): {
-    identity: string;
-    type: 'upvote' | 'downvote';
-  }[] {
-    return this._latestVotes;
   }
 
   public set id(id: CvmId) {
@@ -65,52 +53,22 @@ export class CvmAggregate extends AggregateRoot {
     this._score = score;
   }
 
-  public set latestVotes(
-    latestVotes: { identity: string; type: 'upvote' | 'downvote' }[],
-  ) {
-    if (latestVotes.length > CvmAggregate.MAX_LATEST_VOTES) {
-      latestVotes = latestVotes.slice(-CvmAggregate.MAX_LATEST_VOTES);
+  public upvote(identity: string, credibility: number) {
+    if (this._score >= constants.MAX_CVM_SCORE) {
+      return;
     }
 
-    this._latestVotes = latestVotes;
+    this.applyEvent(new CvmUpvotedEvent(this.id.value, identity, credibility));
   }
 
-  public upvote(identity: string): boolean {
-    if (this._score >= CvmAggregate.MAX_SCORE) {
-      return false;
+  public downvote(identity: string, credibility: number) {
+    if (this._score <= constants.MIN_CVM_SCORE) {
+      return;
     }
 
-    const alreadyVoted = this._latestVotes
-      .filter((vote) => vote.type === 'upvote')
-      .some((vote) => {
-        return vote.identity === identity;
-      });
-
-    if (alreadyVoted) {
-      return false;
-    }
-
-    this.applyEvent(new CvmUpvotedEvent(this.id.value, identity));
-
-    return true;
-  }
-
-  public downvote(identity: string): boolean {
-    if (this._score <= CvmAggregate.MIN_SCORE) {
-      return false;
-    }
-
-    const alreadyVoted = this._latestVotes.some((vote) => {
-      return vote.identity === identity && vote.type === 'downvote';
-    });
-
-    if (alreadyVoted) {
-      return false;
-    }
-
-    this.applyEvent(new CvmDownvotedEvent(this.id.value, identity));
-
-    return true;
+    this.applyEvent(
+      new CvmDownvotedEvent(this.id.value, identity, credibility),
+    );
   }
 
   public synchronize(data: {
@@ -120,8 +78,8 @@ export class CvmAggregate extends AggregateRoot {
   }): void {
     if (
       data.score &&
-      (data.score < CvmAggregate.MIN_SCORE ||
-        data.score > CvmAggregate.MAX_SCORE)
+      (data.score < constants.MIN_CVM_SCORE ||
+        data.score > constants.MAX_CVM_SCORE)
     ) {
       throw new Error('Invalid forced score');
     }
@@ -143,8 +101,8 @@ export class CvmAggregate extends AggregateRoot {
   ): CvmAggregate {
     if (
       initialScore &&
-      (initialScore < CvmAggregate.MIN_SCORE ||
-        initialScore > CvmAggregate.MAX_SCORE)
+      (initialScore < constants.MIN_CVM_SCORE ||
+        initialScore > constants.MAX_CVM_SCORE)
     ) {
       throw new Error('Invalid initial score');
     }
@@ -169,14 +127,6 @@ export class CvmAggregate extends AggregateRoot {
     this._longitude = event.position.longitude;
     this._latitude = event.position.latitude;
     this._score = event.initialScore || 0;
-
-    if (event.identity) {
-      this._latestVotes = [];
-      this._latestVotes.push({
-        identity: event.identity,
-        type: 'upvote',
-      });
-    }
   }
 
   @EventHandler(CvmSynchronizedEvent)
@@ -196,24 +146,11 @@ export class CvmAggregate extends AggregateRoot {
 
   @EventHandler(CvmUpvotedEvent)
   onCvmUpvotedEvent(event: CvmUpvotedEvent): void {
-    if (this._latestVotes.length >= CvmAggregate.MAX_LATEST_VOTES) {
-      this._latestVotes.shift();
-    }
-
-    this._latestVotes.push({ identity: event.identity, type: 'upvote' });
-    this._score += 1;
+    this._score += event.credibility;
   }
 
   @EventHandler(CvmDownvotedEvent)
   onCvmDownvotedEvent(event: CvmDownvotedEvent): void {
-    if (this._latestVotes.length >= CvmAggregate.MAX_LATEST_VOTES) {
-      this._latestVotes.shift();
-    }
-
-    this._latestVotes.push({
-      identity: event.identity,
-      type: 'downvote',
-    });
-    this._score -= 1;
+    this._score -= event.credibility;
   }
 }

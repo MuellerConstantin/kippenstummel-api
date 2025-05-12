@@ -10,8 +10,7 @@ import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
 import { CvmTileService } from '../services';
-
-const NEARBY_RADIUS_IN_METERS = 10;
+import { constants } from '../../lib';
 
 export class ImportCvmsCommand implements ICommand {
   constructor(
@@ -42,7 +41,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
                 type: 'Point',
                 coordinates: [cvm.longitude, cvm.latitude],
               },
-              $maxDistance: NEARBY_RADIUS_IN_METERS,
+              $maxDistance: constants.SAME_CVM_RADIUS,
             },
           },
         })

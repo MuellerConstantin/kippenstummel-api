@@ -5,5 +5,6 @@ export class CvmDownvotedEvent implements IEvent {
   constructor(
     public readonly cvmId: string,
     public readonly identity: string,
+    public readonly credibility: number,
   ) {}
 }

@@ -11,8 +11,7 @@ import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
 import { CvmTileService } from '../services';
 import { IdentService } from 'src/common/services';
-
-const NEARBY_RADIUS_IN_METERS = 10;
+import { constants } from '../../lib';
 
 export class RegisterCvmCommand implements ICommand {
   constructor(
@@ -41,17 +40,21 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
               type: 'Point',
               coordinates: [command.longitude, command.latitude],
             },
-            $maxDistance: NEARBY_RADIUS_IN_METERS,
+            $maxDistance: constants.SAME_CVM_RADIUS,
           },
         },
       })
       .exec();
 
+    const credibility = await this.identService.getIdentityCredibility(
+      command.identity,
+    );
+
     if (!result) {
       const aggregate = CvmAggregate.register(
         command.longitude,
         command.latitude,
-        0,
+        credibility,
         command.identity,
       );
       await this.cvmEventStoreRepository.save(aggregate);
@@ -81,7 +84,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       const aggregate = (await this.cvmEventStoreRepository.load(
         CvmId.from(result.aggregate_id),
       ))!;
-      aggregate.upvote(command.identity);
+      aggregate.upvote(command.identity, credibility);
 
       await this.cvmEventStoreRepository.save(aggregate);
 
