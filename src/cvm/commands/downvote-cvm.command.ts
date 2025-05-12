@@ -1,9 +1,11 @@
+import { Inject } from '@nestjs/common';
 import {
   CommandHandler,
   type ICommand,
   type ICommandHandler,
 } from '@ocoda/event-sourcing';
 import { Queue } from 'bullmq';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { InjectQueue } from '@nestjs/bullmq';
 import { CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
@@ -27,6 +29,7 @@ export class DownvoteCvmCommandHandler implements ICommandHandler {
     private readonly identService: IdentService,
     @InjectQueue('credibility-computation')
     private credibilityComputationQueue: Queue,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async execute(command: DownvoteCvmCommand): Promise<void> {
@@ -53,6 +56,21 @@ export class DownvoteCvmCommandHandler implements ICommandHandler {
     if (distanceInKm > constants.NEARBY_CVM_RADIUS) {
       throw new OutOfReachError();
     }
+
+    // Ensure voter has not already voted
+    const hasVoted = await this.cacheManager.get<string>(
+      `vote:${command.id}:${command.identity}`,
+    );
+
+    if (hasVoted && hasVoted === 'true') {
+      return;
+    }
+
+    await this.cacheManager.set(
+      `vote:${command.id}:${command.identity}`,
+      'true',
+      constants.CVM_VOTE_DELAY,
+    );
 
     const credibility = await this.identService.getIdentityCredibility(
       command.identity,
