@@ -23,7 +23,12 @@ import {
   OAuth2Strategy,
   OAuth2Guard,
 } from './controllers';
-import { CaptchaService, IdentService, PoWService } from './services';
+import {
+  CaptchaService,
+  IdentService,
+  PoWService,
+  CredibilityComputationConsumer,
+} from './services';
 import { InvalidPayloadError } from './models/error';
 import * as CvmModuleEvents from '../cvm/events';
 
@@ -120,6 +125,7 @@ import * as CvmModuleEvents from '../cvm/events';
     PoWService,
     IdentService,
     CaptchaService,
+    CredibilityComputationConsumer,
   ],
   exports: [
     BullModule,

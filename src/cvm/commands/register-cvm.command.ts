@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import {
   CommandHandler,
   type ICommand,
@@ -28,8 +27,9 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     @InjectQueue('tile-computation') private tileComputationQueue: Queue,
+    @InjectQueue('credibility-computation')
+    private credibilityComputationQueue: Queue,
     private readonly identService: IdentService,
-    private readonly logger: Logger,
   ) {}
 
   async execute(command: RegisterCvmCommand): Promise<void> {
@@ -69,18 +69,14 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
         ],
       });
 
-      this.identService
-        .updateIdentityInfo(
-          command.identity,
-          {
-            longitude: command.longitude,
-            latitude: command.latitude,
-          },
-          'registration',
-        )
-        .catch((err: Error) =>
-          this.logger.error('Failed to update identity info', err.stack),
-        );
+      await this.credibilityComputationQueue.add('recompute', {
+        identity: command.identity,
+        position: {
+          longitude: command.longitude,
+          latitude: command.latitude,
+        },
+        action: 'registration',
+      });
     } else {
       const aggregate = (await this.cvmEventStoreRepository.load(
         CvmId.from(result.aggregate_id),
@@ -89,18 +85,14 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
 
       await this.cvmEventStoreRepository.save(aggregate);
 
-      this.identService
-        .updateIdentityInfo(
-          command.identity,
-          {
-            longitude: command.longitude,
-            latitude: command.latitude,
-          },
-          'upvote',
-        )
-        .catch((err: Error) =>
-          this.logger.error('Failed to update identity info', err.stack),
-        );
+      await this.credibilityComputationQueue.add('recompute', {
+        identity: command.identity,
+        position: {
+          longitude: command.longitude,
+          latitude: command.latitude,
+        },
+        action: 'upvote',
+      });
     }
   }
 }

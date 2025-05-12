@@ -1,9 +1,10 @@
-import { Logger } from '@nestjs/common';
 import {
   CommandHandler,
   type ICommand,
   type ICommandHandler,
 } from '@ocoda/event-sourcing';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 import { CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { NotFoundError, OutOfReachError } from 'src/common/models';
@@ -24,7 +25,8 @@ export class UpvoteCvmCommandHandler implements ICommandHandler {
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     private readonly identService: IdentService,
-    private readonly logger: Logger,
+    @InjectQueue('credibility-computation')
+    private credibilityComputationQueue: Queue,
   ) {}
 
   async execute(command: UpvoteCvmCommand): Promise<void> {
@@ -59,17 +61,13 @@ export class UpvoteCvmCommandHandler implements ICommandHandler {
     aggregate.upvote(command.identity, credibility);
     await this.cvmEventStoreRepository.save(aggregate);
 
-    this.identService
-      .updateIdentityInfo(
-        command.identity,
-        {
-          longitude: command.voterLongitude,
-          latitude: command.voterLatitude,
-        },
-        'upvote',
-      )
-      .catch((err: Error) =>
-        this.logger.error('Failed to update identity info', err.stack),
-      );
+    await this.credibilityComputationQueue.add('recompute', {
+      identity: command.identity,
+      position: {
+        longitude: command.voterLongitude,
+        latitude: command.voterLatitude,
+      },
+      action: 'upvote',
+    });
   }
 }
