@@ -13,7 +13,7 @@ import {
   DownvoteCvmCommandHandler,
   ImportCvmsCommandHandler,
 } from './commands';
-import { CvmTileService } from './services';
+import { CvmTileService, TileComputationConsumer } from './services';
 import { GetAllQueryHandler, GetAllWithinQueryHandler } from './queries';
 import { CvmController } from './controllers';
 import { CvmTile, CvmTileSchema } from './repositories/schemas';
@@ -35,6 +35,7 @@ import { CvmTile, CvmTileSchema } from './repositories/schemas';
     ImportCvmsCommandHandler,
     GetAllQueryHandler,
     GetAllWithinQueryHandler,
+    TileComputationConsumer,
   ],
 })
 export class CvmModule {}

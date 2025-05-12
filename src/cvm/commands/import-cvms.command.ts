@@ -1,15 +1,15 @@
-import { Logger } from '@nestjs/common';
 import {
   CommandHandler,
   type ICommand,
   type ICommandHandler,
 } from '@ocoda/event-sourcing';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
-import { CvmTileService } from '../services';
 import { constants } from 'src/lib';
 
 export class ImportCvmsCommand implements ICommand {
@@ -27,8 +27,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
-    private readonly cvmTileService: CvmTileService,
-    private readonly logger: Logger,
+    @InjectQueue('tile-computation') private tileComputationQueue: Queue,
   ) {}
 
   async execute(command: ImportCvmsCommand): Promise<void> {
@@ -69,10 +68,13 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
 
     await Promise.allSettled(operations);
 
-    this.cvmTileService
-      .updateTilesByPositions(command.cvms)
-      .catch((err: Error) =>
-        this.logger.error('Failed to update tiles', err.stack),
-      );
+    await this.tileComputationQueue.add('recompute', {
+      positions: [
+        ...command.cvms.map((cvm) => ({
+          longitude: cvm.longitude,
+          latitude: cvm.latitude,
+        })),
+      ],
+    });
   }
 }

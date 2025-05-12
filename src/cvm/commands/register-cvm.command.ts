@@ -5,11 +5,12 @@ import {
   type ICommandHandler,
 } from '@ocoda/event-sourcing';
 import { InjectModel } from '@nestjs/mongoose';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 import { Model } from 'mongoose';
 import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
-import { CvmTileService } from '../services';
 import { IdentService } from 'src/common/services';
 import { constants } from 'src/lib';
 
@@ -26,7 +27,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
-    private readonly cvmTileService: CvmTileService,
+    @InjectQueue('tile-computation') private tileComputationQueue: Queue,
     private readonly identService: IdentService,
     private readonly logger: Logger,
   ) {}
@@ -59,14 +60,14 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       );
       await this.cvmEventStoreRepository.save(aggregate);
 
-      this.cvmTileService
-        .updateTilesByPosition({
-          longitude: aggregate.longitude,
-          latitude: aggregate.latitude,
-        })
-        .catch((err: Error) =>
-          this.logger.error('Failed to update tiles', err.stack),
-        );
+      await this.tileComputationQueue.add('recompute', {
+        positions: [
+          {
+            longitude: command.longitude,
+            latitude: command.latitude,
+          },
+        ],
+      });
 
       this.identService
         .updateIdentityInfo(

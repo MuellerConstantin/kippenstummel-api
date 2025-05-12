@@ -12,6 +12,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { createKeyv } from '@keyv/redis';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { BullModule } from '@nestjs/bullmq';
 import {
   DefaultExceptionFilter,
   HttpExceptionFilter,
@@ -62,6 +63,21 @@ import * as CvmModuleEvents from '../cvm/events';
       },
       inject: [ConfigService],
     }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          url: configService.get<string>('REDIS_URI'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
+    BullModule.registerQueue({
+      name: 'tile-computation',
+    }),
+    BullModule.registerQueue({
+      name: 'credibility-computation',
+    }),
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],
@@ -106,6 +122,7 @@ import * as CvmModuleEvents from '../cvm/events';
     CaptchaService,
   ],
   exports: [
+    BullModule,
     Logger,
     EventSourcingModule,
     CacheModule,
