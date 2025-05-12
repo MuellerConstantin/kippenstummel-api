@@ -113,23 +113,49 @@ export class CvmAggregate extends AggregateRoot {
     return true;
   }
 
-  public synchronize(longitude: number, latitude: number, score: number): void {
+  public synchronize(data: {
+    longitude?: number;
+    latitude?: number;
+    score?: number;
+  }): void {
+    if (
+      data.score &&
+      (data.score < CvmAggregate.MIN_SCORE ||
+        data.score > CvmAggregate.MAX_SCORE)
+    ) {
+      throw new Error('Invalid forced score');
+    }
+
     this.applyEvent(
-      new CvmSynchronizedEvent(this.id.value, { longitude, latitude }, score),
+      new CvmSynchronizedEvent(
+        this.id.value,
+        { longitude: data.longitude, latitude: data.latitude },
+        data.score,
+      ),
     );
   }
 
   public static register(
     longitude: number,
     latitude: number,
-    identity: string | null,
+    initialScore?: number,
+    identity?: string,
   ): CvmAggregate {
+    if (
+      initialScore &&
+      (initialScore < CvmAggregate.MIN_SCORE ||
+        initialScore > CvmAggregate.MAX_SCORE)
+    ) {
+      throw new Error('Invalid initial score');
+    }
+
     const aggregate = new CvmAggregate();
 
     aggregate.applyEvent(
       new CvmRegisteredEvent(
         CvmId.generate().value,
         { longitude, latitude },
+        initialScore,
         identity,
       ),
     );
@@ -142,7 +168,7 @@ export class CvmAggregate extends AggregateRoot {
     this._id = CvmId.from(event.cvmId);
     this._longitude = event.position.longitude;
     this._latitude = event.position.latitude;
-    this._score = 0;
+    this._score = event.initialScore || 0;
 
     if (event.identity) {
       this._latestVotes = [];
@@ -155,9 +181,17 @@ export class CvmAggregate extends AggregateRoot {
 
   @EventHandler(CvmSynchronizedEvent)
   onCvmSynchronized(event: CvmSynchronizedEvent): void {
-    this._longitude = event.position.longitude;
-    this._latitude = event.position.latitude;
-    this._score = event.score;
+    if (event.position.longitude) {
+      this._longitude = event.position.longitude;
+    }
+
+    if (event.position.latitude) {
+      this._latitude = event.position.latitude;
+    }
+
+    if (event.forcedScore) {
+      this._score = event.forcedScore;
+    }
   }
 
   @EventHandler(CvmUpvotedEvent)

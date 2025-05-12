@@ -51,6 +51,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       const aggregate = CvmAggregate.register(
         command.longitude,
         command.latitude,
+        0,
         command.identity,
       );
       await this.cvmEventStoreRepository.save(aggregate);

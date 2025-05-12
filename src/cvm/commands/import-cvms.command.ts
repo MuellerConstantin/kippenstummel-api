@@ -4,8 +4,8 @@ import {
   type ICommand,
   type ICommandHandler,
 } from '@ocoda/event-sourcing';
-import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import { Connection, Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
@@ -18,7 +18,7 @@ export class ImportCvmsCommand implements ICommand {
     public readonly cvms: {
       longitude: number;
       latitude: number;
-      score: number;
+      score?: number;
     }[],
   ) {}
 }
@@ -26,7 +26,6 @@ export class ImportCvmsCommand implements ICommand {
 @CommandHandler(ImportCvmsCommand)
 export class ImportCvmsCommandHandler implements ICommandHandler {
   constructor(
-    @InjectConnection() private readonly connection: Connection,
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     private readonly cvmTileService: CvmTileService,
@@ -53,14 +52,18 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
         const aggregate = CvmAggregate.register(
           cvm.longitude,
           cvm.latitude,
-          null,
+          cvm.score,
         );
         await this.cvmEventStoreRepository.save(aggregate);
       } else {
         const aggregate = await this.cvmEventStoreRepository.load(
           CvmId.from(result.aggregate_id),
         );
-        aggregate!.synchronize(cvm.longitude, cvm.latitude, cvm.score);
+        aggregate!.synchronize({
+          longitude: cvm.longitude,
+          latitude: cvm.latitude,
+          score: cvm.score,
+        });
         await this.cvmEventStoreRepository.save(aggregate!);
       }
     });

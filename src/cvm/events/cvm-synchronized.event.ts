@@ -4,7 +4,7 @@ import { Event, type IEvent } from '@ocoda/event-sourcing';
 export class CvmSynchronizedEvent implements IEvent {
   constructor(
     public readonly cvmId: string,
-    public readonly position: { longitude: number; latitude: number },
-    public readonly score: number,
+    public readonly position: { longitude?: number; latitude?: number },
+    public readonly forcedScore?: number,
   ) {}
 }
