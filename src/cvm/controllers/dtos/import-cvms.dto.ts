@@ -8,7 +8,7 @@ import {
   ValidateNested,
   IsOptional,
 } from 'class-validator';
-import { constants } from '../../../lib';
+import { constants } from 'src/lib';
 
 export class ImportCvmDto {
   @IsDefined()

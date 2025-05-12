@@ -1,6 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsLatLong, IsNumber, Max, Min } from 'class-validator';
-import { constants } from '../../../lib';
+import { constants } from 'src/lib';
 
 export class GetAllCvmWithinQueryDto {
   @IsLatLong()

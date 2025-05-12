@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { CaptchaService } from '../../common/services';
+import { CaptchaService } from 'src/common/services';
 import { CaptchaDto } from './dtos';
 
 @Controller({ path: 'captcha', version: '1' })

@@ -15,7 +15,7 @@ import {
   UpvoteCvmCommand,
   ImportCvmsCommand,
 } from '../commands';
-import { Page } from '../../common/models';
+import { Page } from 'src/common/models';
 import { CvmClusterProjection, CvmProjection } from '../models';
 import {
   CvmPageDto,
@@ -30,7 +30,7 @@ import {
   DownvoteCvmDto,
   UpvoteCvmDto,
 } from './dtos';
-import { IdentGuard, OAuth2Guard, Identity } from '../../common/controllers';
+import { IdentGuard, OAuth2Guard, Identity } from 'src/common/controllers';
 
 @Controller({ version: '1' })
 export class CvmController {

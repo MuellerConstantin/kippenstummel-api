@@ -4,11 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { JwtService } from '@nestjs/jwt';
 import { IdentToken, IdentInfo, InvalidIdentTokenError } from '../models';
-import {
-  calculateEwma,
-  calculateDistanceInKm,
-  calculateSpeed,
-} from '../../lib';
+import { calculateEwma, calculateDistanceInKm, calculateSpeed } from 'src/lib';
 
 @Injectable()
 export class IdentService {

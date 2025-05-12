@@ -8,7 +8,7 @@ import { CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { NotFoundError, OutOfReachError } from 'src/common/models';
 import { IdentService } from 'src/common/services';
-import { calculateDistanceInKm, constants } from '../../lib';
+import { calculateDistanceInKm, constants } from 'src/lib';
 
 export class UpvoteCvmCommand implements ICommand {
   constructor(

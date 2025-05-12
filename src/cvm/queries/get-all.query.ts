@@ -5,7 +5,7 @@ import {
 } from '@ocoda/event-sourcing';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Pageable, Page } from '../../common/models';
+import { Pageable, Page } from 'src/common/models';
 import { CvmProjection } from '../models';
 import { Cvm } from '../repositories/schemas';
 

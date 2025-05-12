@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { IdentInfo } from '../../src/common/models';
+import { IdentInfo } from 'src/src/common/models';
 
 function nowMinusDays(days: number): number {
   return Date.now() - days * 24 * 60 * 60 * 1000;

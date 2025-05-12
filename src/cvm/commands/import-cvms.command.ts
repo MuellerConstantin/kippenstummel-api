@@ -10,7 +10,7 @@ import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
 import { CvmTileService } from '../services';
-import { constants } from '../../lib';
+import { constants } from 'src/lib';
 
 export class ImportCvmsCommand implements ICommand {
   constructor(

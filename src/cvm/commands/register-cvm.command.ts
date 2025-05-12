@@ -11,7 +11,7 @@ import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
 import { CvmTileService } from '../services';
 import { IdentService } from 'src/common/services';
-import { constants } from '../../lib';
+import { constants } from 'src/lib';
 
 export class RegisterCvmCommand implements ICommand {
   constructor(

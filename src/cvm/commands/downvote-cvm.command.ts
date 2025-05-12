@@ -6,9 +6,9 @@ import {
 } from '@ocoda/event-sourcing';
 import { CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
-import { NotFoundError, OutOfReachError } from '../../common/models';
-import { IdentService } from '../../common/services';
-import { calculateDistanceInKm, constants } from '../../lib';
+import { NotFoundError, OutOfReachError } from 'src/common/models';
+import { IdentService } from 'src/common/services';
+import { calculateDistanceInKm, constants } from 'src/lib';
 
 export class DownvoteCvmCommand implements ICommand {
   constructor(

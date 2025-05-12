@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { PoWService } from '../../../src/common/services';
-import { InvalidPoWStampError, PoWStamp } from '../../../src/common/models';
+import { PoWService } from 'src/../src/common/services';
+import { InvalidPoWStampError, PoWStamp } from 'src/../src/common/models';
 
 const inMemoryCache = new Map<string, string>();
 

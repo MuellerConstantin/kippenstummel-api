@@ -10,7 +10,7 @@ import {
   CvmDownvotedEvent,
   CvmSynchronizedEvent,
 } from '../events';
-import { constants } from '../../lib';
+import { constants } from 'src/lib';
 
 export class CvmId extends UUID {}
 

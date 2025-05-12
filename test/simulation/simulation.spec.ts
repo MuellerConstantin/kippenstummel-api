@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { IdentService } from '../../src/common/services';
-import { IdentInfo } from '../../src/common/models';
+import { IdentService } from 'src/src/common/services';
+import { IdentInfo } from 'src/src/common/models';
 import { JwtService } from '@nestjs/jwt';
 import {
   generateNormalIdent,
