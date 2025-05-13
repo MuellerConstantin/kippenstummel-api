@@ -4,6 +4,7 @@ import * as Joi from 'joi';
 import { CommonModule } from './common/common.module';
 import { CvmModule } from './cvm/cvm.module';
 import { IdentModule } from './ident/ident.module';
+import { KmcModule } from './kmc/kmc.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { IdentModule } from './ident/ident.module';
     CommonModule,
     CvmModule,
     IdentModule,
+    KmcModule,
   ],
   controllers: [],
   providers: [],
