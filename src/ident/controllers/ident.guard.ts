@@ -1,6 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { IdentService } from '../services';
-import { InvalidIdentTokenError } from '../models';
+import { InvalidIdentTokenError } from 'src/common/models';
 import { Request } from 'express';
 
 @Injectable()

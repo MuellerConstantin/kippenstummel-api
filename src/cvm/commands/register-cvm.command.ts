@@ -8,7 +8,7 @@ import { Model } from 'mongoose';
 import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
-import { IdentService } from 'src/common/services';
+import { IdentService } from 'src/ident/services';
 import { constants } from 'src/lib';
 
 export class RegisterCvmCommand implements ICommand {

@@ -3,12 +3,11 @@ import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { JwtService } from '@nestjs/jwt';
+import { IdentToken, IdentInfo } from '../models';
 import {
-  IdentToken,
-  IdentInfo,
   InvalidIdentTokenError,
   UnknownIdentityError,
-} from '../models';
+} from 'src/common/models';
 import { calculateEwma, calculateDistanceInKm, calculateSpeed } from 'src/lib';
 
 @Injectable()

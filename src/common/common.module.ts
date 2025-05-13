@@ -17,18 +17,9 @@ import {
   DefaultExceptionFilter,
   HttpExceptionFilter,
   ApiExceptionFilter,
-  PoWGuard,
-  IdentGuard,
-  CaptchaGuard,
   OAuth2Strategy,
   OAuth2Guard,
 } from './controllers';
-import {
-  CaptchaService,
-  IdentService,
-  PoWService,
-  CredibilityComputationConsumer,
-} from './services';
 import { InvalidPayloadError } from './models/error';
 import * as CvmModuleEvents from '../cvm/events';
 
@@ -102,9 +93,6 @@ import * as CvmModuleEvents from '../cvm/events';
     DefaultExceptionFilter,
     HttpExceptionFilter,
     ApiExceptionFilter,
-    PoWGuard,
-    IdentGuard,
-    CaptchaGuard,
     OAuth2Strategy,
     OAuth2Guard,
     {
@@ -122,22 +110,7 @@ import * as CvmModuleEvents from '../cvm/events';
         },
       }),
     },
-    PoWService,
-    IdentService,
-    CaptchaService,
-    CredibilityComputationConsumer,
   ],
-  exports: [
-    BullModule,
-    Logger,
-    EventSourcingModule,
-    CacheModule,
-    PoWService,
-    PoWGuard,
-    IdentService,
-    IdentGuard,
-    CaptchaService,
-    CaptchaGuard,
-  ],
+  exports: [BullModule, Logger, EventSourcingModule, CacheModule],
 })
 export class CommonModule {}

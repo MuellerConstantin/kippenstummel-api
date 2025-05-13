@@ -4,7 +4,7 @@ import { CaptchaService } from '../services';
 import {
   InvalidCaptchaStampError,
   MalformedCaptchaStampError,
-} from '../models';
+} from '../../common/models';
 
 @Injectable()
 export class CaptchaGuard implements CanActivate {

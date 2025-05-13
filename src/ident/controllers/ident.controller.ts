@@ -1,6 +1,7 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { IdentService } from 'src/common/services';
-import { PoWGuard, CaptchaGuard } from 'src/common/controllers';
+import { IdentService } from 'src/ident/services';
+import { PoWGuard } from './pow.guard';
+import { CaptchaGuard } from './captcha.guard';
 import { IdentityDto, IdentTokenDto } from './dtos';
 
 @Controller({ path: 'ident', version: '1' })

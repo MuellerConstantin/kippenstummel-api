@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { IdentService } from 'src/../src/common/services';
+import { IdentService } from '../../../src/ident/services';
 import { JwtService } from '@nestjs/jwt';
 
 const inMemoryCache = new Map<string, string>();

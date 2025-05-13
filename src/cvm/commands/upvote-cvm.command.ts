@@ -8,7 +8,7 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { NotFoundError, OutOfReachError } from 'src/common/models';
-import { IdentService } from 'src/common/services';
+import { IdentService } from 'src/ident/services';
 import { calculateDistanceInKm, constants } from 'src/lib';
 
 export class UpvoteCvmCommand implements ICommand {

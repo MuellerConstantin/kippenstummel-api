@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CommonModule } from 'src/common/common.module';
+import { IdentModule } from 'src/ident/ident.module';
 import {
   CvmEventStoreRepository,
   CvmSnapshotRepository,
@@ -27,6 +28,7 @@ import { CvmTile, CvmTileSchema } from './repositories/schemas';
 @Module({
   imports: [
     CommonModule,
+    IdentModule,
     MongooseModule.forFeature([{ name: Cvm.name, schema: CvmSchema }]),
     MongooseModule.forFeature([{ name: CvmTile.name, schema: CvmTileSchema }]),
   ],

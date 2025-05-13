@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { createCanvas } from 'canvas';
 import { Captcha } from '../models/captcha.model';
-import { InvalidCaptchaStampError } from '../models';
+import { InvalidCaptchaStampError } from '../../common/models';
 
 @Injectable()
 export class CaptchaService {

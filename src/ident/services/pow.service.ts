@@ -2,7 +2,8 @@ import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import * as crypto from 'crypto';
-import { PoWStamp, InvalidPoWStampError } from '../models';
+import { PoWStamp } from '../models';
+import { InvalidPoWStampError } from 'src/common/models';
 
 @Injectable()
 export class PoWService {

@@ -25,7 +25,7 @@ import {
   DownvoteCvmDto,
   UpvoteCvmDto,
 } from './dtos';
-import { IdentGuard, Identity } from 'src/common/controllers';
+import { Identity, IdentGuard } from 'src/ident/controllers';
 
 @Controller({ path: '/cvms', version: '1' })
 export class CvmController {

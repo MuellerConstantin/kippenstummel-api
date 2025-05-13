@@ -1,4 +1,4 @@
-import { MalformedPoWStampError } from './error';
+import { MalformedPoWStampError } from '../../common/models/error';
 
 export class PoWStamp {
   private readonly _difficulty: number;

@@ -1,7 +1,8 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
 import { PoWService } from '../services';
-import { InvalidPoWStampError, PoWStamp } from '../models';
+import { PoWStamp } from '../models';
+import { InvalidPoWStampError } from 'src/common/models';
 
 @Injectable()
 export class PoWGuard implements CanActivate {

@@ -1,6 +1,6 @@
 import { Controller, Get, Response } from '@nestjs/common';
 import { Response as ExpressResponse } from 'express';
-import { PoWService } from 'src/common/services';
+import { PoWService } from 'src/ident/services';
 
 @Controller({ path: 'pow', version: '1' })
 export class PoWController {
