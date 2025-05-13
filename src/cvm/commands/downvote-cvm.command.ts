@@ -4,9 +4,7 @@ import {
   type ICommand,
   type ICommandHandler,
 } from '@ocoda/event-sourcing';
-import { Queue } from 'bullmq';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { InjectQueue } from '@nestjs/bullmq';
 import { CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { NotFoundError, OutOfReachError } from 'src/common/models';
@@ -27,8 +25,6 @@ export class DownvoteCvmCommandHandler implements ICommandHandler {
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     private readonly identService: IdentService,
-    @InjectQueue('credibility-computation')
-    private credibilityComputationQueue: Queue,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -78,14 +74,5 @@ export class DownvoteCvmCommandHandler implements ICommandHandler {
 
     aggregate.downvote(command.identity, credibility);
     await this.cvmEventStoreRepository.save(aggregate);
-
-    await this.credibilityComputationQueue.add('recompute', {
-      identity: command.identity,
-      position: {
-        longitude: command.voterLongitude,
-        latitude: command.voterLatitude,
-      },
-      action: 'downvote',
-    });
   }
 }

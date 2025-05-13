@@ -33,6 +33,8 @@ export class TileComputationConsumer extends WorkerHost {
       string
     >,
   ): Promise<void> {
+    this.logger.debug(`Updating tiles...`, 'TileComputationConsumer');
+
     await this.cvmTileService.updateTilesByPositions(job.data.positions);
   }
 

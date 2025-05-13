@@ -47,7 +47,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
         .exec();
 
       if (!result) {
-        const aggregate = CvmAggregate.register(
+        const aggregate = CvmAggregate.import(
           cvm.longitude,
           cvm.latitude,
           cvm.score,
@@ -68,6 +68,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
 
     await Promise.allSettled(operations);
 
+    // Recompute tiles outside of event lifecycle to allow batch processing
     await this.tileComputationQueue.add('recompute', {
       positions: [
         ...command.cvms.map((cvm) => ({

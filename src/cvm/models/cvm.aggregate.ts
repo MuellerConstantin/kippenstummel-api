@@ -9,6 +9,7 @@ import {
   CvmUpvotedEvent,
   CvmDownvotedEvent,
   CvmSynchronizedEvent,
+  CvmImportedEvent,
 } from '../events';
 import { constants } from 'src/lib';
 
@@ -121,8 +122,42 @@ export class CvmAggregate extends AggregateRoot {
     return aggregate;
   }
 
+  public static import(
+    longitude: number,
+    latitude: number,
+    initialScore?: number,
+  ): CvmAggregate {
+    if (
+      initialScore &&
+      (initialScore < constants.MIN_CVM_SCORE ||
+        initialScore > constants.MAX_CVM_SCORE)
+    ) {
+      throw new Error('Invalid initial score');
+    }
+
+    const aggregate = new CvmAggregate();
+
+    aggregate.applyEvent(
+      new CvmImportedEvent(
+        CvmId.generate().value,
+        { longitude, latitude },
+        initialScore,
+      ),
+    );
+
+    return aggregate;
+  }
+
   @EventHandler(CvmRegisteredEvent)
   onCvmRegistered(event: CvmRegisteredEvent): void {
+    this._id = CvmId.from(event.cvmId);
+    this._longitude = event.position.longitude;
+    this._latitude = event.position.latitude;
+    this._score = event.initialScore || 0;
+  }
+
+  @EventHandler(CvmImportedEvent)
+  onCvmImported(event: CvmImportedEvent): void {
     this._id = CvmId.from(event.cvmId);
     this._longitude = event.position.longitude;
     this._latitude = event.position.latitude;

@@ -41,6 +41,11 @@ export class CredibilityComputationConsumer extends WorkerHost {
       string
     >,
   ): Promise<void> {
+    this.logger.debug(
+      `Updating credibility for identity '${job.data.identity}'...`,
+      'CredibilityComputationConsumer',
+    );
+
     await this.identService.updateIdentityInfo(
       job.data.identity,
       {
