@@ -3,7 +3,12 @@ import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { JwtService } from '@nestjs/jwt';
-import { IdentToken, IdentInfo, InvalidIdentTokenError } from '../models';
+import {
+  IdentToken,
+  IdentInfo,
+  InvalidIdentTokenError,
+  UnknownIdentityError,
+} from '../models';
 import { calculateEwma, calculateDistanceInKm, calculateSpeed } from 'src/lib';
 
 @Injectable()
@@ -148,7 +153,7 @@ export class IdentService {
     const info = await this.getIdentityInfo(identity);
 
     if (!info) {
-      return 0;
+      throw new UnknownIdentityError();
     }
 
     let score: number = 100;

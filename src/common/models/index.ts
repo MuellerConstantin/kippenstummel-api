@@ -15,4 +15,5 @@ export {
   InvalidCaptchaStampError,
   UnauthenticatedError,
   OutOfReachError,
+  UnknownIdentityError,
 } from './error';
