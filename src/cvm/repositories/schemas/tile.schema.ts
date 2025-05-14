@@ -36,7 +36,7 @@ export const CvmTileClusterSchema =
 
 CvmTileClusterSchema.index({ position: '2dsphere' });
 
-@Schema({ collection: 'cvm-tiles' })
+@Schema({ collection: 'cvm-tiles', timestamps: true })
 export class CvmTile {
   @Prop()
   x: number;

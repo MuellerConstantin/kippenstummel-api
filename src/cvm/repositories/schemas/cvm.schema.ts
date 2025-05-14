@@ -3,7 +3,7 @@ import { HydratedDocument } from 'mongoose';
 
 export type CvmDocument = HydratedDocument<Cvm>;
 
-@Schema({ collection: 'cvms' })
+@Schema({ collection: 'cvms', timestamps: true })
 export class Cvm {
   @Prop()
   aggregate_id: string;
