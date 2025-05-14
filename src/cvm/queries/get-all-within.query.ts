@@ -65,6 +65,9 @@ export class GetAllWithinQueryHandler
           longitude: item.position.coordinates[0],
           latitude: item.position.coordinates[1],
           score: item.cvm.score,
+          imported: item.cvm.imported,
+          createdAt: item.cvm.createdAt,
+          updatedAt: item.cvm.updatedAt,
         };
       });
   }

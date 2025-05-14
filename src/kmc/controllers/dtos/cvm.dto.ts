@@ -3,4 +3,7 @@ export interface CvmDto {
   longitude: number;
   latitude: number;
   score: number;
+  imported: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

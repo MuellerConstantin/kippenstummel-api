@@ -37,6 +37,9 @@ export class GetAllQueryHandler
         longitude: cvm.position.coordinates[0],
         latitude: cvm.position.coordinates[1],
         score: cvm.score,
+        imported: cvm.imported,
+        createdAt: cvm.createdAt,
+        updatedAt: cvm.updatedAt,
       })),
       info: {
         page: query.pageable.page,

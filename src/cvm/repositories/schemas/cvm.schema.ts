@@ -33,6 +33,9 @@ export class Cvm {
 
   @Prop()
   registeredBy?: string;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const CvmSchema = SchemaFactory.createForClass(Cvm);

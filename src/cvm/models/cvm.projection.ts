@@ -3,6 +3,9 @@ export interface CvmProjection {
   longitude: number;
   latitude: number;
   score: number;
+  imported: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface CvmClusterProjection {
