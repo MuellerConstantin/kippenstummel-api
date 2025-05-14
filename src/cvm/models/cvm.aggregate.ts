@@ -21,6 +21,7 @@ export class CvmAggregate extends AggregateRoot {
   private _longitude: number;
   private _latitude: number;
   private _score: number;
+  private _imported: boolean;
 
   public get id(): CvmId {
     return this._id;
@@ -38,6 +39,10 @@ export class CvmAggregate extends AggregateRoot {
     return this._score;
   }
 
+  public get imported(): boolean {
+    return this._imported;
+  }
+
   public set id(id: CvmId) {
     this._id = id;
   }
@@ -52,6 +57,10 @@ export class CvmAggregate extends AggregateRoot {
 
   public set score(score: number) {
     this._score = score;
+  }
+
+  public set imported(imported: boolean) {
+    this._imported = imported;
   }
 
   public upvote(identity: string, credibility: number) {
@@ -154,6 +163,7 @@ export class CvmAggregate extends AggregateRoot {
     this._longitude = event.position.longitude;
     this._latitude = event.position.latitude;
     this._score = event.initialScore || 0;
+    this._imported = false;
   }
 
   @EventHandler(CvmImportedEvent)
@@ -162,6 +172,7 @@ export class CvmAggregate extends AggregateRoot {
     this._longitude = event.position.longitude;
     this._latitude = event.position.latitude;
     this._score = event.initialScore || 0;
+    this._imported = true;
   }
 
   @EventHandler(CvmSynchronizedEvent)

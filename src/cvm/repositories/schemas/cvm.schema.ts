@@ -27,8 +27,15 @@ export class Cvm {
 
   @Prop()
   score: number;
+
+  @Prop()
+  imported: boolean;
+
+  @Prop()
+  registeredBy?: string;
 }
 
 export const CvmSchema = SchemaFactory.createForClass(Cvm);
 
 CvmSchema.index({ position: '2dsphere' });
+CvmSchema.index({ aggregate_id: 1 });

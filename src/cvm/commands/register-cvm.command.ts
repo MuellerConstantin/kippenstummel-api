@@ -6,8 +6,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CvmAggregate, CvmId } from '../models';
-import { CvmEventStoreRepository } from '../repositories';
-import { Cvm } from '../repositories/schemas';
+import { CvmEventStoreRepository, Cvm } from '../repositories';
 import { IdentService } from 'src/ident/services';
 import { constants } from 'src/lib';
 

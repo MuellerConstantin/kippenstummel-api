@@ -2,8 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { EventStore, EventStream } from '@ocoda/event-sourcing';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CvmAggregate, CvmId } from '../models';
-import { Cvm } from './schemas';
+import {
+  CvmAggregate,
+  CvmDownvotedEvent,
+  CvmId,
+  CvmRegisteredEvent,
+  CvmUpvotedEvent,
+} from '../models';
+import { Cvm, Vote } from './schemas';
 import { CvmSnapshotRepository } from './cvm.snapshot-repository';
 
 @Injectable()
@@ -12,6 +18,7 @@ export class CvmEventStoreRepository {
     private readonly eventStore: EventStore,
     private readonly cvmSnapshotRepository: CvmSnapshotRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
+    @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
   ) {}
 
   async load(cvmId: CvmId): Promise<CvmAggregate | undefined> {
@@ -44,7 +51,11 @@ export class CvmEventStoreRepository {
     await this.eventStore.appendEvents(stream, aggregate.version, events);
     await this.cvmSnapshotRepository.save(aggregate.id, aggregate);
 
-    await this.cvmModel.updateOne(
+    const registeredBy =
+      events.find((event) => event instanceof CvmRegisteredEvent)?.identity ||
+      undefined;
+
+    const result = await this.cvmModel.findOneAndUpdate(
       { aggregate_id: aggregate.id.value },
       {
         aggregate_id: aggregate.id.value,
@@ -53,10 +64,31 @@ export class CvmEventStoreRepository {
           coordinates: [aggregate.longitude, aggregate.latitude],
         },
         score: aggregate.score,
+        imported: aggregate.imported,
+        registeredBy,
       },
       {
         upsert: true,
+        new: true,
       },
     );
+
+    for (const event of events) {
+      if (event instanceof CvmUpvotedEvent) {
+        await this.voteModel.create({
+          identity: event.identity,
+          cvm: result._id,
+          weight: event.credibility,
+          type: 'upvote',
+        });
+      } else if (event instanceof CvmDownvotedEvent) {
+        await this.voteModel.create({
+          identity: event.identity,
+          cvm: result._id,
+          weight: event.credibility,
+          type: 'downvote',
+        });
+      }
+    }
   }
 }

@@ -7,6 +7,10 @@ import {
   CvmSnapshotRepository,
   Cvm,
   CvmSchema,
+  VoteSchema,
+  CvmTile,
+  CvmTileSchema,
+  Vote,
 } from './repositories';
 import {
   RegisterCvmCommandHandler,
@@ -23,13 +27,13 @@ import {
 } from './services';
 import { GetAllQueryHandler, GetAllWithinQueryHandler } from './queries';
 import { CvmController } from './controllers';
-import { CvmTile, CvmTileSchema } from './repositories/schemas';
 
 @Module({
   imports: [
     CommonModule,
     IdentModule,
     MongooseModule.forFeature([{ name: Cvm.name, schema: CvmSchema }]),
+    MongooseModule.forFeature([{ name: Vote.name, schema: VoteSchema }]),
     MongooseModule.forFeature([{ name: CvmTile.name, schema: CvmTileSchema }]),
   ],
   controllers: [CvmController],

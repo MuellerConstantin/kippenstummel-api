@@ -1,12 +1,12 @@
-import { Inject } from '@nestjs/common';
 import {
   CommandHandler,
   type ICommand,
   type ICommandHandler,
 } from '@ocoda/event-sourcing';
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CvmId } from '../models';
-import { CvmEventStoreRepository } from '../repositories';
+import { CvmEventStoreRepository, Vote } from '../repositories';
 import { NotFoundError, OutOfReachError } from 'src/common/models';
 import { IdentService } from 'src/ident/services';
 import { calculateDistanceInKm, constants } from 'src/lib';
@@ -25,7 +25,7 @@ export class DownvoteCvmCommandHandler implements ICommandHandler {
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     private readonly identService: IdentService,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
   ) {}
 
   async execute(command: DownvoteCvmCommand): Promise<void> {
@@ -54,19 +54,14 @@ export class DownvoteCvmCommandHandler implements ICommandHandler {
     }
 
     // Ensure voter has not already voted
-    const hasVoted = await this.cacheManager.get<string>(
-      `vote:${command.id}:${command.identity}`,
+    const hasVoted = await this.hasVotedRecently(
+      command.identity,
+      aggregate.id.value,
     );
 
-    if (hasVoted && hasVoted === 'true') {
+    if (hasVoted) {
       return;
     }
-
-    await this.cacheManager.set(
-      `vote:${command.id}:${command.identity}`,
-      'true',
-      constants.CVM_VOTE_DELAY,
-    );
 
     const credibility = await this.identService.getIdentityCredibility(
       command.identity,
@@ -74,5 +69,46 @@ export class DownvoteCvmCommandHandler implements ICommandHandler {
 
     aggregate.downvote(command.identity, credibility);
     await this.cvmEventStoreRepository.save(aggregate);
+  }
+
+  async hasVotedRecently(
+    identity: string,
+    aggregateId: string,
+  ): Promise<boolean> {
+    const recentlyLimit = new Date();
+    recentlyLimit.setDate(recentlyLimit.getDate() - constants.CVM_VOTE_DELAY);
+
+    const result = await this.voteModel.aggregate([
+      {
+        $match: {
+          identity,
+          createdAt: { $gte: recentlyLimit },
+        },
+      },
+      {
+        $lookup: {
+          from: 'cvms',
+          localField: 'cvm',
+          foreignField: '_id',
+          as: 'cvmDoc',
+        },
+      },
+      {
+        $unwind: '$cvmDoc',
+      },
+      {
+        $match: {
+          'cvmDoc.aggregate_id': aggregateId,
+        },
+      },
+      {
+        $limit: 1,
+      },
+      {
+        $project: { _id: 1 },
+      },
+    ]);
+
+    return result.length > 0;
   }
 }

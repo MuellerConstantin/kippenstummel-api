@@ -2,7 +2,11 @@ const MIN_CVM_SCORE = -500;
 const MAX_CVM_SCORE = 500;
 const MIN_TILE_ZOOM = 12;
 const MAX_TILE_ZOOM = 18;
-const CVM_VOTE_DELAY = 1_209_600;
+
+/**
+ * The number of days that a user can not vote on a CVM again.
+ */
+const CVM_VOTE_DELAY = 7;
 
 /**
  * The radius in meters where a CVM is considered "same" as another.
