@@ -1,10 +1,19 @@
 export interface VotesMetaProjection {
-  count: number;
-  totalLast7Days: number;
-  voteHistory: {
-    date: string;
-    count: number;
-    upvotes: number;
-    downvotes: number;
-  }[];
+  total: number;
+  upvotes: {
+    total: number;
+    totalLast7Days: number;
+    history: {
+      date: string;
+      count: number;
+    }[];
+  };
+  downvotes: {
+    total: number;
+    totalLast7Days: number;
+    history: {
+      date: string;
+      count: number;
+    }[];
+  };
 }

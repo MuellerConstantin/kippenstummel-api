@@ -1,10 +1,20 @@
 export interface CvmMetaProjection {
-  count: number;
-  countImported: number;
-  countRegistered: number;
-  totalLast7Days: number;
-  registrationHistory: {
-    date: string;
-    count: number;
-  }[];
+  total: number;
+  averageScore: number;
+  imports: {
+    total: number;
+    totalLast7Days: number;
+    history: {
+      date: string;
+      count: number;
+    }[];
+  };
+  registrations: {
+    total: number;
+    totalLast7Days: number;
+    history: {
+      date: string;
+      count: number;
+    }[];
+  };
 }

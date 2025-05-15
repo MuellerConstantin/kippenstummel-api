@@ -1,22 +1,41 @@
 export interface StatsDto {
-  registrations: {
-    count: number;
-    countImported: number;
-    countRegistered: number;
-    totalLast7Days: number;
-    registrationHistory: {
-      date: string;
-      count: number;
-    }[];
+  cvms: {
+    total: number;
+    averageScore: number;
+    imports: {
+      total: number;
+      totalLast7Days: number;
+      history: {
+        date: string;
+        count: number;
+      }[];
+    };
+    registrations: {
+      total: number;
+      totalLast7Days: number;
+      history: {
+        date: string;
+        count: number;
+      }[];
+    };
   };
   votes: {
-    count: number;
-    totalLast7Days: number;
-    voteHistory: {
-      date: string;
-      count: number;
-      upvotes: number;
-      downvotes: number;
-    }[];
+    total: number;
+    upvotes: {
+      total: number;
+      totalLast7Days: number;
+      history: {
+        date: string;
+        count: number;
+      }[];
+    };
+    downvotes: {
+      total: number;
+      totalLast7Days: number;
+      history: {
+        date: string;
+        count: number;
+      }[];
+    };
   };
 }

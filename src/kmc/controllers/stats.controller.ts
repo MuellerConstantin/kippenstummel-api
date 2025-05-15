@@ -29,7 +29,7 @@ export class StatsController {
     >(votesQuery);
 
     return {
-      registrations: registrationResult,
+      cvms: registrationResult,
       votes: votesResult,
     };
   }
