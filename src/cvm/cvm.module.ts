@@ -25,7 +25,12 @@ import {
   CvmUpvotedEventSubscriber,
   CvmDownvotedEventSubscriber,
 } from './services';
-import { GetAllQueryHandler, GetAllWithinQueryHandler } from './queries';
+import {
+  GetAllQueryHandler,
+  GetAllWithinQueryHandler,
+  GetMetaQueryHandler,
+  GetVotesMetaQueryHandler,
+} from './queries';
 import { CvmController } from './controllers';
 
 @Module({
@@ -47,6 +52,8 @@ import { CvmController } from './controllers';
     ImportCvmsCommandHandler,
     GetAllQueryHandler,
     GetAllWithinQueryHandler,
+    GetMetaQueryHandler,
+    GetVotesMetaQueryHandler,
     TileComputationConsumer,
     CvmRegisteredEventSubscriber,
     CvmUpvotedEventSubscriber,
