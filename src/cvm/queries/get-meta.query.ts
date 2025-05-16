@@ -72,7 +72,7 @@ export class GetMetaQueryHandler
     const startDate = new Date();
     startDate.setDate(now.getDate() - lastNDays + 1);
 
-    const result = await this.cvmModel.aggregate<{
+    const queryResult = await this.cvmModel.aggregate<{
       _id: string;
       count: number;
     }>([
@@ -95,10 +95,20 @@ export class GetMetaQueryHandler
       },
     ]);
 
-    return result.map((item) => ({
-      date: item._id,
-      count: item.count,
-    }));
+    const result = new Map(queryResult.map(({ _id, count }) => [_id, count]));
+
+    const history = Array.from({ length: lastNDays }, (_, index) => {
+      const date = new Date();
+      date.setDate(now.getDate() - lastNDays + 1 + index);
+      const key = date.toISOString().split('T')[0];
+
+      return {
+        date: key,
+        count: result.get(key) ?? 0,
+      };
+    });
+
+    return history;
   }
 
   async getImportsPerDay(lastNDays: number) {
@@ -106,7 +116,7 @@ export class GetMetaQueryHandler
     const startDate = new Date();
     startDate.setDate(now.getDate() - lastNDays + 1);
 
-    const result = await this.cvmModel.aggregate<{
+    const queryResult = await this.cvmModel.aggregate<{
       _id: string;
       count: number;
     }>([
@@ -129,10 +139,20 @@ export class GetMetaQueryHandler
       },
     ]);
 
-    return result.map((item) => ({
-      date: item._id,
-      count: item.count,
-    }));
+    const result = new Map(queryResult.map(({ _id, count }) => [_id, count]));
+
+    const history = Array.from({ length: lastNDays }, (_, index) => {
+      const date = new Date();
+      date.setDate(now.getDate() - lastNDays + 1 + index);
+      const key = date.toISOString().split('T')[0];
+
+      return {
+        date: key,
+        count: result.get(key) ?? 0,
+      };
+    });
+
+    return history;
   }
 
   async getAverageScore() {
