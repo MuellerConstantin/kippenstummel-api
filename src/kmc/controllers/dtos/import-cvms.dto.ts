@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsNumber,
   IsLongitude,
@@ -7,6 +8,7 @@ import {
   Max,
   ValidateNested,
   IsOptional,
+  IsArray,
 } from 'class-validator';
 import { constants } from 'src/lib';
 
@@ -30,6 +32,8 @@ export class ImportCvmDto {
 
 export class ImportCvmsDto {
   @IsDefined()
+  @IsArray()
   @ValidateNested({ each: true })
+  @Type(() => ImportCvmDto)
   public cvms: ImportCvmDto[];
 }

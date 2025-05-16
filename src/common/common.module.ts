@@ -22,6 +22,7 @@ import {
 } from './controllers';
 import { InvalidPayloadError } from './models/error';
 import * as CvmModuleEvents from '../cvm/events';
+import { ValidationError } from 'class-validator';
 
 @Module({
   imports: [
@@ -101,12 +102,52 @@ import * as CvmModuleEvents from '../cvm/events';
         transform: true,
         stopAtFirstError: true,
         exceptionFactory: (errors) => {
-          return new InvalidPayloadError(
-            errors.map((error) => ({
-              property: error.property,
-              message: error.constraints![Object.keys(error.constraints!)[0]],
-            })),
-          );
+          const flattenValidationErrors = (
+            errors: ValidationError[],
+            parentPath = '',
+          ): Array<{
+            property: string;
+            constraint: string;
+            message: string;
+          }> => {
+            const result: Array<{
+              property: string;
+              constraint: string;
+              message: string;
+            }> = [];
+
+            for (const error of errors) {
+              const propertyPath = parentPath
+                ? `${parentPath}.${error.property}`
+                : error.property;
+
+              if (error.constraints) {
+                const constraints = Object.entries(error.constraints);
+
+                for (const constraint of constraints) {
+                  const name = constraint[0];
+                  const message = constraint[1];
+
+                  result.push({
+                    property: propertyPath,
+                    constraint: name,
+                    message,
+                  });
+                }
+              }
+
+              if (error.children?.length) {
+                result.push(
+                  ...flattenValidationErrors(error.children, propertyPath),
+                );
+              }
+            }
+
+            return result;
+          };
+
+          const flatErrors = flattenValidationErrors(errors);
+          return new InvalidPayloadError(flatErrors);
         },
       }),
     },
