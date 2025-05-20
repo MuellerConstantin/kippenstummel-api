@@ -1,7 +1,6 @@
 import * as crypto from 'crypto';
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { JwtService } from '@nestjs/jwt';
 import { IdentToken, IdentInfo } from '../models';
 import {
@@ -9,13 +8,16 @@ import {
   UnknownIdentityError,
 } from 'src/common/models';
 import { calculateEwma, calculateDistanceInKm, calculateSpeed } from 'src/lib';
+import { InjectModel } from '@nestjs/mongoose';
+import { Ident } from '../repositories';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class IdentService {
   constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    @InjectModel(Ident.name) private readonly identModel: Model<Ident>,
   ) {}
 
   async generateIdentToken(existingIdentity?: string): Promise<IdentToken> {
@@ -55,38 +57,56 @@ export class IdentService {
   async registerIdentity(identity: string): Promise<IdentInfo> {
     const info: IdentInfo = {
       identity,
-      issuedAt: new Date().getTime(),
-      lastInteractionAt: null,
+      issuedAt: new Date(),
+      lastInteractionAt: undefined,
       averageInteractionInterval: 0,
-      lastInteractionPosition: null,
+      lastInteractionPosition: undefined,
       unrealisticMovementCount: 0,
       voting: { totalCount: 0, upvoteCount: 0, downvoteCount: 0 },
       registrations: { totalCount: 0 },
     };
 
-    await this.cacheManager.set(`ident:${identity}`, JSON.stringify(info));
+    await this.identModel.create(info);
 
     return info;
   }
 
   async unregisterIdentity(identity: string): Promise<void> {
-    await this.cacheManager.del(`ident:${identity}`);
+    await this.identModel.deleteOne({ identity });
   }
 
   async existsIdentity(identity: string): Promise<boolean> {
-    const value = await this.cacheManager.get<string>(`ident:${identity}`);
-
-    return !!value;
+    return (await this.identModel.countDocuments({ identity })) > 0;
   }
 
   async getIdentityInfo(identity: string): Promise<IdentInfo | null> {
-    const value = await this.cacheManager.get<string>(`ident:${identity}`);
+    const result = await this.identModel.findOne({ identity }).exec();
 
-    if (!value) {
+    if (!result) {
       return null;
     }
 
-    return JSON.parse(value) as IdentInfo;
+    return {
+      identity: result.identity,
+      issuedAt: result.issuedAt,
+      lastInteractionAt: result.lastInteractionAt,
+      averageInteractionInterval: result.averageInteractionInterval,
+      unrealisticMovementCount: result.unrealisticMovementCount,
+      lastInteractionPosition: result.lastInteractionPosition
+        ? {
+            longitude: result.lastInteractionPosition.coordinates[0],
+            latitude: result.lastInteractionPosition.coordinates[1],
+          }
+        : undefined,
+      voting: {
+        totalCount: result.voting.totalCount,
+        upvoteCount: result.voting.upvoteCount,
+        downvoteCount: result.voting.downvoteCount,
+      },
+      registrations: {
+        totalCount: result.registrations.totalCount,
+      },
+    };
   }
 
   async updateIdentityInfo(
@@ -119,7 +139,7 @@ export class IdentService {
 
     // Calculate average interaction interval
     if (info.lastInteractionAt) {
-      const duration = new Date().getTime() - info.lastInteractionAt;
+      const duration = new Date().getTime() - info.lastInteractionAt.getTime();
       const previousEwma =
         info.averageInteractionInterval > 0
           ? info.averageInteractionInterval
@@ -132,7 +152,7 @@ export class IdentService {
       );
     }
 
-    info.lastInteractionAt = new Date().getTime();
+    info.lastInteractionAt = new Date();
     info.lastInteractionPosition = location;
 
     if (interaction === 'upvote') {
@@ -145,7 +165,16 @@ export class IdentService {
       info.registrations.totalCount++;
     }
 
-    await this.cacheManager.set(`ident:${identity}`, JSON.stringify(info));
+    await this.identModel.updateOne(
+      { identity },
+      {
+        ...info,
+        lastInteractionPosition: {
+          type: 'Point',
+          coordinates: [location.longitude, location.latitude],
+        },
+      },
+    );
   }
 
   async getIdentityCredibility(identity: string): Promise<number> {
@@ -202,7 +231,7 @@ export class IdentService {
 
     // New identity penalty
     const FULL_TRUST_AGE = 2 * 24 * 60 * 60 * 1000; // 2 days
-    const ageMs = Date.now() - info.issuedAt;
+    const ageMs = Date.now() - info.issuedAt.getTime();
 
     if (ageMs < FULL_TRUST_AGE) {
       const ageRatio = ageMs / FULL_TRUST_AGE;
@@ -219,7 +248,7 @@ export class IdentService {
   private static isUnrealisticallyMovement(
     lastInteractionPosition: { latitude: number; longitude: number },
     currentPosition: { latitude: number; longitude: number },
-    lastInteractionAt: number,
+    lastInteractionAt: Date,
   ): boolean {
     const distance = calculateDistanceInKm(
       lastInteractionPosition,
@@ -228,7 +257,7 @@ export class IdentService {
     const speed = calculateSpeed(
       lastInteractionPosition,
       currentPosition,
-      lastInteractionAt,
+      lastInteractionAt.getTime(),
     );
 
     let maxAllowedSpeed: number;

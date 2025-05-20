@@ -5,7 +5,7 @@ import { Cvm } from './cvm.schema';
 
 export type CvmTileDocument = HydratedDocument<CvmTile>;
 
-@Schema()
+@Schema({ _id: false })
 class CvmTileCluster {
   @Prop({
     type: {

@@ -5,10 +5,10 @@ export interface IdentToken {
 
 export interface IdentInfo {
   identity: string;
-  issuedAt: number;
-  lastInteractionAt: number | null;
+  issuedAt: Date;
+  lastInteractionAt?: Date;
   averageInteractionInterval: number;
-  lastInteractionPosition: { longitude: number; latitude: number } | null;
+  lastInteractionPosition?: { longitude: number; latitude: number };
   unrealisticMovementCount: number;
   voting: {
     totalCount: number;

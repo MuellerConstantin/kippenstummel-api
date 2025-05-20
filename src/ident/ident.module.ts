@@ -14,9 +14,14 @@ import {
   PoWService,
   CredibilityComputationConsumer,
 } from './services';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Ident, IdentSchema } from './repositories';
 
 @Module({
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    MongooseModule.forFeature([{ name: Ident.name, schema: IdentSchema }]),
+  ],
   controllers: [PoWController, IdentController, CaptchaController],
   providers: [
     PoWService,
