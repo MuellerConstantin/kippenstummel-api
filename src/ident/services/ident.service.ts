@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { IdentToken, IdentInfo } from '../models';
+import { IdentToken, IdentInfo, IdentMetadata } from '../models';
 import {
   InvalidIdentTokenError,
   UnknownIdentityError,
@@ -245,6 +245,27 @@ export class IdentService {
     return score;
   }
 
+  async getMetadata(lastNDays: number): Promise<IdentMetadata> {
+    const totalElements = await this.identModel.countDocuments();
+
+    const newHistory = await this.getNewIdentsPerDay(lastNDays);
+
+    const totalNewLast7Days =
+      lastNDays >= 7
+        ? newHistory.slice(-7).reduce((acc, item) => {
+            return acc + item.count;
+          }, 0)
+        : (await this.getNewIdentsPerDay(7)).reduce((acc, item) => {
+            return acc + item.count;
+          }, 0);
+
+    return {
+      total: totalElements,
+      totalNewLast7Days,
+      newHistory,
+    };
+  }
+
   private static isUnrealisticallyMovement(
     lastInteractionPosition: { latitude: number; longitude: number },
     currentPosition: { latitude: number; longitude: number },
@@ -283,5 +304,48 @@ export class IdentService {
     }
 
     return speed > maxAllowedSpeed;
+  }
+
+  private async getNewIdentsPerDay(lastNDays: number) {
+    const now = new Date();
+    const startDate = new Date();
+    startDate.setDate(now.getDate() - lastNDays + 1);
+
+    const queryResult = await this.identModel
+      .aggregate<{
+        _id: string;
+        count: number;
+      }>([
+        {
+          $match: {
+            issuedAt: { $gte: startDate, $lte: now },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              $dateToString: { format: '%Y-%m-%d', date: '$issuedAt' },
+            },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+      ])
+      .exec();
+
+    const result = new Map(queryResult.map(({ _id, count }) => [_id, count]));
+
+    const history = Array.from({ length: lastNDays }, (_, index) => {
+      const date = new Date();
+      date.setDate(now.getDate() - lastNDays + 1 + index);
+      const key = date.toISOString().split('T')[0];
+
+      return {
+        date: key,
+        count: result.get(key) ?? 0,
+      };
+    });
+
+    return history;
   }
 }

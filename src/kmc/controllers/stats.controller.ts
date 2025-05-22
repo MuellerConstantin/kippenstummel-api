@@ -4,6 +4,7 @@ import { OAuth2Guard } from 'src/common/controllers';
 import { StatsDto, GetStatsQueryDto } from './dtos';
 import { GetMetaQuery, GetVotesMetaQuery } from 'src/cvm/queries';
 import { CvmMetaProjection, VotesMetaProjection } from 'src/cvm/models';
+import { IdentService } from 'src/ident/services';
 
 @Controller({ path: '/kmc/stats', version: '1' })
 @UseGuards(OAuth2Guard)
@@ -11,6 +12,7 @@ export class StatsController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
+    private readonly identService: IdentService,
   ) {}
 
   @Get()
@@ -28,9 +30,14 @@ export class StatsController {
       VotesMetaProjection
     >(votesQuery);
 
+    const indentResult = await this.identService.getMetadata(
+      queryParams.lastNDays,
+    );
+
     return {
       cvms: registrationResult,
       votes: votesResult,
+      idents: indentResult,
     };
   }
 }
