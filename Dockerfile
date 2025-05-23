@@ -1,4 +1,4 @@
-FROM node:20 as builder
+FROM node:20 AS builder
 
 RUN mkdir -p /usr/local/src/kippenstummel/api
 WORKDIR /usr/local/src/kippenstummel/api

@@ -22,7 +22,7 @@ import { KmcModule } from './kmc/kmc.module';
       ],
       validationSchema: Joi.object({
         NODE_ENV: Joi.string()
-          .valid('development', 'production', 'test')
+          .valid('development', 'production', 'test', 'staging')
           .required(),
         PORT: Joi.number().default(8080),
         MONGO_URI: Joi.string().uri().required(),
