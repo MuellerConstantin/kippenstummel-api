@@ -46,7 +46,7 @@ export class CredibilityComputationConsumer extends WorkerHost {
       'CredibilityComputationConsumer',
     );
 
-    await this.identService.updateIdentityInfo(
+    await this.identService.updateIdentity(
       job.data.identity,
       {
         longitude: job.data.position.longitude,

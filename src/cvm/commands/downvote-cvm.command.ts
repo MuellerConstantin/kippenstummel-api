@@ -63,11 +63,9 @@ export class DownvoteCvmCommandHandler implements ICommandHandler {
       return;
     }
 
-    const credibility = await this.identService.getIdentityCredibility(
-      command.identity,
-    );
+    const info = await this.identService.getIdentity(command.identity);
 
-    aggregate.downvote(command.identity, credibility);
+    aggregate.downvote(command.identity, info.credibility);
     await this.cvmEventStoreRepository.save(aggregate);
   }
 

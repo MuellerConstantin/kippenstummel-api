@@ -5,6 +5,7 @@ export interface IdentToken {
 
 export interface IdentInfo {
   identity: string;
+  credibility: number;
   issuedAt: Date;
   lastInteractionAt?: Date;
   averageInteractionInterval: number;

@@ -41,15 +41,13 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       })
       .exec();
 
-    const credibility = await this.identService.getIdentityCredibility(
-      command.identity,
-    );
+    const info = await this.identService.getIdentity(command.identity);
 
     if (!result) {
       const aggregate = CvmAggregate.register(
         command.longitude,
         command.latitude,
-        credibility,
+        info.credibility,
         command.identity,
       );
       await this.cvmEventStoreRepository.save(aggregate);
@@ -57,7 +55,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       const aggregate = (await this.cvmEventStoreRepository.load(
         CvmId.from(result.aggregate_id),
       ))!;
-      aggregate.upvote(command.identity, credibility);
+      aggregate.upvote(command.identity, info.credibility);
 
       await this.cvmEventStoreRepository.save(aggregate);
     }

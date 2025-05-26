@@ -57,6 +57,7 @@ export class IdentService {
   async registerIdentity(identity: string): Promise<IdentInfo> {
     const info: IdentInfo = {
       identity,
+      credibility: 0,
       issuedAt: new Date(),
       lastInteractionAt: undefined,
       averageInteractionInterval: 0,
@@ -65,6 +66,8 @@ export class IdentService {
       voting: { totalCount: 0, upvoteCount: 0, downvoteCount: 0 },
       registrations: { totalCount: 0 },
     };
+
+    info.credibility = IdentService.computeCredibility(info);
 
     await this.identModel.create(info);
 
@@ -79,15 +82,16 @@ export class IdentService {
     return (await this.identModel.countDocuments({ identity })) > 0;
   }
 
-  async getIdentityInfo(identity: string): Promise<IdentInfo | null> {
+  async getIdentity(identity: string): Promise<IdentInfo> {
     const result = await this.identModel.findOne({ identity }).exec();
 
     if (!result) {
-      return null;
+      throw new UnknownIdentityError();
     }
 
     return {
       identity: result.identity,
+      credibility: result.credibility,
       issuedAt: result.issuedAt,
       lastInteractionAt: result.lastInteractionAt,
       averageInteractionInterval: result.averageInteractionInterval,
@@ -109,7 +113,21 @@ export class IdentService {
     };
   }
 
-  async updateIdentityInfo(
+  async getOrRegisterIdentity(identity: string): Promise<IdentInfo> {
+    try {
+      const info = await this.getIdentity(identity);
+
+      return info;
+    } catch (error) {
+      if (error instanceof UnknownIdentityError) {
+        return await this.registerIdentity(identity);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  async updateIdentity(
     identity: string,
     location: {
       longitude: number;
@@ -117,11 +135,7 @@ export class IdentService {
     },
     interaction: 'upvote' | 'downvote' | 'registration',
   ): Promise<void> {
-    let info = await this.getIdentityInfo(identity);
-
-    if (!info) {
-      info = await this.registerIdentity(identity);
-    }
+    const info = await this.getOrRegisterIdentity(identity);
 
     // Check for unrealistic movement
     if (info.lastInteractionPosition && info.lastInteractionAt) {
@@ -165,6 +179,8 @@ export class IdentService {
       info.registrations.totalCount++;
     }
 
+    info.credibility = IdentService.computeCredibility(info);
+
     await this.identModel.updateOne(
       { identity },
       {
@@ -177,13 +193,7 @@ export class IdentService {
     );
   }
 
-  async getIdentityCredibility(identity: string): Promise<number> {
-    const info = await this.getIdentityInfo(identity);
-
-    if (!info) {
-      throw new UnknownIdentityError();
-    }
-
+  private static computeCredibility(info: IdentInfo): number {
     let score: number = 100;
 
     // Unrealistic movement

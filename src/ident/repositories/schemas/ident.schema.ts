@@ -44,6 +44,9 @@ export class Ident {
   @Prop({ type: Date })
   issuedAt: Date;
 
+  @Prop()
+  credibility: number;
+
   @Prop({ type: Date, default: undefined })
   lastInteractionAt?: Date;
 

@@ -63,11 +63,9 @@ export class UpvoteCvmCommandHandler implements ICommandHandler {
       return;
     }
 
-    const credibility = await this.identService.getIdentityCredibility(
-      command.identity,
-    );
+    const info = await this.identService.getIdentity(command.identity);
 
-    aggregate.upvote(command.identity, credibility);
+    aggregate.upvote(command.identity, info.credibility);
     await this.cvmEventStoreRepository.save(aggregate);
   }
 
