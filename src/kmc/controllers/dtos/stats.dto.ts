@@ -40,6 +40,7 @@ export interface StatsDto {
   };
   idents: {
     total: number;
+    averageCredibility: number;
     totalNewLast7Days: number;
     newHistory: {
       date: string;

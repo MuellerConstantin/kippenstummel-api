@@ -257,7 +257,7 @@ export class IdentService {
 
   async getMetadata(lastNDays: number): Promise<IdentMetadata> {
     const totalElements = await this.identModel.countDocuments();
-
+    const averageCredibility = await this.getAverageCredibility();
     const newHistory = await this.getNewIdentsPerDay(lastNDays);
 
     const totalNewLast7Days =
@@ -271,9 +271,31 @@ export class IdentService {
 
     return {
       total: totalElements,
+      averageCredibility,
       totalNewLast7Days,
       newHistory,
     };
+  }
+
+  async getAverageCredibility() {
+    const result = await this.identModel.aggregate<{
+      averageCredibility: number;
+    }>([
+      {
+        $group: {
+          _id: null,
+          average: { $avg: '$credibility' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          averageCredibility: '$average',
+        },
+      },
+    ]);
+
+    return result[0].averageCredibility;
   }
 
   private static isUnrealisticallyMovement(
