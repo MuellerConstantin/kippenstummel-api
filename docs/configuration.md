@@ -7,6 +7,20 @@ classically via environment variables or via environment files. Environment file
 essentially text files that are located in the current working directory of the service
 and contain the configuration as key-value pairs.
 
+---
+
+**NOTE**
+
+The configuration of the web client is based on the technical possibilities of
+[Nest.js](https://nextjs.com/), see
+[Nest.js Configuration](https://docs.nestjs.com/techniques/configuration).
+In order to keep the configuration of the service as simple and straightforward as possible,
+Kippenstummel API abstracts the configuration process and only uses a part of what is technically
+possible. Nevertheless, the technical principles of the Next.js still apply and are mentioned
+here for the sake of completeness.
+
+---
+
 ## Configuration Options
 
 ### Datasource Configuration

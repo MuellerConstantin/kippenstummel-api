@@ -67,7 +67,14 @@ Because the application is written in TypeScript and based on the Node.js runtim
 environment is required, if the application is to run in standalone mode. The exact version of Node.js
 depends on the used Kippenstummel API release, but at least Node.js 20+ is required.
 
-First, the application must be built. This is done by running the following command:
+For building the application, the [npm](https://www.npmjs.com/) package manager
+can be used. First of all the required dependencies need to be installed:
+
+```shell
+npm install
+```
+
+Next, the application must be built. This is done by running the following command:
 
 ```shell
 npm run build
