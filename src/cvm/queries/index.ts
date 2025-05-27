@@ -8,3 +8,4 @@ export {
   GetVotesMetaQueryHandler,
 } from './get-votes-meta.query';
 export { GetMetaQuery, GetMetaQueryHandler } from './get-meta.query';
+export { GetByIdQuery, GetByIdQueryHandler } from './get-by-id.query';

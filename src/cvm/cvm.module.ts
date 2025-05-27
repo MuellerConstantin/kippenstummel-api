@@ -30,6 +30,7 @@ import {
   GetAllWithinQueryHandler,
   GetMetaQueryHandler,
   GetVotesMetaQueryHandler,
+  GetByIdQueryHandler,
 } from './queries';
 import { CvmController } from './controllers';
 
@@ -51,6 +52,7 @@ import { CvmController } from './controllers';
     DownvoteCvmCommandHandler,
     ImportCvmsCommandHandler,
     GetAllQueryHandler,
+    GetByIdQueryHandler,
     GetAllWithinQueryHandler,
     GetMetaQueryHandler,
     GetVotesMetaQueryHandler,

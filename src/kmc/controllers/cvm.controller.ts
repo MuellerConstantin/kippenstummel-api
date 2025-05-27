@@ -1,6 +1,14 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CommandBus, QueryBus } from '@ocoda/event-sourcing';
-import { GetAllQuery, GetAllWithinQuery } from 'src/cvm/queries';
+import { GetAllQuery, GetAllWithinQuery, GetByIdQuery } from 'src/cvm/queries';
 import { ImportCvmsCommand } from 'src/cvm/commands';
 import { Page } from 'src/common/models';
 import { CvmProjection, CvmClusterProjection } from 'src/cvm/models';
@@ -63,6 +71,16 @@ export class CvmController {
       content: result.content,
       info: result.info,
     };
+  }
+
+  @Get('/:id')
+  async getById(@Param('id') id: string): Promise<CvmProjection> {
+    const query = new GetByIdQuery(id);
+    const result = await this.queryBus.execute<GetByIdQuery, CvmProjection>(
+      query,
+    );
+
+    return result;
   }
 
   @Post()

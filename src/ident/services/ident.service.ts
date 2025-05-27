@@ -5,6 +5,9 @@ import { JwtService } from '@nestjs/jwt';
 import { IdentToken, IdentInfo, IdentMetadata } from '../models';
 import {
   InvalidIdentTokenError,
+  NotFoundError,
+  Page,
+  Pageable,
   UnknownIdentityError,
 } from 'src/common/models';
 import { calculateEwma, calculateDistanceInKm, calculateSpeed } from 'src/lib';
@@ -82,11 +85,24 @@ export class IdentService {
     return (await this.identModel.countDocuments({ identity })) > 0;
   }
 
+  async getCredibility(identity: string): Promise<number> {
+    try {
+      const info = await this.getIdentity(identity);
+      return info.credibility;
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw new UnknownIdentityError();
+      } else {
+        throw error;
+      }
+    }
+  }
+
   async getIdentity(identity: string): Promise<IdentInfo> {
     const result = await this.identModel.findOne({ identity }).exec();
 
     if (!result) {
-      throw new UnknownIdentityError();
+      throw new NotFoundError();
     }
 
     return {
@@ -113,13 +129,57 @@ export class IdentService {
     };
   }
 
+  async getIdentities(pageable: Pageable): Promise<Page<IdentInfo>> {
+    const skip = pageable.page * pageable.perPage;
+
+    const totalElements = await this.identModel.countDocuments();
+
+    const content = await this.identModel
+      .find()
+      .skip(skip)
+      .limit(pageable.perPage);
+
+    const totalPages = Math.ceil(totalElements / pageable.perPage);
+
+    return {
+      content: content.map((ident) => ({
+        identity: ident.identity,
+        credibility: ident.credibility,
+        issuedAt: ident.issuedAt,
+        lastInteractionAt: ident.lastInteractionAt,
+        averageInteractionInterval: ident.averageInteractionInterval,
+        unrealisticMovementCount: ident.unrealisticMovementCount,
+        lastInteractionPosition: ident.lastInteractionPosition
+          ? {
+              longitude: ident.lastInteractionPosition.coordinates[0],
+              latitude: ident.lastInteractionPosition.coordinates[1],
+            }
+          : undefined,
+        voting: {
+          totalCount: ident.voting.totalCount,
+          upvoteCount: ident.voting.upvoteCount,
+          downvoteCount: ident.voting.downvoteCount,
+        },
+        registrations: {
+          totalCount: ident.registrations.totalCount,
+        },
+      })),
+      info: {
+        page: pageable.page,
+        perPage: pageable.perPage,
+        totalElements,
+        totalPages,
+      },
+    };
+  }
+
   async getOrRegisterIdentity(identity: string): Promise<IdentInfo> {
     try {
       const info = await this.getIdentity(identity);
 
       return info;
     } catch (error) {
-      if (error instanceof UnknownIdentityError) {
+      if (error instanceof NotFoundError) {
         return await this.registerIdentity(identity);
       } else {
         throw error;

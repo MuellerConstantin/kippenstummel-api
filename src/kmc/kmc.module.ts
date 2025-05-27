@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
 import { CommonModule } from 'src/common/common.module';
 import { CvmModule } from 'src/cvm/cvm.module';
-import { CvmController } from './controllers';
-import { StatsController } from './controllers';
+import { CvmController, StatsController, IdentController } from './controllers';
 import { IdentModule } from 'src/ident/ident.module';
 
 @Module({
   imports: [CommonModule, CvmModule, IdentModule],
-  controllers: [CvmController, StatsController],
+  controllers: [CvmController, StatsController, IdentController],
   providers: [],
 })
 export class KmcModule {}
