@@ -1,4 +1,11 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { OAuth2Guard } from 'src/common/controllers';
 import { GetAllIdentQueryDto, IdentInfoDto, IdentPageDto } from './dtos';
 import { IdentService } from 'src/ident/services';
@@ -31,5 +38,10 @@ export class IdentController {
   async getById(@Param('id') id: string): Promise<IdentInfoDto> {
     const result = await this.identService.getIdentity(id);
     return result;
+  }
+
+  @Delete('/:id')
+  async deleteById(@Param('id') id: string): Promise<void> {
+    await this.identService.unregisterIdentity(id);
   }
 }
