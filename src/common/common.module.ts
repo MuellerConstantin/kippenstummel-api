@@ -23,6 +23,8 @@ import {
 import { InvalidPayloadError } from './models/error';
 import * as CvmModuleEvents from '../cvm/events';
 import { ValidationError } from 'class-validator';
+import { Job, JobSchema } from './repositories';
+import { JobService } from './services';
 
 @Module({
   imports: [
@@ -87,6 +89,7 @@ import { ValidationError } from 'class-validator';
       inject: [ConfigService],
     }),
     PassportModule,
+    MongooseModule.forFeature([{ name: Job.name, schema: JobSchema }]),
   ],
   controllers: [],
   providers: [
@@ -151,7 +154,8 @@ import { ValidationError } from 'class-validator';
         },
       }),
     },
+    JobService,
   ],
-  exports: [BullModule, Logger, EventSourcingModule, CacheModule],
+  exports: [BullModule, Logger, EventSourcingModule, CacheModule, JobService],
 })
 export class CommonModule {}

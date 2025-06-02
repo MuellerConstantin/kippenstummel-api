@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
-export type VoteDocument = HydratedDocument<Ident>;
+export type IdentDocument = HydratedDocument<Ident>;
 
 @Schema({ _id: false })
 class GeoPoint {
