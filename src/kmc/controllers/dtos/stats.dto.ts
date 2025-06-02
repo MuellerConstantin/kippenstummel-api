@@ -47,4 +47,18 @@ export interface StatsDto {
       count: number;
     }[];
   };
+  jobs: {
+    total: number;
+    differentTypes: number;
+    statusCounts: {
+      running: number;
+      completed: number;
+      failed: number;
+    };
+    totalRunLast7Days: number;
+    runHistory: {
+      date: string;
+      count: number;
+    }[];
+  };
 }

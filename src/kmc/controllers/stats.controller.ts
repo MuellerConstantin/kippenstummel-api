@@ -5,6 +5,7 @@ import { StatsDto, GetStatsQueryDto } from './dtos';
 import { GetMetaQuery, GetVotesMetaQuery } from 'src/cvm/queries';
 import { CvmMetaProjection, VotesMetaProjection } from 'src/cvm/models';
 import { IdentService } from 'src/ident/services';
+import { JobService } from 'src/common/services';
 
 @Controller({ path: '/kmc/stats', version: '1' })
 @UseGuards(OAuth2Guard)
@@ -13,6 +14,7 @@ export class StatsController {
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
     private readonly identService: IdentService,
+    private readonly jobService: JobService,
   ) {}
 
   @Get()
@@ -34,10 +36,13 @@ export class StatsController {
       queryParams.lastNDays,
     );
 
+    const jobResult = await this.jobService.getMetadata(queryParams.lastNDays);
+
     return {
       cvms: registrationResult,
       votes: votesResult,
       idents: indentResult,
+      jobs: jobResult,
     };
   }
 }
