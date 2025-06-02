@@ -37,6 +37,9 @@ export class Job {
 
   @Prop()
   finishedOn?: Date;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const JobSchema = SchemaFactory.createForClass(Job);

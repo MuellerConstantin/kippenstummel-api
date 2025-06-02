@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Job } from '../repositories';
+import { Job as JobModel } from '../repositories';
 import { Job as BullMqJob } from 'bullmq';
-import { JobMetadata } from '../models';
+import { Job, JobMetadata, Page, Pageable } from '../models';
 
 @Injectable()
 export class JobService {
-  constructor(@InjectModel(Job.name) private readonly jobModel: Model<Job>) {}
+  constructor(
+    @InjectModel(JobModel.name) private readonly jobModel: Model<JobModel>,
+  ) {}
 
   async upsertJobLog({
     job,
@@ -42,6 +44,44 @@ export class JobService {
       },
       { upsert: true },
     );
+  }
+
+  async getJobs(pageable: Pageable): Promise<Page<Job>> {
+    const skip = pageable.page * pageable.perPage;
+
+    const totalElements = await this.jobModel.countDocuments();
+
+    const content = await this.jobModel
+      .find()
+      .skip(skip)
+      .sort({ createdAt: 1 })
+      .limit(pageable.perPage);
+
+    const totalPages = Math.ceil(totalElements / pageable.perPage);
+
+    return {
+      content: content.map((job) => ({
+        jobId: job.jobId,
+        name: job.name,
+        queue: job.queue,
+        data: job.data,
+        status: job.status,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        result: job.result,
+        failedReason: job.failedReason,
+        attemptsMade: job.attemptsMade,
+        timestamp: job.timestamp,
+        finishedOn: job.finishedOn,
+        createdAt: job.createdAt,
+        updatedAt: job.updatedAt,
+      })),
+      info: {
+        page: pageable.page,
+        perPage: pageable.perPage,
+        totalElements,
+        totalPages,
+      },
+    };
   }
 
   async getMetadata(lastNDays: number): Promise<JobMetadata> {
