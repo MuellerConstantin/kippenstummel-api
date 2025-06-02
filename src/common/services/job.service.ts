@@ -84,6 +84,48 @@ export class JobService {
     };
   }
 
+  async getJobsDistinct(pageable: Pageable): Promise<Page<Job>> {
+    const skip = pageable.page * pageable.perPage;
+    const limit = pageable.perPage;
+
+    const aggregation = await this.jobModel.aggregate<{
+      _id: string;
+      job: Job;
+    }>([
+      { $sort: { createdAt: 1 } },
+      {
+        $group: {
+          _id: { queue: '$queue', name: '$name' },
+          job: { $first: '$$ROOT' },
+        },
+      },
+      { $sort: { 'job.createdAt': 1 } },
+      { $skip: skip },
+      { $limit: limit },
+    ]);
+
+    const totalElementsAggregation = await this.jobModel.aggregate<{
+      _id: string;
+      total: number;
+    }>([
+      { $group: { _id: { queue: '$queue', name: '$name' } } },
+      { $count: 'total' },
+    ]);
+
+    const totalElements = totalElementsAggregation[0]?.total ?? 0;
+    const totalPages = Math.ceil(totalElements / pageable.perPage);
+
+    return {
+      content: aggregation.map((entry) => entry.job),
+      info: {
+        page: pageable.page,
+        perPage: pageable.perPage,
+        totalElements,
+        totalPages,
+      },
+    };
+  }
+
   async getMetadata(lastNDays: number): Promise<JobMetadata> {
     const totalElements = await this.jobModel.countDocuments();
     const runHistory = await this.getRunJobsPerDay(lastNDays);

@@ -2,6 +2,8 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { OAuth2Guard } from 'src/common/controllers';
 import { GetAllJobQueryDto, JobPageDto } from './dtos';
 import { JobService } from 'src/common/services';
+import { Page } from 'src/common/models';
+import { Job } from 'src/common/repositories';
 
 @Controller({ path: '/kmc/jobs', version: '1' })
 @UseGuards(OAuth2Guard)
@@ -10,17 +12,37 @@ export class JobController {
 
   @Get()
   async getAll(@Query() queryParams: GetAllJobQueryDto): Promise<JobPageDto> {
-    const { page, perPage } = queryParams;
+    const { page, perPage, distinct } = queryParams;
 
     const pageable = {
       page: Number(page) || 0,
       perPage: Number(perPage) || 25,
     };
 
-    const result = await this.jobService.getJobs(pageable);
+    let result: Page<Job>;
+
+    if (distinct) {
+      result = await this.jobService.getJobsDistinct(pageable);
+    } else {
+      result = await this.jobService.getJobs(pageable);
+    }
 
     return {
-      content: result.content,
+      content: result.content.map((job) => ({
+        jobId: job.jobId,
+        name: job.name,
+        queue: job.queue,
+        data: job.data,
+        status: job.status,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        result: job.result,
+        failedReason: job.failedReason,
+        attemptsMade: job.attemptsMade,
+        timestamp: job.timestamp,
+        finishedOn: job.finishedOn,
+        createdAt: job.createdAt,
+        updatedAt: job.updatedAt,
+      })),
       info: result.info,
     };
   }

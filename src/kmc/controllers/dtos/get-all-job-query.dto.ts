@@ -1,5 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsNumber, IsOptional, Min } from 'class-validator';
+import { IsNumber, IsOptional, Min, IsBoolean } from 'class-validator';
 
 export class GetAllJobQueryDto {
   @IsOptional()
@@ -13,4 +13,9 @@ export class GetAllJobQueryDto {
   @Min(1)
   @Transform(({ value }) => Number(value))
   public perPage: number = 25;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true')
+  public distinct: boolean = false;
 }
