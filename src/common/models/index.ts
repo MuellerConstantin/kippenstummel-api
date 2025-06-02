@@ -15,4 +15,5 @@ export {
   UnauthenticatedError,
   OutOfReachError,
   UnknownIdentityError,
+  InvalidImportFileError,
 } from './error';

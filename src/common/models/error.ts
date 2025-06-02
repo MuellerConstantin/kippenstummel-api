@@ -11,6 +11,7 @@ export enum ApiErrorCode {
   UNAUTHENTICATED_ERROR = 'UNAUTHENTICATED_ERROR',
   OUT_OF_REACH_ERROR = 'OUT_OF_REACH_ERROR',
   UNKNOWN_IDENTITY_ERROR = 'UNKNOWN_IDENTITY_ERROR',
+  INVALID_IMPORT_FILE_ERROR = 'INVALID_IMPORT_FILE_ERROR',
 }
 
 export const ApiErrorMessages: Record<ApiErrorCode, string> = {
@@ -26,6 +27,7 @@ export const ApiErrorMessages: Record<ApiErrorCode, string> = {
   [ApiErrorCode.UNAUTHENTICATED_ERROR]: 'Unauthenticated request',
   [ApiErrorCode.OUT_OF_REACH_ERROR]: 'Out of reach',
   [ApiErrorCode.UNKNOWN_IDENTITY_ERROR]: 'Unknown identity',
+  [ApiErrorCode.INVALID_IMPORT_FILE_ERROR]: 'Invalid import file',
 };
 
 export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
@@ -41,6 +43,7 @@ export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
   [ApiErrorCode.UNAUTHENTICATED_ERROR]: 401,
   [ApiErrorCode.OUT_OF_REACH_ERROR]: 403,
   [ApiErrorCode.UNKNOWN_IDENTITY_ERROR]: 401,
+  [ApiErrorCode.INVALID_IMPORT_FILE_ERROR]: 400,
 };
 
 export abstract class ApiError extends Error {
@@ -154,5 +157,11 @@ export class OutOfReachError extends ApiError {
 export class UnknownIdentityError extends ApiError {
   constructor(cause?: Error) {
     super(ApiErrorCode.UNKNOWN_IDENTITY_ERROR, undefined, cause);
+  }
+}
+
+export class InvalidImportFileError extends ApiError {
+  constructor(cause?: Error) {
+    super(ApiErrorCode.INVALID_IMPORT_FILE_ERROR, undefined, cause);
   }
 }

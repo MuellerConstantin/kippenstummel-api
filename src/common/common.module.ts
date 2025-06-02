@@ -25,6 +25,8 @@ import * as CvmModuleEvents from '../cvm/events';
 import { ValidationError } from 'class-validator';
 import { Job, JobSchema } from './repositories';
 import { JobService } from './services';
+import { MulterModule } from '@nestjs/platform-express';
+import multer from 'multer';
 
 @Module({
   imports: [
@@ -77,6 +79,9 @@ import { JobService } from './services';
     BullModule.registerQueue({
       name: 'credibility-computation',
     }),
+    BullModule.registerQueue({
+      name: 'cvm-import',
+    }),
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],
@@ -85,6 +90,23 @@ import { JobService } from './services';
         signOptions: {
           expiresIn: configService.get<number>('IDENT_EXPIRES_IN'),
         },
+      }),
+      inject: [ConfigService],
+    }),
+    MulterModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        storage: multer.diskStorage({
+          destination: (req, file, cb) => {
+            cb(null, configService.get<string>('STORAGE_PATH')!);
+          },
+          filename: function (req, file, cb) {
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const extension = file.originalname.split('.').pop();
+            cb(null, file.fieldname + '-' + uniqueSuffix + '.' + extension);
+          },
+        }),
       }),
       inject: [ConfigService],
     }),
@@ -156,6 +178,13 @@ import { JobService } from './services';
     },
     JobService,
   ],
-  exports: [BullModule, Logger, EventSourcingModule, CacheModule, JobService],
+  exports: [
+    BullModule,
+    MulterModule,
+    Logger,
+    EventSourcingModule,
+    CacheModule,
+    JobService,
+  ],
 })
 export class CommonModule {}

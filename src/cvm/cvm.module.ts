@@ -21,6 +21,7 @@ import {
 import {
   CvmTileService,
   TileComputationConsumer,
+  CvmImportConsumer,
   CvmRegisteredEventSubscriber,
   CvmUpvotedEventSubscriber,
   CvmDownvotedEventSubscriber,
@@ -60,6 +61,7 @@ import { CvmController } from './controllers';
     CvmRegisteredEventSubscriber,
     CvmUpvotedEventSubscriber,
     CvmDownvotedEventSubscriber,
+    CvmImportConsumer,
   ],
 })
 export class CvmModule {}

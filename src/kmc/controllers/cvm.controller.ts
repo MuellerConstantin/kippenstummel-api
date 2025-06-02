@@ -3,14 +3,17 @@ import {
   Controller,
   Get,
   Param,
+  ParseFilePipeBuilder,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@ocoda/event-sourcing';
 import { GetAllQuery, GetAllWithinQuery, GetByIdQuery } from 'src/cvm/queries';
 import { ImportCvmsCommand } from 'src/cvm/commands';
-import { Page } from 'src/common/models';
+import { InvalidImportFileError, Page } from 'src/common/models';
 import { CvmProjection, CvmClusterProjection } from 'src/cvm/models';
 import {
   CvmPageDto,
@@ -21,6 +24,9 @@ import {
   CvmDto,
 } from './dtos';
 import { OAuth2Guard } from 'src/common/controllers';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Controller({ path: '/kmc/cvms', version: '1' })
 @UseGuards(OAuth2Guard)
@@ -28,6 +34,7 @@ export class CvmController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
+    @InjectQueue('cvm-import') private cvmImportQueue: Queue,
   ) {}
 
   @Get('/within')
@@ -83,10 +90,33 @@ export class CvmController {
     return result;
   }
 
-  @Post()
+  @Post('/import/manual')
   async import(@Body() body: ImportCvmsDto): Promise<void> {
     const command = new ImportCvmsCommand(body.cvms);
 
     await this.commandBus.execute<ImportCvmsCommand>(command);
+  }
+
+  @Post('/import/file')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: 'json',
+        })
+        .addMaxSizeValidator({
+          maxSize: 10000,
+        })
+        .build({ exceptionFactory: () => new InvalidImportFileError() }),
+    )
+    file: Express.Multer.File,
+  ) {
+    await this.cvmImportQueue.add('file', {
+      path: file.path,
+      filename: file.filename,
+      mimetype: file.mimetype,
+      encoding: file.encoding,
+    });
   }
 }
