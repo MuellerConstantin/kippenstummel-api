@@ -99,7 +99,7 @@ export class IdentService {
   }
 
   async getIdentity(identity: string): Promise<IdentInfo> {
-    const result = await this.identModel.findOne({ identity }).exec();
+    const result = await this.identModel.findOne({ identity });
 
     if (!result) {
       throw new NotFoundError();

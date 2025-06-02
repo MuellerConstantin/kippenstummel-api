@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { getModelToken } from '@nestjs/mongoose';
 import { IdentService } from 'src/ident/services';
 import { IdentInfo } from 'src/ident/models';
 import { JwtService } from '@nestjs/jwt';
@@ -11,8 +11,9 @@ import {
   generateNewbieIdent,
   generatePowerIdent,
 } from './profiles';
+import { Ident } from 'src/ident/repositories';
 
-const inMemoryCache = new Map<string, string>();
+const identities = new Map<string, Ident>();
 
 describe('CredibilitySimulation', () => {
   let app: TestingModule;
@@ -34,6 +35,13 @@ describe('CredibilitySimulation', () => {
           },
         },
         {
+          provide: getModelToken('Ident'),
+          useValue: {
+            findOne: (data: { identity: string }) =>
+              Promise.resolve(identities.get(data.identity)),
+          },
+        },
+        {
           provide: JwtService,
           useValue: {
             signAsync: () => Promise.resolve('token'),
@@ -43,20 +51,8 @@ describe('CredibilitySimulation', () => {
               }),
           },
         },
-        {
-          provide: CACHE_MANAGER,
-          useValue: {
-            get: (key: string) => inMemoryCache.get(key),
-            set: (key: string, value: string) => inMemoryCache.set(key, value),
-            del: () => {},
-          },
-        },
       ],
     }).compile();
-  });
-
-  beforeEach(() => {
-    inMemoryCache.clear();
   });
 
   const simulateProfile = async (
@@ -64,22 +60,41 @@ describe('CredibilitySimulation', () => {
     profileGenerator: () => IdentInfo,
     count: number,
   ) => {
-    const identities: string[] = [];
-
     for (let index = 0; index < count; index++) {
-      const ident = profileGenerator();
+      const result = profileGenerator();
 
-      identities.push(ident.identity);
-      inMemoryCache.set(`ident:${ident.identity}`, JSON.stringify(ident));
+      identities.set(result.identity, {
+        identity: result.identity,
+        credibility: result.credibility,
+        issuedAt: result.issuedAt,
+        lastInteractionAt: result.lastInteractionAt,
+        averageInteractionInterval: result.averageInteractionInterval,
+        unrealisticMovementCount: result.unrealisticMovementCount,
+        lastInteractionPosition: result.lastInteractionPosition
+          ? {
+              type: 'Point',
+              coordinates: [
+                result.lastInteractionPosition.longitude,
+                result.lastInteractionPosition.latitude,
+              ],
+            }
+          : undefined,
+        voting: {
+          totalCount: result.voting.totalCount,
+          upvoteCount: result.voting.upvoteCount,
+          downvoteCount: result.voting.downvoteCount,
+        },
+        registrations: {
+          totalCount: result.registrations.totalCount,
+        },
+      });
     }
 
     const identService = app.get(IdentService);
     const credibilities: number[] = [];
 
-    for (let index = 0; index < count; index++) {
-      const credibility = await identService.getIdentityCredibility(
-        identities[index],
-      );
+    for (const ident of identities.values()) {
+      const credibility = await identService.getCredibility(ident.identity);
       credibilities.push(credibility);
     }
 

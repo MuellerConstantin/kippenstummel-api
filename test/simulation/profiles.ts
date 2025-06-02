@@ -38,8 +38,9 @@ export function generateNormalIdent(): IdentInfo {
 
   return {
     identity: crypto.randomUUID(),
-    issuedAt,
-    lastInteractionAt,
+    issuedAt: new Date(issuedAt),
+    credibility: 60,
+    lastInteractionAt: new Date(lastInteractionAt),
     averageInteractionInterval: averageInterval,
     lastInteractionPosition: randomPositionNearby({ lat: 48.1, lon: 11.6 }, 2),
     unrealisticMovementCount: 0,
@@ -64,8 +65,9 @@ export function generateMaliciousRegistrationIdent(): IdentInfo {
 
   return {
     identity: crypto.randomUUID(),
-    issuedAt,
-    lastInteractionAt,
+    issuedAt: new Date(issuedAt),
+    credibility: 20,
+    lastInteractionAt: new Date(lastInteractionAt),
     averageInteractionInterval: averageInterval,
     lastInteractionPosition: randomPositionWorldwide(),
     unrealisticMovementCount: crypto.randomInt(5, 20),
@@ -91,8 +93,9 @@ export function generateMaliciousVotingIdent(): IdentInfo {
 
   return {
     identity: crypto.randomUUID(),
-    issuedAt,
-    lastInteractionAt,
+    issuedAt: new Date(issuedAt),
+    credibility: 20,
+    lastInteractionAt: new Date(lastInteractionAt),
     averageInteractionInterval: averageInterval,
     lastInteractionPosition: randomPositionWorldwide(),
     unrealisticMovementCount: crypto.randomInt(5, 30),
@@ -117,8 +120,9 @@ export function generatePowerIdent(): IdentInfo {
 
   return {
     identity: crypto.randomUUID(),
-    issuedAt,
-    lastInteractionAt,
+    issuedAt: new Date(issuedAt),
+    credibility: 75,
+    lastInteractionAt: new Date(lastInteractionAt),
     averageInteractionInterval: averageInterval,
     lastInteractionPosition: randomPositionNearby({ lat: 48.1, lon: 11.6 }, 5),
     unrealisticMovementCount: crypto.randomInt(0, 2),
@@ -143,8 +147,9 @@ export function generateNewbieIdent(): IdentInfo {
 
   return {
     identity: crypto.randomUUID(),
-    issuedAt,
-    lastInteractionAt,
+    issuedAt: new Date(issuedAt),
+    credibility: 32,
+    lastInteractionAt: new Date(lastInteractionAt),
     averageInteractionInterval: averageInterval,
     lastInteractionPosition: randomPositionNearby({ lat: 48.1, lon: 11.6 }, 2),
     unrealisticMovementCount: 0,
