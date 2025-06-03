@@ -1,6 +1,6 @@
 export { CvmPageDto } from './cvm-page.dto';
 export { GetAllCvmQueryDto } from './get-all-cvm-query.dto';
-export { ImportCvmsDto } from './import-cvms.dto';
+export { ImportManualDto } from './import-manual.dto';
 export { GetAllCvmWithinQueryDto } from './get-all-cvm-within-query.dto';
 export { CvmClusterDto } from './cvm-cluster.dto';
 export { CvmDto } from './cvm.dto';
@@ -12,3 +12,4 @@ export { IdentPageDto } from './ident-page.dto';
 export { GetAllJobQueryDto } from './get-all-job-query.dto';
 export { JobDto } from './job.dto';
 export { JobPageDto } from './job-page.dto';
+export { ImportOsmDto } from './import-osm.dto';

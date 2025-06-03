@@ -54,7 +54,7 @@ export class JobService {
     const content = await this.jobModel
       .find()
       .skip(skip)
-      .sort({ createdAt: 1 })
+      .sort({ createdAt: -1 })
       .limit(pageable.perPage);
 
     const totalPages = Math.ceil(totalElements / pageable.perPage);
@@ -92,14 +92,14 @@ export class JobService {
       _id: string;
       job: Job;
     }>([
-      { $sort: { createdAt: 1 } },
+      { $sort: { createdAt: -1 } },
       {
         $group: {
           _id: { queue: '$queue', name: '$name' },
           job: { $first: '$$ROOT' },
         },
       },
-      { $sort: { 'job.createdAt': 1 } },
+      { $sort: { 'job.createdAt': -1 } },
       { $skip: skip },
       { $limit: limit },
     ]);

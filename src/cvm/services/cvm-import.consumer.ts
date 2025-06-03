@@ -32,6 +32,18 @@ export class CvmImportConsumer extends WorkerHost {
           >,
         );
       }
+      case 'osm': {
+        return this.importOsm(job as Job<{ region: string }, void, string>);
+      }
+      case 'manual': {
+        return this.importManual(
+          job as Job<
+            { cvms: { longitude: number; latitude: number; score: number }[] },
+            void,
+            string
+          >,
+        );
+      }
     }
   }
 
@@ -62,6 +74,133 @@ export class CvmImportConsumer extends WorkerHost {
     await fs.promises.unlink(job.data.path);
 
     const command = new ImportCvmsCommand(content);
+    await this.commandBus.execute<ImportCvmsCommand>(command);
+  }
+
+  async importOsm(job: Job<{ region: string }, void, string>): Promise<void> {
+    this.logger.debug(
+      `Importing CVM data from OSM for region '${job.data.region}'...`,
+      'CvmImportConsumer',
+    );
+
+    const fetchOsmAreaId = async (region: string) => {
+      const url = new URL('https://nominatim.openstreetmap.org/search');
+      url.searchParams.append('city', region);
+      url.searchParams.append('format', 'json');
+      url.searchParams.append('limit', '1');
+
+      const response = await fetch(url.toString());
+      if (!response.ok) {
+        throw new Error(`Failed to fetch OSM area ID for region "${region}"`);
+      }
+
+      const data = (await response.json()) as {
+        place_id: number;
+        license: string;
+        osm_id: string;
+        osm_type: string;
+        lat: string;
+        lon: string;
+        class: string;
+        type: string;
+        place_rank: number;
+        importance: number;
+        addresstype: string;
+        name: string;
+        display_name: string;
+        boundingbox: string[];
+      }[];
+
+      if (!data || data.length === 0) {
+        throw new Error(`Region "${region}" not found`);
+      }
+
+      const result = data[0];
+
+      const osmId = parseInt(result.osm_id);
+      const osmType = result.osm_type;
+
+      switch (osmType) {
+        case 'relation':
+          return 3600000000 + osmId;
+        case 'way':
+          return 2400000000 + osmId;
+        case 'node':
+          return 1200000000 + osmId;
+        default:
+          throw new Error(`Unsupported osm_type: ${osmType}`);
+      }
+    };
+
+    const fetchOsmData = async (areaId: number) => {
+      const query = `
+        [out:json][timeout:25];
+        area(${areaId});
+        (
+          node["amenity"="vending_machine"]["vending"~"cigarettes"](area);
+        );
+        out center;
+      `;
+
+      const response = await fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ data: query }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch OSM data');
+      }
+
+      const data = (await response.json()) as {
+        version: number;
+        generator: string;
+        osm3s: {
+          timestamp_osm_base: string;
+          copyright: string;
+        };
+        elements: {
+          type: 'node';
+          id: number;
+          lat: number;
+          lon: number;
+          tags?: Record<string, string>;
+        }[];
+      };
+
+      return data;
+    };
+
+    const cvms = await fetchOsmAreaId(job.data.region)
+      .then((areaId) => fetchOsmData(areaId))
+      .then((data) => {
+        const cvms = data.elements.map((element) => ({
+          longitude: element.lon,
+          latitude: element.lat,
+        }));
+
+        return cvms;
+      });
+
+    const command = new ImportCvmsCommand(cvms);
+    await this.commandBus.execute<ImportCvmsCommand>(command);
+  }
+
+  async importManual(
+    job: Job<
+      { cvms: { longitude: number; latitude: number; score: number }[] },
+      void,
+      string
+    >,
+  ): Promise<void> {
+    this.logger.debug(
+      `Importing CVM data from manual provided records...`,
+      'CvmImportConsumer',
+    );
+
+    const command = new ImportCvmsCommand(job.data.cvms);
     await this.commandBus.execute<ImportCvmsCommand>(command);
   }
 

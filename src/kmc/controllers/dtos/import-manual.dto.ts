@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 import { constants } from 'src/lib';
 
-export class ImportCvmDto {
+export class ImportManualCvmDto {
   @IsDefined()
   @IsNumber()
   @IsLongitude()
@@ -30,10 +30,10 @@ export class ImportCvmDto {
   public score?: number;
 }
 
-export class ImportCvmsDto {
+export class ImportManualDto {
   @IsDefined()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => ImportCvmDto)
-  public cvms: ImportCvmDto[];
+  @Type(() => ImportManualCvmDto)
+  public cvms: ImportManualCvmDto[];
 }

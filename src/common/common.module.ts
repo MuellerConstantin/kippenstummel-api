@@ -98,7 +98,7 @@ import multer from 'multer';
       useFactory: (configService: ConfigService) => ({
         storage: multer.diskStorage({
           destination: (req, file, cb) => {
-            cb(null, configService.get<string>('STORAGE_PATH')!);
+            cb(null, configService.get<string>('TMP_DIR')!);
           },
           filename: function (req, file, cb) {
             const uniqueSuffix =

@@ -12,16 +12,16 @@ import {
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@ocoda/event-sourcing';
 import { GetAllQuery, GetAllWithinQuery, GetByIdQuery } from 'src/cvm/queries';
-import { ImportCvmsCommand } from 'src/cvm/commands';
 import { InvalidImportFileError, Page } from 'src/common/models';
 import { CvmProjection, CvmClusterProjection } from 'src/cvm/models';
 import {
   CvmPageDto,
   GetAllCvmQueryDto,
-  ImportCvmsDto,
   GetAllCvmWithinQueryDto,
   CvmClusterDto,
   CvmDto,
+  ImportOsmDto,
+  ImportManualDto,
 } from './dtos';
 import { OAuth2Guard } from 'src/common/controllers';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -91,15 +91,15 @@ export class CvmController {
   }
 
   @Post('/import/manual')
-  async import(@Body() body: ImportCvmsDto): Promise<void> {
-    const command = new ImportCvmsCommand(body.cvms);
-
-    await this.commandBus.execute<ImportCvmsCommand>(command);
+  async import(@Body() body: ImportManualDto): Promise<void> {
+    await this.cvmImportQueue.add('manual', {
+      cvms: body.cvms,
+    });
   }
 
   @Post('/import/file')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(
+  async importFile(
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addFileTypeValidator({
@@ -117,6 +117,13 @@ export class CvmController {
       filename: file.filename,
       mimetype: file.mimetype,
       encoding: file.encoding,
+    });
+  }
+
+  @Post('/import/osm')
+  async importOsm(@Body() body: ImportOsmDto): Promise<void> {
+    await this.cvmImportQueue.add('osm', {
+      region: body.region,
     });
   }
 }

@@ -48,7 +48,7 @@ system environment variables. For configuration details see [configuration](./co
 The release in the form of a Docker image can be started as follows:
 
 ```shell
-docker run -d -p 8080:8080 -v <CONFIG_PATH>:/usr/local/etc/kippenstummel/api -v <LOGS_PATH>:/usr/local/var/log/kippenstummel/api kippenstummel/api:<VERSION>
+docker run -d -p 8080:8080 -v <CONFIG_PATH>:/usr/local/etc/kippenstummel/api -v <LOGS_PATH>:/usr/local/var/log/kippenstummel/api -v <TMP_PATH>:/tmp/kippenstummel/api kippenstummel/api:<VERSION>
 ```
 
 #### Build image

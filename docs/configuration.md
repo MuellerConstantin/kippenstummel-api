@@ -52,4 +52,4 @@ The following configuration options are available:
 | CAPTCHA_EXPIRES_IN   | The number of seconds until the Captcha challenge expires. Default is 5 minutes.                                         | false    |
 | IDENT_SECRET         | The secret used to sign the ident tokens.                                                                                | true     |
 | IDENT_EXPIRES_IN     | The number of seconds until the ident token expires. Default is 7 days.                                                  | false    |
-| STORAGE_PATH         | The path to the storage directory. Used for storing temporary files.                                                     | true     |
+| TMP_DIR              | The path to the temporary storage directory. Used for storing temporary files.                                           | true     |
