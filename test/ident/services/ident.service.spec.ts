@@ -1,24 +1,27 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { IdentService } from 'src/ident/services';
 import { JwtService } from '@nestjs/jwt';
+import { getModelToken } from '@nestjs/mongoose';
+import { IdentService } from 'src/ident/services';
+import { Ident } from 'src/ident/repositories';
 
-const inMemoryCache = new Map<string, string>();
+const identities = new Map<string, Ident>();
 
-inMemoryCache.set(
-  'ident:ff19b9fc-8f20-40dc-9be8-c6393848b0a7',
-  JSON.stringify({
-    identity: 'ff19b9fc-8f20-40dc-9be8-c6393848b0a7',
-    issuedAt: 1,
-    lastInteractionAt: 2,
-    averageInteractionInterval: 3,
-    lastInteractionPosition: { longitude: 4, latitude: 5 },
-    unrealisticMovementCount: 6,
-    voting: { totalCount: 7, upvoteCount: 8, downvoteCount: 9 },
-    registrations: { totalCount: 10 },
-  }),
-);
+identities.set('4c12ee89-4672-44dd-a23c-29c1ace369b2', {
+  identity: '4c12ee89-4672-44dd-a23c-29c1ace369b2',
+  secret: '0xCAFEBABE',
+  issuedAt: new Date(),
+  credibility: 60,
+  lastInteractionAt: undefined,
+  averageInteractionInterval: 61231,
+  lastInteractionPosition: {
+    type: 'Point',
+    coordinates: [48.09900075726553, 11.602646642911846],
+  },
+  unrealisticMovementCount: 0,
+  voting: { totalCount: 44, upvoteCount: 30, downvoteCount: 13 },
+  registrations: { totalCount: 0 },
+});
 
 describe('IdentService', () => {
   let app: TestingModule;
@@ -40,6 +43,14 @@ describe('IdentService', () => {
           },
         },
         {
+          provide: getModelToken('Ident'),
+          useValue: {
+            findOne: (data: { identity: string }) =>
+              Promise.resolve(identities.get(data.identity)),
+            create: jest.fn(),
+          },
+        },
+        {
           provide: JwtService,
           useValue: {
             signAsync: () => Promise.resolve('token'),
@@ -49,32 +60,24 @@ describe('IdentService', () => {
               }),
           },
         },
-        {
-          provide: CACHE_MANAGER,
-          useValue: {
-            get: (key: string) => inMemoryCache.get(key),
-            set: (key: string, value: string) => inMemoryCache.set(key, value),
-            del: () => {},
-          },
-        },
       ],
     }).compile();
   });
 
-  describe('generateIdentToken', () => {
+  describe('issueIdentity', () => {
     it('Should generate ident token with new identity successfully"', async () => {
       const identService = app.get(IdentService);
-      const identToken = await identService.generateIdentToken();
+      const identToken = await identService.issueIdentity();
 
       expect(identToken).toBeDefined();
     });
   });
 
-  describe('getIdentityInfo', () => {
+  describe('getIdentity', () => {
     it('Should get identity info successfully"', async () => {
       const identService = app.get(IdentService);
-      const identInfo = await identService.getIdentityInfo(
-        'ff19b9fc-8f20-40dc-9be8-c6393848b0a7',
+      const identInfo = await identService.getIdentity(
+        '4c12ee89-4672-44dd-a23c-29c1ace369b2',
       );
 
       expect(identInfo).toBeDefined();
@@ -84,8 +87,8 @@ describe('IdentService', () => {
   describe('getIdentityCredibility', () => {
     it('Should get identity credibility successfully"', async () => {
       const identService = app.get(IdentService);
-      const credibility = await identService.getIdentityCredibility(
-        'ff19b9fc-8f20-40dc-9be8-c6393848b0a7',
+      const credibility = await identService.getCredibility(
+        '4c12ee89-4672-44dd-a23c-29c1ace369b2',
       );
 
       expect(credibility).toBeDefined();

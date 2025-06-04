@@ -65,6 +65,7 @@ describe('CredibilitySimulation', () => {
 
       identities.set(result.identity, {
         identity: result.identity,
+        secret: '0xCAFEBABE',
         credibility: result.credibility,
         issuedAt: result.issuedAt,
         lastInteractionAt: result.lastInteractionAt,

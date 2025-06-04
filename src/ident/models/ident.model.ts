@@ -3,6 +3,11 @@ export interface IdentToken {
   token: string;
 }
 
+export interface IdentSecret {
+  identity: string;
+  secret: string;
+}
+
 export interface IdentInfo {
   identity: string;
   credibility: number;

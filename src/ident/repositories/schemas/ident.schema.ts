@@ -41,6 +41,9 @@ export class Ident {
   @Prop()
   identity: string;
 
+  @Prop()
+  secret: string;
+
   @Prop({ type: Date })
   issuedAt: Date;
 

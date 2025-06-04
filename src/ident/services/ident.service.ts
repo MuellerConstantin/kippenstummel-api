@@ -2,10 +2,9 @@ import * as crypto from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { IdentToken, IdentInfo, IdentMetadata } from '../models';
+import { IdentToken, IdentInfo, IdentMetadata, IdentSecret } from '../models';
 import {
   InvalidIdentTokenError,
-  NotFoundError,
   Page,
   Pageable,
   UnknownIdentityError,
@@ -23,19 +22,18 @@ export class IdentService {
     @InjectModel(Ident.name) private readonly identModel: Model<Ident>,
   ) {}
 
-  async generateIdentToken(existingIdentity?: string): Promise<IdentToken> {
-    let identity: string;
+  async generateIdentToken(
+    identity: string,
+    secret: string,
+  ): Promise<IdentToken> {
+    const result = await this.identModel.findOne({ identity });
 
-    if (existingIdentity) {
-      identity = existingIdentity;
+    if (!result) {
+      throw new UnknownIdentityError();
+    }
 
-      if (!(await this.existsIdentity(identity))) {
-        await this.registerIdentity(identity);
-      }
-    } else {
-      identity = crypto.randomUUID();
-
-      await this.registerIdentity(identity);
+    if (result.secret !== secret) {
+      throw new UnknownIdentityError();
     }
 
     const token = await this.jwtService.signAsync({ identity });
@@ -57,7 +55,10 @@ export class IdentService {
     }
   }
 
-  async registerIdentity(identity: string): Promise<IdentInfo> {
+  async issueIdentity(): Promise<IdentSecret> {
+    const identity = crypto.randomUUID();
+    const secret = crypto.randomBytes(64).toString('hex');
+
     const info: IdentInfo = {
       identity,
       credibility: 0,
@@ -72,9 +73,12 @@ export class IdentService {
 
     info.credibility = IdentService.computeCredibility(info);
 
-    await this.identModel.create(info);
+    await this.identModel.create({
+      ...info,
+      secret,
+    });
 
-    return info;
+    return { identity, secret };
   }
 
   async unregisterIdentity(identity: string): Promise<void> {
@@ -86,23 +90,15 @@ export class IdentService {
   }
 
   async getCredibility(identity: string): Promise<number> {
-    try {
-      const info = await this.getIdentity(identity);
-      return info.credibility;
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw new UnknownIdentityError();
-      } else {
-        throw error;
-      }
-    }
+    const info = await this.getIdentity(identity);
+    return info.credibility;
   }
 
   async getIdentity(identity: string): Promise<IdentInfo> {
     const result = await this.identModel.findOne({ identity });
 
     if (!result) {
-      throw new NotFoundError();
+      throw new UnknownIdentityError();
     }
 
     return {
@@ -173,20 +169,6 @@ export class IdentService {
     };
   }
 
-  async getOrRegisterIdentity(identity: string): Promise<IdentInfo> {
-    try {
-      const info = await this.getIdentity(identity);
-
-      return info;
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        return await this.registerIdentity(identity);
-      } else {
-        throw error;
-      }
-    }
-  }
-
   async updateIdentity(
     identity: string,
     location: {
@@ -195,7 +177,7 @@ export class IdentService {
     },
     interaction: 'upvote' | 'downvote' | 'registration',
   ): Promise<void> {
-    const info = await this.getOrRegisterIdentity(identity);
+    const info = await this.getIdentity(identity);
 
     // Check for unrealistic movement
     if (info.lastInteractionPosition && info.lastInteractionAt) {
