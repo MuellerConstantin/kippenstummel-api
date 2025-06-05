@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -32,7 +33,7 @@ export class IdentService {
       throw new UnknownIdentityError();
     }
 
-    if (result.secret !== secret) {
+    if (!bcrypt.compareSync(secret, result.secret)) {
       throw new UnknownIdentityError();
     }
 
@@ -58,6 +59,8 @@ export class IdentService {
   async issueIdentity(): Promise<IdentSecret> {
     const identity = crypto.randomUUID();
     const secret = crypto.randomBytes(64).toString('hex');
+    const salt = await bcrypt.genSalt(10);
+    const hashedSecret = await bcrypt.hash(secret, salt);
 
     const info: IdentInfo = {
       identity,
@@ -75,7 +78,7 @@ export class IdentService {
 
     await this.identModel.create({
       ...info,
-      secret,
+      secret: hashedSecret,
     });
 
     return { identity, secret };
