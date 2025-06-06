@@ -16,4 +16,6 @@ export {
   OutOfReachError,
   UnknownIdentityError,
   InvalidImportFileError,
+  InvalidFilterQueryError,
+  UnsupportedFilterFieldError,
 } from './error';

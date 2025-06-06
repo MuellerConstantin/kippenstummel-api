@@ -128,13 +128,16 @@ export class IdentService {
     };
   }
 
-  async getIdentities(pageable: Pageable): Promise<Page<IdentInfo>> {
+  async getIdentities(
+    pageable: Pageable,
+    filter?: object,
+  ): Promise<Page<IdentInfo>> {
     const skip = pageable.page * pageable.perPage;
 
-    const totalElements = await this.identModel.countDocuments();
+    const totalElements = await this.identModel.countDocuments(filter || {});
 
     const content = await this.identModel
-      .find()
+      .find(filter || {})
       .skip(skip)
       .limit(pageable.perPage);
 

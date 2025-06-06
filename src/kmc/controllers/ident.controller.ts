@@ -26,7 +26,10 @@ export class IdentController {
       perPage: Number(perPage) || 25,
     };
 
-    const result = await this.identService.getIdentities(pageable);
+    const result = await this.identService.getIdentities(
+      pageable,
+      queryParams.filter,
+    );
 
     return {
       content: result.content,

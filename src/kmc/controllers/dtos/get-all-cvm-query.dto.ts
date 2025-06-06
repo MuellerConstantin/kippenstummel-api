@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, Min } from 'class-validator';
+import { RsqlToMongoCvmTransformer } from 'src/cvm/controllers';
 
 export class GetAllCvmQueryDto {
   @IsOptional()
@@ -13,4 +14,14 @@ export class GetAllCvmQueryDto {
   @Min(1)
   @Transform(({ value }) => Number(value))
   public perPage: number = 25;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (!value) {
+      return;
+    }
+
+    return new RsqlToMongoCvmTransformer().transform(value as string);
+  })
+  public filter?: object;
 }

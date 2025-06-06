@@ -10,7 +10,10 @@ import { CvmProjection } from '../models';
 import { Cvm } from '../repositories/schemas';
 
 export class GetAllQuery implements IQuery {
-  constructor(public readonly pageable: Pageable = { page: 0, perPage: 25 }) {}
+  constructor(
+    public readonly pageable: Pageable = { page: 0, perPage: 25 },
+    public readonly filter?: object,
+  ) {}
 }
 
 @QueryHandler(GetAllQuery)
@@ -22,10 +25,12 @@ export class GetAllQueryHandler
   public async execute(query: GetAllQuery): Promise<Page<CvmProjection>> {
     const skip = query.pageable.page * query.pageable.perPage;
 
-    const totalElements = await this.cvmModel.countDocuments();
+    const totalElements = await this.cvmModel.countDocuments(
+      query.filter || {},
+    );
 
     const content = await this.cvmModel
-      .find()
+      .find(query.filter || {})
       .skip(skip)
       .limit(query.pageable.perPage);
 

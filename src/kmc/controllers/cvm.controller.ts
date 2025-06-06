@@ -67,7 +67,7 @@ export class CvmController {
       page: Number(page) || 0,
       perPage: Number(perPage) || 25,
     };
-    const query = new GetAllQuery(pageable);
+    const query = new GetAllQuery(pageable, queryParams.filter);
 
     const result = await this.queryBus.execute<
       GetAllQuery,

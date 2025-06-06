@@ -5,3 +5,4 @@ export { IdentGuard } from './ident.guard';
 export { PoWGuard } from './pow.guard';
 export { CaptchaGuard } from './captcha.guard';
 export { Identity } from './ident.decorator';
+export { RsqlToMongoIdentTransformer } from './filter';

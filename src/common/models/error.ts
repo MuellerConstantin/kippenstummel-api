@@ -12,6 +12,8 @@ export enum ApiErrorCode {
   OUT_OF_REACH_ERROR = 'OUT_OF_REACH_ERROR',
   UNKNOWN_IDENTITY_ERROR = 'UNKNOWN_IDENTITY_ERROR',
   INVALID_IMPORT_FILE_ERROR = 'INVALID_IMPORT_FILE_ERROR',
+  INVALID_FILTER_QUERY_ERROR = 'INVALID_FILTER_QUERY_ERROR',
+  UNSUPPORTED_FILTER_FIELD_ERROR = 'UNSUPPORTED_FILTER_FIELD_ERROR',
 }
 
 export const ApiErrorMessages: Record<ApiErrorCode, string> = {
@@ -28,6 +30,8 @@ export const ApiErrorMessages: Record<ApiErrorCode, string> = {
   [ApiErrorCode.OUT_OF_REACH_ERROR]: 'Out of reach',
   [ApiErrorCode.UNKNOWN_IDENTITY_ERROR]: 'Unknown identity',
   [ApiErrorCode.INVALID_IMPORT_FILE_ERROR]: 'Invalid import file',
+  [ApiErrorCode.INVALID_FILTER_QUERY_ERROR]: 'Invalid filter query',
+  [ApiErrorCode.UNSUPPORTED_FILTER_FIELD_ERROR]: 'Unsupported filter field',
 };
 
 export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
@@ -44,6 +48,8 @@ export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
   [ApiErrorCode.OUT_OF_REACH_ERROR]: 403,
   [ApiErrorCode.UNKNOWN_IDENTITY_ERROR]: 401,
   [ApiErrorCode.INVALID_IMPORT_FILE_ERROR]: 400,
+  [ApiErrorCode.INVALID_FILTER_QUERY_ERROR]: 400,
+  [ApiErrorCode.UNSUPPORTED_FILTER_FIELD_ERROR]: 400,
 };
 
 export abstract class ApiError extends Error {
@@ -163,5 +169,17 @@ export class UnknownIdentityError extends ApiError {
 export class InvalidImportFileError extends ApiError {
   constructor(cause?: Error) {
     super(ApiErrorCode.INVALID_IMPORT_FILE_ERROR, undefined, cause);
+  }
+}
+
+export class InvalidFilterQueryError extends ApiError {
+  constructor(cause?: Error) {
+    super(ApiErrorCode.INVALID_FILTER_QUERY_ERROR, undefined, cause);
+  }
+}
+
+export class UnsupportedFilterFieldError extends ApiError {
+  constructor(details?: { [key: string]: any }[], cause?: Error) {
+    super(ApiErrorCode.UNSUPPORTED_FILTER_FIELD_ERROR, details, cause);
   }
 }
