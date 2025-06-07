@@ -85,7 +85,7 @@ export class CvmImportConsumer extends WorkerHost {
 
     const fetchOsmAreaId = async (region: string) => {
       const url = new URL('https://nominatim.openstreetmap.org/search');
-      url.searchParams.append('city', region);
+      url.searchParams.append('q', region);
       url.searchParams.append('format', 'json');
       url.searchParams.append('limit', '1');
 
