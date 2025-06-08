@@ -1,4 +1,4 @@
-export interface JobMetadata {
+export interface JobTotalStats {
   total: number;
   differentTypes: number;
   totalRunLast7Days: number;

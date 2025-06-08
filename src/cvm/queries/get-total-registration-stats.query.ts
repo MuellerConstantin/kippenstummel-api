@@ -5,20 +5,26 @@ import {
 } from '@ocoda/event-sourcing';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CvmMetaProjection } from '../models';
+import { CvmTotalRegistrationStatsProjection } from '../models';
 import { Cvm } from '../repositories/schemas';
 
-export class GetMetaQuery implements IQuery {
+export class GetTotalRegistrationStatsQuery implements IQuery {
   constructor(public readonly lastNDays: number) {}
 }
 
-@QueryHandler(GetMetaQuery)
-export class GetMetaQueryHandler
-  implements IQueryHandler<GetMetaQuery, CvmMetaProjection>
+@QueryHandler(GetTotalRegistrationStatsQuery)
+export class GetTotalRegistrationStatsQueryHandler
+  implements
+    IQueryHandler<
+      GetTotalRegistrationStatsQuery,
+      CvmTotalRegistrationStatsProjection
+    >
 {
   constructor(@InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>) {}
 
-  public async execute(query: GetMetaQuery): Promise<CvmMetaProjection> {
+  public async execute(
+    query: GetTotalRegistrationStatsQuery,
+  ): Promise<CvmTotalRegistrationStatsProjection> {
     const totalElements = await this.cvmModel.countDocuments();
     const totalImported = await this.cvmModel.countDocuments({
       imported: true,

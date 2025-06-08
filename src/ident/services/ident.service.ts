@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { IdentToken, IdentInfo, IdentMetadata, IdentSecret } from '../models';
+import { IdentToken, IdentInfo, IdentTotalStats, IdentSecret } from '../models';
 import {
   InvalidIdentTokenError,
   Page,
@@ -303,7 +303,7 @@ export class IdentService {
     return score;
   }
 
-  async getMetadata(lastNDays: number): Promise<IdentMetadata> {
+  async getTotalStats(lastNDays: number): Promise<IdentTotalStats> {
     const totalElements = await this.identModel.countDocuments();
     const averageCredibility = await this.getAverageCredibility();
     const newHistory = await this.getNewIdentsPerDay(lastNDays);

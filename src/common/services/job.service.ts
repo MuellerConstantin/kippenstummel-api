@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Job as JobModel } from '../repositories';
 import { Job as BullMqJob } from 'bullmq';
-import { Job, JobMetadata, Page, Pageable } from '../models';
+import { Job, JobTotalStats, Page, Pageable } from '../models';
 
 @Injectable()
 export class JobService {
@@ -126,7 +126,7 @@ export class JobService {
     };
   }
 
-  async getMetadata(lastNDays: number): Promise<JobMetadata> {
+  async getTotalStats(lastNDays: number): Promise<JobTotalStats> {
     const totalElements = await this.jobModel.countDocuments();
     const runHistory = await this.getRunJobsPerDay(lastNDays);
     const jobTypes = await this.getDifferentJobTypes(lastNDays);

@@ -29,8 +29,8 @@ import {
 import {
   GetAllQueryHandler,
   GetAllWithinQueryHandler,
-  GetMetaQueryHandler,
-  GetVotesMetaQueryHandler,
+  GetTotalRegistrationStatsQueryHandler,
+  GetTotalVotesStatsQueryHandler,
   GetByIdQueryHandler,
 } from './queries';
 import { CvmController } from './controllers';
@@ -55,8 +55,8 @@ import { CvmController } from './controllers';
     GetAllQueryHandler,
     GetByIdQueryHandler,
     GetAllWithinQueryHandler,
-    GetMetaQueryHandler,
-    GetVotesMetaQueryHandler,
+    GetTotalRegistrationStatsQueryHandler,
+    GetTotalVotesStatsQueryHandler,
     TileComputationConsumer,
     CvmRegisteredEventSubscriber,
     CvmUpvotedEventSubscriber,

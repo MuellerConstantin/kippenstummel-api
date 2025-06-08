@@ -5,22 +5,25 @@ import {
 } from '@ocoda/event-sourcing';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { VotesMetaProjection } from '../models';
+import { CvmTotalVotesStatsProjection } from '../models';
 import { Vote } from '../repositories';
 
-export class GetVotesMetaQuery implements IQuery {
+export class GetTotalVotesStatsQuery implements IQuery {
   constructor(public readonly lastNDays: number) {}
 }
 
-@QueryHandler(GetVotesMetaQuery)
-export class GetVotesMetaQueryHandler
-  implements IQueryHandler<GetVotesMetaQuery, VotesMetaProjection>
+@QueryHandler(GetTotalVotesStatsQuery)
+export class GetTotalVotesStatsQueryHandler
+  implements
+    IQueryHandler<GetTotalVotesStatsQuery, CvmTotalVotesStatsProjection>
 {
   constructor(
     @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
   ) {}
 
-  public async execute(query: GetVotesMetaQuery): Promise<VotesMetaProjection> {
+  public async execute(
+    query: GetTotalVotesStatsQuery,
+  ): Promise<CvmTotalVotesStatsProjection> {
     const totalElements = await this.voteModel.countDocuments();
     const totalUpvotes = await this.voteModel.countDocuments({
       type: 'upvote',

@@ -1,6 +1,6 @@
 export { Pageable } from './pageable.model';
 export { Page, PageInfo } from './page.model';
-export { JobMetadata } from './job-meta.model';
+export { JobTotalStats } from './job-stats.model';
 export { Job } from './job.model';
 export {
   ApiError,

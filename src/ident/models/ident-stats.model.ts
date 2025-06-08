@@ -1,4 +1,4 @@
-export interface IdentMetadata {
+export interface IdentTotalStats {
   total: number;
   averageCredibility: number;
   totalNewLast7Days: number;
