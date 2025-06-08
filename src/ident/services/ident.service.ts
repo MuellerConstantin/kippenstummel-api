@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';

@@ -65,11 +65,11 @@ describe('IdentService', () => {
   });
 
   describe('issueIdentity', () => {
-    it('Should generate ident token with new identity successfully"', async () => {
+    it('Should generate identity successfully"', async () => {
       const identService = app.get(IdentService);
-      const identToken = await identService.issueIdentity();
+      const identity = await identService.issueIdentity();
 
-      expect(identToken).toBeDefined();
+      expect(identity).toBeDefined();
     });
   });
 
