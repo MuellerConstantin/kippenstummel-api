@@ -5,7 +5,7 @@ import {
 } from '@ocoda/event-sourcing';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Cvm, CvmTile } from '../repositories/schemas';
+import { CvmTile } from '../repositories/schemas';
 import { CvmClusterProjection, CvmProjection } from '../models';
 import { CvmTileService } from '../services';
 
@@ -23,9 +23,7 @@ export class GetAllWithinQueryHandler
     IQueryHandler<GetAllWithinQuery, (CvmProjection | CvmClusterProjection)[]>
 {
   constructor(
-    @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     @InjectModel(CvmTile.name) private readonly cvmTileModel: Model<CvmTile>,
-    private readonly cvmTileService: CvmTileService,
   ) {}
 
   public async execute(

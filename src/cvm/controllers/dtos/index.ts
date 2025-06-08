@@ -6,3 +6,4 @@ export { DownvoteParamsDto } from './downvote-params.dto';
 export { UpvoteParamsDto } from './upvote-params.dto';
 export { UpvoteCvmDto } from './upvote-cvm.dto';
 export { DownvoteCvmDto } from './downvote-cvm.dto';
+export { GetCvmByIdParamsDto } from './get-cvm-by-id-params.dto';

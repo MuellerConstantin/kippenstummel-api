@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@ocoda/event-sourcing';
-import { GetAllWithinQuery } from '../queries';
+import { GetAllWithinQuery, GetByIdQuery } from '../queries';
 import {
   RegisterCvmCommand,
   DownvoteCvmCommand,
@@ -24,6 +24,7 @@ import {
   UpvoteParamsDto,
   DownvoteCvmDto,
   UpvoteCvmDto,
+  GetCvmByIdParamsDto,
 } from './dtos';
 import { Identity, IdentGuard } from 'src/ident/controllers';
 
@@ -69,6 +70,16 @@ export class CvmController {
     );
 
     await this.commandBus.execute<RegisterCvmCommand>(command);
+  }
+
+  @Get('/:id')
+  async getById(@Param() params: GetCvmByIdParamsDto): Promise<CvmDto> {
+    const query = new GetByIdQuery(params.id);
+    const result = await this.queryBus.execute<GetByIdQuery, CvmProjection>(
+      query,
+    );
+
+    return result;
   }
 
   @UseGuards(IdentGuard)
