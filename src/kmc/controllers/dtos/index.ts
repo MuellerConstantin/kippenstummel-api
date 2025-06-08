@@ -4,7 +4,7 @@ export { ImportManualDto } from './import-manual.dto';
 export { GetAllCvmWithinQueryDto } from './get-all-cvm-within-query.dto';
 export { CvmClusterDto } from './cvm-cluster.dto';
 export { CvmDto } from './cvm.dto';
-export { StatsDto } from './stats.dto';
+export { TotalStatsDto } from './stats.dto';
 export { GetStatsQueryDto } from './get-stats-query.dto';
 export { GetAllIdentQueryDto } from './get-all-ident-query.dto';
 export { IdentInfoDto } from './ident.dto';

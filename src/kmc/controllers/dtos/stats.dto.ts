@@ -1,4 +1,4 @@
-export interface StatsDto {
+export interface TotalStatsDto {
   cvms: {
     total: number;
     averageScore: number;

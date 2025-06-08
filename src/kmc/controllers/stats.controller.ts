@@ -1,7 +1,7 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@ocoda/event-sourcing';
 import { OAuth2Guard } from 'src/common/controllers';
-import { StatsDto, GetStatsQueryDto } from './dtos';
+import { TotalStatsDto, GetStatsQueryDto } from './dtos';
 import {
   GetTotalRegistrationStatsQuery,
   GetTotalVotesStatsQuery,
@@ -24,7 +24,7 @@ export class StatsController {
   ) {}
 
   @Get()
-  async getAll(@Query() queryParams: GetStatsQueryDto): Promise<StatsDto> {
+  async getAll(@Query() queryParams: GetStatsQueryDto): Promise<TotalStatsDto> {
     const registrationQuery = new GetTotalRegistrationStatsQuery(
       queryParams.lastNDays,
     );
