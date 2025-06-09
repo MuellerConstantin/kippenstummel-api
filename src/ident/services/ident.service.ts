@@ -242,7 +242,6 @@ export class IdentService {
     }
 
     info.credibility = IdentService.computeCredibility(info);
-    console.log(location);
 
     await this.identModel.updateOne(
       { identity },
