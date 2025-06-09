@@ -66,12 +66,14 @@ export class IdentService {
       identity,
       credibility: 0,
       issuedAt: new Date(),
-      lastInteractionAt: undefined,
-      averageInteractionInterval: 0,
-      lastInteractionPosition: undefined,
-      unrealisticMovementCount: 0,
-      voting: { totalCount: 0, upvoteCount: 0, downvoteCount: 0 },
-      registrations: { totalCount: 0 },
+      behaviour: {
+        lastInteractionAt: undefined,
+        averageInteractionInterval: 0,
+        lastInteractionPosition: undefined,
+        unrealisticMovementCount: 0,
+        voting: { totalCount: 0, upvoteCount: 0, downvoteCount: 0 },
+        registrations: { totalCount: 0 },
+      },
     };
 
     info.credibility = IdentService.computeCredibility(info);
@@ -108,22 +110,25 @@ export class IdentService {
       identity: result.identity,
       credibility: result.credibility,
       issuedAt: result.issuedAt,
-      lastInteractionAt: result.lastInteractionAt,
-      averageInteractionInterval: result.averageInteractionInterval,
-      unrealisticMovementCount: result.unrealisticMovementCount,
-      lastInteractionPosition: result.lastInteractionPosition
-        ? {
-            longitude: result.lastInteractionPosition.coordinates[0],
-            latitude: result.lastInteractionPosition.coordinates[1],
-          }
-        : undefined,
-      voting: {
-        totalCount: result.voting.totalCount,
-        upvoteCount: result.voting.upvoteCount,
-        downvoteCount: result.voting.downvoteCount,
-      },
-      registrations: {
-        totalCount: result.registrations.totalCount,
+      behaviour: {
+        lastInteractionAt: result.behaviour.lastInteractionAt,
+        averageInteractionInterval: result.behaviour.averageInteractionInterval,
+        unrealisticMovementCount: result.behaviour.unrealisticMovementCount,
+        lastInteractionPosition: result.behaviour.lastInteractionPosition
+          ? {
+              longitude:
+                result.behaviour.lastInteractionPosition.coordinates[0],
+              latitude: result.behaviour.lastInteractionPosition.coordinates[1],
+            }
+          : undefined,
+        voting: {
+          totalCount: result.behaviour.voting.totalCount,
+          upvoteCount: result.behaviour.voting.upvoteCount,
+          downvoteCount: result.behaviour.voting.downvoteCount,
+        },
+        registrations: {
+          totalCount: result.behaviour.registrations.totalCount,
+        },
       },
     };
   }
@@ -148,22 +153,27 @@ export class IdentService {
         identity: ident.identity,
         credibility: ident.credibility,
         issuedAt: ident.issuedAt,
-        lastInteractionAt: ident.lastInteractionAt,
-        averageInteractionInterval: ident.averageInteractionInterval,
-        unrealisticMovementCount: ident.unrealisticMovementCount,
-        lastInteractionPosition: ident.lastInteractionPosition
-          ? {
-              longitude: ident.lastInteractionPosition.coordinates[0],
-              latitude: ident.lastInteractionPosition.coordinates[1],
-            }
-          : undefined,
-        voting: {
-          totalCount: ident.voting.totalCount,
-          upvoteCount: ident.voting.upvoteCount,
-          downvoteCount: ident.voting.downvoteCount,
-        },
-        registrations: {
-          totalCount: ident.registrations.totalCount,
+        behaviour: {
+          lastInteractionAt: ident.behaviour.lastInteractionAt,
+          averageInteractionInterval:
+            ident.behaviour.averageInteractionInterval,
+          unrealisticMovementCount: ident.behaviour.unrealisticMovementCount,
+          lastInteractionPosition: ident.behaviour.lastInteractionPosition
+            ? {
+                longitude:
+                  ident.behaviour.lastInteractionPosition.coordinates[0],
+                latitude:
+                  ident.behaviour.lastInteractionPosition.coordinates[1],
+              }
+            : undefined,
+          voting: {
+            totalCount: ident.behaviour.voting.totalCount,
+            upvoteCount: ident.behaviour.voting.upvoteCount,
+            downvoteCount: ident.behaviour.voting.downvoteCount,
+          },
+          registrations: {
+            totalCount: ident.behaviour.registrations.totalCount,
+          },
         },
       })),
       info: {
@@ -186,56 +196,64 @@ export class IdentService {
     const info = await this.getIdentity(identity);
 
     // Check for unrealistic movement
-    if (info.lastInteractionPosition && info.lastInteractionAt) {
+    if (
+      info.behaviour.lastInteractionPosition &&
+      info.behaviour.lastInteractionAt
+    ) {
       const hasUnrealisticallyMoved: boolean =
         IdentService.isUnrealisticallyMovement(
-          info.lastInteractionPosition,
+          info.behaviour.lastInteractionPosition,
           location,
-          info.lastInteractionAt,
+          info.behaviour.lastInteractionAt,
         );
 
       if (hasUnrealisticallyMoved) {
-        info.unrealisticMovementCount++;
+        info.behaviour.unrealisticMovementCount++;
       }
     }
 
     // Calculate average interaction interval
-    if (info.lastInteractionAt) {
-      const duration = new Date().getTime() - info.lastInteractionAt.getTime();
+    if (info.behaviour.lastInteractionAt) {
+      const duration =
+        new Date().getTime() - info.behaviour.lastInteractionAt.getTime();
       const previousEwma =
-        info.averageInteractionInterval > 0
-          ? info.averageInteractionInterval
+        info.behaviour.averageInteractionInterval > 0
+          ? info.behaviour.averageInteractionInterval
           : duration;
 
-      info.averageInteractionInterval = calculateEwma(
+      info.behaviour.averageInteractionInterval = calculateEwma(
         previousEwma,
         duration,
         0.1,
       );
     }
 
-    info.lastInteractionAt = new Date();
-    info.lastInteractionPosition = location;
+    info.behaviour.lastInteractionAt = new Date();
+    info.behaviour.lastInteractionPosition = location;
 
     if (interaction === 'upvote') {
-      info.voting.totalCount++;
-      info.voting.upvoteCount++;
+      info.behaviour.voting.totalCount++;
+      info.behaviour.voting.upvoteCount++;
     } else if (interaction === 'downvote') {
-      info.voting.totalCount++;
-      info.voting.downvoteCount++;
+      info.behaviour.voting.totalCount++;
+      info.behaviour.voting.downvoteCount++;
     } else if (interaction === 'registration') {
-      info.registrations.totalCount++;
+      info.behaviour.registrations.totalCount++;
     }
 
     info.credibility = IdentService.computeCredibility(info);
+    console.log(location);
 
     await this.identModel.updateOne(
       { identity },
       {
         ...info,
-        lastInteractionPosition: {
-          type: 'Point',
-          coordinates: [location.longitude, location.latitude],
+        behaviour: {
+          ...info.behaviour,
+          lastInteractionPosition: {
+            type: 'Point',
+            coordinates: [location.longitude, location.latitude],
+          },
         },
       },
     );
@@ -248,7 +266,7 @@ export class IdentService {
     const MAX_UNREALISTIC_PENALTY = 25;
 
     const movementPenalty = Math.min(
-      info.unrealisticMovementCount * 5,
+      info.behaviour.unrealisticMovementCount * 5,
       MAX_UNREALISTIC_PENALTY,
     );
 
@@ -258,30 +276,36 @@ export class IdentService {
     const SUSPICIOUS_INTERVAL = 10 * 1000; // 10 seconds
     const NORMAL_INTERVAL = 120 * 1000; // 2 minutes
 
-    if (info.averageInteractionInterval < SUSPICIOUS_INTERVAL) {
+    if (info.behaviour.averageInteractionInterval < SUSPICIOUS_INTERVAL) {
       score -= 25;
-    } else if (info.averageInteractionInterval < NORMAL_INTERVAL) {
+    } else if (info.behaviour.averageInteractionInterval < NORMAL_INTERVAL) {
       const ratio =
-        (NORMAL_INTERVAL - info.averageInteractionInterval) /
+        (NORMAL_INTERVAL - info.behaviour.averageInteractionInterval) /
         (NORMAL_INTERVAL - SUSPICIOUS_INTERVAL);
       score -= ratio * 25;
     }
 
     // Voting bias
-    if (info.voting.totalCount >= 10) {
-      const upvoteRatio = info.voting.upvoteCount / info.voting.totalCount;
+    if (info.behaviour.voting.totalCount >= 10) {
+      const upvoteRatio =
+        info.behaviour.voting.upvoteCount / info.behaviour.voting.totalCount;
       if (upvoteRatio < 0.1 || upvoteRatio > 0.9) {
         score -= 20;
       }
     }
 
     // Registration behaviour
-    if (info.registrations.totalCount >= 5 && info.voting.totalCount === 0) {
+    if (
+      info.behaviour.registrations.totalCount >= 5 &&
+      info.behaviour.voting.totalCount === 0
+    ) {
       score -= 15; // Only registering without voting is suspicious
     }
 
     // Low activtity
-    const totalActions = info.voting.totalCount + info.registrations.totalCount;
+    const totalActions =
+      info.behaviour.voting.totalCount +
+      info.behaviour.registrations.totalCount;
 
     if (totalActions < 3) {
       score -= 10;

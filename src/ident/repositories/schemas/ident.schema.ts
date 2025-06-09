@@ -36,20 +36,8 @@ class Registrations {
 
 export const RegistrationsSchema = SchemaFactory.createForClass(Registrations);
 
-@Schema({ collection: 'idents', timestamps: true })
-export class Ident {
-  @Prop()
-  identity: string;
-
-  @Prop()
-  secret: string;
-
-  @Prop({ type: Date })
-  issuedAt: Date;
-
-  @Prop()
-  credibility: number;
-
+@Schema({ _id: false })
+class Behaviour {
   @Prop({ type: Date, default: undefined })
   lastInteractionAt?: Date;
 
@@ -69,7 +57,28 @@ export class Ident {
   registrations: Registrations;
 }
 
+export const BehaviourSchema = SchemaFactory.createForClass(Behaviour);
+
+BehaviourSchema.index({ lastInteractionPosition: '2dsphere' });
+
+@Schema({ collection: 'idents', timestamps: true })
+export class Ident {
+  @Prop()
+  identity: string;
+
+  @Prop()
+  secret: string;
+
+  @Prop({ type: Date })
+  issuedAt: Date;
+
+  @Prop()
+  credibility: number;
+
+  @Prop({ type: Behaviour })
+  behaviour: Behaviour;
+}
+
 export const IdentSchema = SchemaFactory.createForClass(Ident);
 
-IdentSchema.index({ lastInteractionPosition: '2dsphere' });
 IdentSchema.index({ identity: 1 });
