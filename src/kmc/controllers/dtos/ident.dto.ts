@@ -11,9 +11,13 @@ export interface IdentInfoDto {
       totalCount: number;
       upvoteCount: number;
       downvoteCount: number;
+      lastVotedAt?: Date;
+      averageVotingInterval: number;
     };
     registrations: {
       totalCount: number;
+      lastRegistrationAt?: Date;
+      averageRegistrationInterval: number;
     };
   };
 }

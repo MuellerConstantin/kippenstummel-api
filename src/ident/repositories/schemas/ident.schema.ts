@@ -24,6 +24,12 @@ class Voting {
 
   @Prop()
   downvoteCount: number;
+
+  @Prop({ type: Date, default: undefined })
+  lastVotedAt?: Date;
+
+  @Prop()
+  averageVotingInterval: number;
 }
 
 export const VotingSchema = SchemaFactory.createForClass(Voting);
@@ -32,6 +38,12 @@ export const VotingSchema = SchemaFactory.createForClass(Voting);
 class Registrations {
   @Prop()
   totalCount: number;
+
+  @Prop({ type: Date, default: undefined })
+  lastRegistrationAt?: Date;
+
+  @Prop()
+  averageRegistrationInterval: number;
 }
 
 export const RegistrationsSchema = SchemaFactory.createForClass(Registrations);

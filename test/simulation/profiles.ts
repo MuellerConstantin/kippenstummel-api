@@ -29,137 +29,240 @@ function randomPositionWorldwide() {
 }
 
 export function generateNormalIdent(): IdentInfo {
-  const issuedAt = nowMinusDays(crypto.randomInt(3, 10));
-  const voteInteractions = crypto.randomInt(10, 50);
-  const registrationInteractions = crypto.randomInt(0, 10);
+  const issuedNDaysAgo = crypto.randomInt(3, 500);
+  const issuedAt = nowMinusDays(issuedNDaysAgo);
+
+  const voteInteractionAveragePerDay = crypto.randomInt(10, 30) / 100;
+  const voteInteractions = Math.round(
+    voteInteractionAveragePerDay * issuedNDaysAgo,
+  );
+
+  const registrationInteractionsAveragePerDay = crypto.randomInt(1, 15) / 100;
+  const registrationInteractions = Math.round(
+    registrationInteractionsAveragePerDay * issuedNDaysAgo,
+  );
+
   const totalInteractions = voteInteractions + registrationInteractions;
-  const averageInterval = crypto.randomInt(30_000, 120_000);
+  const averageInterval = crypto.randomInt(
+    1000 * 60 * 60,
+    1000 * 60 * 60 * 24 * 7,
+  );
   const lastInteractionAt = issuedAt + totalInteractions * averageInterval;
+  const averageRegistrationInterval = crypto.randomInt(
+    1000 * 60 * 60 * 24,
+    1000 * 60 * 60 * 24 * 14,
+  );
+  const averageVotingInterval = crypto.randomInt(
+    1000 * 60 * 60,
+    1000 * 60 * 60 * 24 * 7,
+  );
 
   return {
     identity: crypto.randomUUID(),
     issuedAt: new Date(issuedAt),
     credibility: 60,
-    lastInteractionAt: new Date(lastInteractionAt),
-    averageInteractionInterval: averageInterval,
-    lastInteractionPosition: randomPositionNearby({ lat: 48.1, lon: 11.6 }, 2),
-    unrealisticMovementCount: 0,
-    voting: {
-      totalCount: voteInteractions,
-      upvoteCount: Math.floor(voteInteractions * 0.7),
-      downvoteCount: Math.floor(voteInteractions * 0.3),
-    },
-    registrations: {
-      totalCount: registrationInteractions,
+    behaviour: {
+      lastInteractionAt: new Date(lastInteractionAt),
+      averageInteractionInterval: averageInterval,
+      lastInteractionPosition: randomPositionNearby(
+        { lat: 48.1, lon: 11.6 },
+        2,
+      ),
+      unrealisticMovementCount: 0,
+      voting: {
+        totalCount: voteInteractions,
+        upvoteCount: Math.floor(voteInteractions * 0.7),
+        downvoteCount: Math.floor(voteInteractions * 0.3),
+        lastVotedAt: new Date(lastInteractionAt),
+        averageVotingInterval,
+      },
+      registrations: {
+        totalCount: registrationInteractions,
+        lastRegistrationAt: new Date(lastInteractionAt),
+        averageRegistrationInterval,
+      },
     },
   };
 }
 
-export function generateMaliciousRegistrationIdent(): IdentInfo {
-  const issuedAt = nowMinusMinutes(crypto.randomInt(2, 10));
-  const voteInteractions = crypto.randomInt(10, 50);
-  const registrationInteractions = crypto.randomInt(50, 500);
+export function generateMaliciousIdent(): IdentInfo {
+  const issuedNMinutesAgo = crypto.randomInt(1, 72000);
+  const issuedNDaysAgo = Math.round(issuedNMinutesAgo / 60 / 24);
+  const issuedAt = nowMinusMinutes(issuedNMinutesAgo);
+
+  const types = ['voteSpam', 'registrationSpam'];
+  const type = types[crypto.randomInt(0, 1)];
+
+  let voteInteractionAveragePerDay: number = 0;
+  let voteInteractions: number = 0;
+  let upvoteCount: number = 0;
+  let downvoteCount: number = 0;
+  let registrationInteractionsAveragePerDay: number = 0;
+  let registrationInteractions: number = 0;
+
+  if (type === 'voteSpam') {
+    voteInteractionAveragePerDay = crypto.randomInt(75, 500) / 100;
+    voteInteractions = Math.round(
+      voteInteractionAveragePerDay * issuedNDaysAgo,
+    );
+
+    const ratio = crypto.randomInt(0, 100) / 100;
+    upvoteCount = Math.floor(voteInteractions * ratio);
+    downvoteCount = Math.floor(voteInteractions * (1 - ratio));
+
+    registrationInteractionsAveragePerDay = crypto.randomInt(1, 50) / 100;
+    registrationInteractions = Math.round(
+      registrationInteractionsAveragePerDay * issuedNDaysAgo,
+    );
+  } else if (type === 'registrationSpam') {
+    voteInteractionAveragePerDay = crypto.randomInt(1, 50) / 100;
+    voteInteractions = Math.round(
+      voteInteractionAveragePerDay * issuedNDaysAgo,
+    );
+
+    const ratio = crypto.randomInt(0, 100) / 100;
+    upvoteCount = Math.floor(voteInteractions * ratio);
+    downvoteCount = Math.floor(voteInteractions * (1 - ratio));
+
+    registrationInteractionsAveragePerDay = crypto.randomInt(75, 500) / 100;
+    registrationInteractions = Math.round(
+      registrationInteractionsAveragePerDay * issuedNDaysAgo,
+    );
+  }
+
   const totalInteractions = voteInteractions + registrationInteractions;
-  const averageInterval = crypto.randomInt(200, 15_000);
+  const averageInterval = crypto.randomInt(1000 * 10, 1000 * 60 * 30);
   const lastInteractionAt = issuedAt + totalInteractions * averageInterval;
+  const averageRegistrationInterval = crypto.randomInt(
+    1000 * 10,
+    1000 * 60 * 30,
+  );
+  const averageVotingInterval = crypto.randomInt(1000 * 10, 1000 * 60 * 30);
 
   return {
     identity: crypto.randomUUID(),
     issuedAt: new Date(issuedAt),
     credibility: 20,
-    lastInteractionAt: new Date(lastInteractionAt),
-    averageInteractionInterval: averageInterval,
-    lastInteractionPosition: randomPositionWorldwide(),
-    unrealisticMovementCount: crypto.randomInt(5, 20),
-    voting: {
-      totalCount: voteInteractions,
-      upvoteCount: Math.floor(voteInteractions * 0.7),
-      downvoteCount: Math.floor(voteInteractions * 0.3),
-    },
-    registrations: {
-      totalCount: registrationInteractions,
-    },
-  };
-}
-
-export function generateMaliciousVotingIdent(): IdentInfo {
-  const issuedAt = nowMinusMinutes(crypto.randomInt(2, 10));
-  const voteInteractions = crypto.randomInt(100, 750);
-  const registrationInteractions = crypto.randomInt(0, 5);
-  const totalInteractions = voteInteractions + registrationInteractions;
-  const averageInterval = crypto.randomInt(200, 15_000);
-  const lastInteractionAt = issuedAt + totalInteractions * averageInterval;
-  const upvoteSpam = Math.random() > 0.5;
-
-  return {
-    identity: crypto.randomUUID(),
-    issuedAt: new Date(issuedAt),
-    credibility: 20,
-    lastInteractionAt: new Date(lastInteractionAt),
-    averageInteractionInterval: averageInterval,
-    lastInteractionPosition: randomPositionWorldwide(),
-    unrealisticMovementCount: crypto.randomInt(5, 30),
-    voting: {
-      totalCount: voteInteractions,
-      upvoteCount: Math.floor(voteInteractions * (upvoteSpam ? 0.9 : 0.1)),
-      downvoteCount: Math.floor(voteInteractions * (upvoteSpam ? 0.1 : 0.9)),
-    },
-    registrations: {
-      totalCount: registrationInteractions,
+    behaviour: {
+      lastInteractionAt: new Date(lastInteractionAt),
+      averageInteractionInterval: averageInterval,
+      lastInteractionPosition: randomPositionWorldwide(),
+      unrealisticMovementCount: crypto.randomInt(50, 100),
+      voting: {
+        totalCount: voteInteractions,
+        upvoteCount,
+        downvoteCount,
+        lastVotedAt: new Date(lastInteractionAt),
+        averageVotingInterval,
+      },
+      registrations: {
+        totalCount: registrationInteractions,
+        lastRegistrationAt: new Date(lastInteractionAt),
+        averageRegistrationInterval,
+      },
     },
   };
 }
 
 export function generatePowerIdent(): IdentInfo {
-  const issuedAt = nowMinusDays(crypto.randomInt(10, 40));
-  const voteInteractions = crypto.randomInt(100, 500);
-  const registrationInteractions = crypto.randomInt(10, 50);
+  const issuedNDaysAgo = crypto.randomInt(10, 500);
+  const issuedAt = nowMinusDays(issuedNDaysAgo);
+
+  const voteInteractionAveragePerDay = crypto.randomInt(10, 50) / 100;
+  const voteInteractions = Math.round(
+    voteInteractionAveragePerDay * issuedNDaysAgo,
+  );
+
+  const registrationInteractionsAveragePerDay = crypto.randomInt(10, 25) / 100;
+  const registrationInteractions = Math.round(
+    registrationInteractionsAveragePerDay * issuedNDaysAgo,
+  );
+
   const totalInteractions = voteInteractions + registrationInteractions;
-  const averageInterval = crypto.randomInt(20_000, 60_000);
+  const averageInterval = crypto.randomInt(1000 * 10, 1000 * 60 * 30);
   const lastInteractionAt = issuedAt + totalInteractions * averageInterval;
+  const averageRegistrationInterval = crypto.randomInt(
+    1000 * 60 * 60 * 24 * 2,
+    1000 * 60 * 60 * 24 * 7,
+  );
+  const averageVotingInterval = crypto.randomInt(
+    1000 * 60 * 60 * 24,
+    1000 * 60 * 60 * 24 * 4,
+  );
 
   return {
     identity: crypto.randomUUID(),
     issuedAt: new Date(issuedAt),
     credibility: 75,
-    lastInteractionAt: new Date(lastInteractionAt),
-    averageInteractionInterval: averageInterval,
-    lastInteractionPosition: randomPositionNearby({ lat: 48.1, lon: 11.6 }, 5),
-    unrealisticMovementCount: crypto.randomInt(0, 2),
-    voting: {
-      totalCount: voteInteractions,
-      upvoteCount: Math.floor(voteInteractions * 0.5),
-      downvoteCount: Math.floor(voteInteractions * 0.5),
-    },
-    registrations: {
-      totalCount: registrationInteractions,
+    behaviour: {
+      lastInteractionAt: new Date(lastInteractionAt),
+      averageInteractionInterval: averageInterval,
+      lastInteractionPosition: randomPositionNearby(
+        { lat: 48.1, lon: 11.6 },
+        5,
+      ),
+      unrealisticMovementCount: crypto.randomInt(0, 2),
+      voting: {
+        totalCount: voteInteractions,
+        upvoteCount: Math.floor(voteInteractions * 0.5),
+        downvoteCount: Math.floor(voteInteractions * 0.5),
+        lastVotedAt: new Date(lastInteractionAt),
+        averageVotingInterval,
+      },
+      registrations: {
+        totalCount: registrationInteractions,
+        lastRegistrationAt: new Date(lastInteractionAt),
+        averageRegistrationInterval,
+      },
     },
   };
 }
 
 export function generateNewbieIdent(): IdentInfo {
-  const issuedAt = nowMinusMinutes(crypto.randomInt(10, 1920));
-  const voteInteractions = crypto.randomInt(1, 10);
-  const registrationInteractions = crypto.randomInt(0, 2);
+  const issuedNMinutesAgo = crypto.randomInt(10, 1920);
+  const issuedNDaysAgo = Math.round(issuedNMinutesAgo / 60 / 24);
+  const issuedAt = nowMinusMinutes(issuedNMinutesAgo);
+
+  const voteInteractionAveragePerDay = crypto.randomInt(10, 30) / 100;
+  const voteInteractions = Math.round(
+    voteInteractionAveragePerDay * issuedNDaysAgo,
+  );
+
+  const registrationInteractionsAveragePerDay = crypto.randomInt(1, 15) / 100;
+  const registrationInteractions = Math.round(
+    registrationInteractionsAveragePerDay * issuedNDaysAgo,
+  );
+
   const totalInteractions = voteInteractions + registrationInteractions;
-  const averageInterval = crypto.randomInt(60_000, 150_000);
+  const averageInterval = crypto.randomInt(0, 1000 * 60 * 60 * 24);
   const lastInteractionAt = issuedAt + totalInteractions * averageInterval;
+  const averageRegistrationInterval = crypto.randomInt(0, 1000 * 60 * 60 * 24);
+  const averageVotingInterval = crypto.randomInt(0, 1000 * 60 * 60 * 24);
 
   return {
     identity: crypto.randomUUID(),
     issuedAt: new Date(issuedAt),
     credibility: 32,
-    lastInteractionAt: new Date(lastInteractionAt),
-    averageInteractionInterval: averageInterval,
-    lastInteractionPosition: randomPositionNearby({ lat: 48.1, lon: 11.6 }, 2),
-    unrealisticMovementCount: 0,
-    voting: {
-      totalCount: voteInteractions,
-      upvoteCount: Math.floor(voteInteractions * 0.9),
-      downvoteCount: Math.floor(voteInteractions * 0.1),
-    },
-    registrations: {
-      totalCount: registrationInteractions,
+    behaviour: {
+      lastInteractionAt: new Date(lastInteractionAt),
+      averageInteractionInterval: averageInterval,
+      lastInteractionPosition: randomPositionNearby(
+        { lat: 48.1, lon: 11.6 },
+        2,
+      ),
+      unrealisticMovementCount: 0,
+      voting: {
+        totalCount: voteInteractions,
+        upvoteCount: Math.floor(voteInteractions * 0.9),
+        downvoteCount: Math.floor(voteInteractions * 0.1),
+        lastVotedAt: new Date(lastInteractionAt),
+        averageVotingInterval: averageVotingInterval,
+      },
+      registrations: {
+        totalCount: registrationInteractions,
+        lastRegistrationAt: new Date(lastInteractionAt),
+        averageRegistrationInterval: averageRegistrationInterval,
+      },
     },
   };
 }
