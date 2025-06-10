@@ -87,21 +87,50 @@ export class CvmTileService {
     return { bottomLeft, topRight };
   }
 
-  async updateTile(tile: { x: number; y: number; z: number }) {
+  async updateTile(
+    tile: { x: number; y: number; z: number },
+    variant: 'all' | 'trusted' | 'approved' | 'viable' = 'all',
+  ) {
     const Supercluster = (await import('supercluster')).default;
 
     const boundingBox = CvmTileService.getTileBoundingBox(tile);
 
-    const content = await this.cvmModel.find({
-      position: {
-        $geoWithin: {
-          $box: [
-            [boundingBox.bottomLeft.longitude, boundingBox.bottomLeft.latitude],
-            [boundingBox.topRight.longitude, boundingBox.topRight.latitude],
-          ],
+    const filters: Record<string, any>[] = [
+      {
+        position: {
+          $geoWithin: {
+            $box: [
+              [
+                boundingBox.bottomLeft.longitude,
+                boundingBox.bottomLeft.latitude,
+              ],
+              [boundingBox.topRight.longitude, boundingBox.topRight.latitude],
+            ],
+          },
         },
       },
-    });
+    ];
+
+    switch (variant) {
+      case 'viable': {
+        filters.push({ score: { $gt: -200 } });
+        break;
+      }
+      case 'approved': {
+        filters.push({ score: { $gt: 0 } });
+        break;
+      }
+      case 'trusted': {
+        filters.push({ score: { $gt: 200 } });
+        break;
+      }
+      case 'all':
+      default: {
+        break;
+      }
+    }
+
+    const content = await this.cvmModel.find({ $and: filters });
 
     const geoJson: PointFeature<{ cvm: Cvm }>[] = content.map((cvm) => ({
       type: 'Feature',
@@ -137,7 +166,7 @@ export class CvmTileService {
     );
 
     await this.cvmTileModel.updateOne(
-      { x: tile.x, y: tile.y, z: tile.z },
+      { x: tile.x, y: tile.y, z: tile.z, variant },
       {
         $set: {
           clusters: result.map((cluster) => {
@@ -161,10 +190,13 @@ export class CvmTileService {
     );
   }
 
-  async updateTilesByPosition(position: {
-    longitude: number;
-    latitude: number;
-  }) {
+  async updateTilesByPosition(
+    position: {
+      longitude: number;
+      latitude: number;
+    },
+    variant: 'all' | 'trusted' | 'approved' | 'viable' = 'all',
+  ) {
     // Supported zoom levels
     const zoomLevels = [
       ...Array(constants.MAX_TILE_ZOOM - constants.MIN_TILE_ZOOM + 1).keys(),
@@ -180,11 +212,12 @@ export class CvmTileService {
       )
       .flat(1);
 
-    await Promise.all(tiles.map((tile) => this.updateTile(tile)));
+    await Promise.all(tiles.map((tile) => this.updateTile(tile, variant)));
   }
 
   async updateTilesByPositions(
     positions: { longitude: number; latitude: number }[],
+    variant: 'all' | 'trusted' | 'approved' | 'viable' = 'all',
   ) {
     // Supported zoom levels
     const zoomLevels = [
@@ -211,7 +244,9 @@ export class CvmTileService {
       ).values(),
     );
 
-    await Promise.all(uniqueTiles.map((tile) => this.updateTile(tile)));
+    await Promise.all(
+      uniqueTiles.map((tile) => this.updateTile(tile, variant)),
+    );
   }
 
   static getRadiusForZoom(zoom: number): number {

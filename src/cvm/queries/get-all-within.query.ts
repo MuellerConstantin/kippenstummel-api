@@ -37,11 +37,16 @@ export class GetAllWithinQueryHandler
 
     const data = await this.cvmTileModel
       .find({
-        $or: tiles.map((coord) => ({
-          x: coord.x,
-          y: coord.y,
-          z: coord.z,
-        })),
+        $and: [
+          { variant: 'all' },
+          {
+            $or: tiles.map((coord) => ({
+              x: coord.x,
+              y: coord.y,
+              z: coord.z,
+            })),
+          },
+        ],
       })
       .populate('clusters.cvm')
       .exec();

@@ -22,7 +22,34 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
       latitude: number;
     };
 
-    await this.tileComputationQueue.add('recompute', {
+    await this.tileComputationQueue.add('all', {
+      positions: [
+        {
+          longitude: position.longitude,
+          latitude: position.latitude,
+        },
+      ],
+    });
+
+    await this.tileComputationQueue.add('trusted', {
+      positions: [
+        {
+          longitude: position.longitude,
+          latitude: position.latitude,
+        },
+      ],
+    });
+
+    await this.tileComputationQueue.add('approved', {
+      positions: [
+        {
+          longitude: position.longitude,
+          latitude: position.latitude,
+        },
+      ],
+    });
+
+    await this.tileComputationQueue.add('viable', {
       positions: [
         {
           longitude: position.longitude,

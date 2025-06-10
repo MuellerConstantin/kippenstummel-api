@@ -16,8 +16,35 @@ export class TileComputationConsumer extends WorkerHost {
 
   async process(job: Job<any, any, string>): Promise<any> {
     switch (job.name) {
-      case 'recompute': {
-        return this.recompute(
+      case 'all': {
+        return this.recomputeAll(
+          job as Job<
+            { positions: { longitude: number; latitude: number }[] },
+            void,
+            string
+          >,
+        );
+      }
+      case 'trusted': {
+        return this.recomputeTrusted(
+          job as Job<
+            { positions: { longitude: number; latitude: number }[] },
+            void,
+            string
+          >,
+        );
+      }
+      case 'approved': {
+        return this.recomputeApproved(
+          job as Job<
+            { positions: { longitude: number; latitude: number }[] },
+            void,
+            string
+          >,
+        );
+      }
+      case 'viable': {
+        return this.recomputeViable(
           job as Job<
             { positions: { longitude: number; latitude: number }[] },
             void,
@@ -28,16 +55,73 @@ export class TileComputationConsumer extends WorkerHost {
     }
   }
 
-  async recompute(
+  async recomputeAll(
     job: Job<
       { positions: { longitude: number; latitude: number }[] },
       void,
       string
     >,
   ): Promise<void> {
-    this.logger.debug(`Updating tiles...`, 'TileComputationConsumer');
+    this.logger.debug(
+      `Updating tiles for variant 'all'...`,
+      'TileComputationConsumer',
+    );
 
-    await this.cvmTileService.updateTilesByPositions(job.data.positions);
+    await this.cvmTileService.updateTilesByPositions(job.data.positions, 'all');
+  }
+
+  async recomputeTrusted(
+    job: Job<
+      { positions: { longitude: number; latitude: number }[] },
+      void,
+      string
+    >,
+  ): Promise<void> {
+    this.logger.debug(
+      `Updating tiles for variant 'trusted'...`,
+      'TileComputationConsumer',
+    );
+
+    await this.cvmTileService.updateTilesByPositions(
+      job.data.positions,
+      'trusted',
+    );
+  }
+
+  async recomputeApproved(
+    job: Job<
+      { positions: { longitude: number; latitude: number }[] },
+      void,
+      string
+    >,
+  ): Promise<void> {
+    this.logger.debug(
+      `Updating tiles for variant 'approved'...`,
+      'TileComputationConsumer',
+    );
+
+    await this.cvmTileService.updateTilesByPositions(
+      job.data.positions,
+      'approved',
+    );
+  }
+
+  async recomputeViable(
+    job: Job<
+      { positions: { longitude: number; latitude: number }[] },
+      void,
+      string
+    >,
+  ): Promise<void> {
+    this.logger.debug(
+      `Updating tiles for variant 'viable'...`,
+      'TileComputationConsumer',
+    );
+
+    await this.cvmTileService.updateTilesByPositions(
+      job.data.positions,
+      'viable',
+    );
   }
 
   @OnWorkerEvent('active')

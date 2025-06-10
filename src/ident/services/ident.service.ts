@@ -219,7 +219,7 @@ export class IdentService {
       },
     ]);
 
-    return result[0].averageCredibility;
+    return result[0] ? result[0].averageCredibility : 0;
   }
 
   private async getNewIdentsPerDay(lastNDays: number) {

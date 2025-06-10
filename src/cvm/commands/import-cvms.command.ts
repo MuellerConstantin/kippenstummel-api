@@ -69,7 +69,34 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
     await Promise.allSettled(operations);
 
     // Recompute tiles outside of event lifecycle to allow batch processing
-    await this.tileComputationQueue.add('recompute', {
+    await this.tileComputationQueue.add('all', {
+      positions: [
+        ...command.cvms.map((cvm) => ({
+          longitude: cvm.longitude,
+          latitude: cvm.latitude,
+        })),
+      ],
+    });
+
+    await this.tileComputationQueue.add('trusted', {
+      positions: [
+        ...command.cvms.map((cvm) => ({
+          longitude: cvm.longitude,
+          latitude: cvm.latitude,
+        })),
+      ],
+    });
+
+    await this.tileComputationQueue.add('approved', {
+      positions: [
+        ...command.cvms.map((cvm) => ({
+          longitude: cvm.longitude,
+          latitude: cvm.latitude,
+        })),
+      ],
+    });
+
+    await this.tileComputationQueue.add('viable', {
       positions: [
         ...command.cvms.map((cvm) => ({
           longitude: cvm.longitude,
