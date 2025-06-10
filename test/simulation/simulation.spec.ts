@@ -1,57 +1,54 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { CredibilityHeuristic } from 'src/ident/services/ident.service';
-import { IdentInfo } from 'src/ident/models';
+import { computeCredibility, BehaviourInfo } from 'src/lib/credibility';
 import {
-  generateNormalIdent,
-  generateMaliciousIdent,
-  generateNewbieIdent,
-  generatePowerIdent,
+  generateNormalBehaviour,
+  generateBotBehaviour,
+  generateNewbieBehaviour,
+  generatePowerBehaviour,
+  generateSpamBehaviour,
 } from './profiles';
-
-const identities = new Map<string, IdentInfo>();
 
 describe('CredibilitySimulation', () => {
   const simulateProfile = (
     name: string,
-    profileGenerator: () => IdentInfo,
+    profileGenerator: () => BehaviourInfo,
     count: number,
   ) => {
+    const behaviourInfos: BehaviourInfo[] = [];
+
     for (let index = 0; index < count; index++) {
-      const result = profileGenerator();
-      identities.set(result.identity, result);
+      const behaviourInfo = profileGenerator();
+      behaviourInfos.push(behaviourInfo);
     }
 
     const credibilities: number[] = [];
-    const ruleTraces: {
-      identity: IdentInfo;
+    const results: {
+      behaviour: BehaviourInfo;
       credibility: number;
       trace: Map<string, number>;
     }[] = [];
 
-    for (const ident of identities.values()) {
-      const ruleTrace = {
-        identity: ident,
+    for (const behaviourInfo of behaviourInfos.values()) {
+      const result = {
+        behaviour: behaviourInfo,
         credibility: 0,
         trace: new Map<string, number>(),
       };
 
-      const credibility = CredibilityHeuristic.computeCredibility(
-        ident,
-        ruleTrace.trace,
-      );
+      const credibility = computeCredibility(behaviourInfo, result.trace);
 
-      ruleTrace.credibility = credibility;
-      ruleTraces.push(ruleTrace);
+      result.credibility = credibility;
+      results.push(result);
       credibilities.push(credibility);
     }
 
     fs.writeFileSync(
       path.resolve(__dirname, `./trace-${name}.json`),
       JSON.stringify(
-        ruleTraces.map((ruleTrace) => ({
-          ...ruleTrace,
-          trace: Object.fromEntries(ruleTrace.trace),
+        results.map((result) => ({
+          ...result,
+          trace: Object.fromEntries(result.trace),
         })),
       ),
     );
@@ -67,19 +64,23 @@ describe('CredibilitySimulation', () => {
 
   describe('simulate', () => {
     it('Should run normal user simulation successfully"', () => {
-      simulateProfile('normal', generateNormalIdent, 5000);
+      simulateProfile('normal', generateNormalBehaviour, 5000);
     });
 
-    it('Should run malicious user simulation successfully"', () => {
-      simulateProfile('malicious', generateMaliciousIdent, 5000);
+    it('Should run bot simulation successfully"', () => {
+      simulateProfile('bot', generateBotBehaviour, 5000);
+    });
+
+    it('Should run spam user simulation successfully"', () => {
+      simulateProfile('spam', generateSpamBehaviour, 5000);
     });
 
     it('Should run newbie user simulation successfully"', () => {
-      simulateProfile('newbie', generateNewbieIdent, 5000);
+      simulateProfile('newbie', generateNewbieBehaviour, 5000);
     });
 
     it('Should run power user simulation successfully"', () => {
-      simulateProfile('power', generatePowerIdent, 5000);
+      simulateProfile('power', generatePowerBehaviour, 5000);
     });
   });
 });

@@ -10,188 +10,15 @@ import {
   Pageable,
   UnknownIdentityError,
 } from 'src/common/models';
-import { calculateEwma, calculateDistanceInKm, calculateSpeed } from 'src/lib';
+import {
+  calculateEwma,
+  calculateDistanceInKm,
+  calculateSpeed,
+  computeCredibility,
+} from 'src/lib';
 import { InjectModel } from '@nestjs/mongoose';
 import { Ident } from '../repositories';
 import { Model } from 'mongoose';
-
-export class CredibilityHeuristic {
-  public static computeCredibility(
-    info: IdentInfo,
-    trace?: Map<string, number>,
-  ): number {
-    const rules = new Map<string, (info: IdentInfo) => number>();
-    let score: number = 100;
-
-    rules.set('unrealisticMovementCountPenalty', (info) =>
-      CredibilityHeuristic.evalUnrealisticMovementCountPenalty(info),
-    );
-    rules.set('interactionFrequencyPenalty', (info) =>
-      CredibilityHeuristic.evalInteractionFrequencyPenalty(info),
-    );
-    rules.set('votingBiasPenalty', (info) =>
-      CredibilityHeuristic.evalVotingBiasPenalty(info),
-    );
-    rules.set('noVotePenalty', (info) =>
-      CredibilityHeuristic.evalNoVotePenalty(info),
-    );
-    rules.set('registrationAbusePenalty', (info) =>
-      CredibilityHeuristic.evalRegistrationAbusePenalty(info),
-    );
-    rules.set('votingAbusePenalty', (info) =>
-      CredibilityHeuristic.evalVotingAbusePenalty(info),
-    );
-    rules.set('inactivePenalty', (info) =>
-      CredibilityHeuristic.evalInactivePenalty(info),
-    );
-    rules.set('identityAgePenalty', (info) =>
-      CredibilityHeuristic.evalIdentityAgePenalty(info),
-    );
-    rules.set('unrealisticVotingBehaviourPenalty', (info) =>
-      CredibilityHeuristic.evalUnrealisticVotingBehaviourPenalty(info),
-    );
-    rules.set('unrealisticRegistrationBehaviourPenalty', (info) =>
-      CredibilityHeuristic.evalUnrealisticRegistrationBehaviourPenalty(info),
-    );
-
-    for (const [ruleName, rule] of rules) {
-      const change = rule(info);
-      score += change;
-
-      if (trace) {
-        trace.set(ruleName, change);
-      }
-    }
-
-    // Final score
-    score = Math.max(0, Math.min(100, Math.round(score)));
-
-    return score;
-  }
-
-  public static evalUnrealisticMovementCountPenalty(info: IdentInfo) {
-    const MAX_PENALTY = 40;
-    const count = info.behaviour.unrealisticMovementCount;
-    return -Math.min(Math.round(Math.pow(count, 2)), MAX_PENALTY);
-  }
-
-  public static evalInteractionFrequencyPenalty(info: IdentInfo) {
-    const interval = info.behaviour.averageInteractionInterval;
-    const MAX_PENALTY = 25;
-    const MIN_INTERVAL = 5 * 1000; // 5 seconds
-    const MAX_INTERVAL = 3 * 60 * 1000; // 3 minutes
-
-    if (interval < MIN_INTERVAL) return -MAX_PENALTY;
-
-    if (interval >= MAX_INTERVAL) return 0;
-
-    const ratio = (MAX_INTERVAL - interval) / (MAX_INTERVAL - MIN_INTERVAL);
-    return -Math.round(ratio * MAX_PENALTY);
-  }
-
-  public static evalVotingBiasPenalty(info: IdentInfo) {
-    const MAX_PENALTY = 20;
-
-    if (info.behaviour.voting.totalCount < 10) return 0;
-
-    const ratio =
-      info.behaviour.voting.upvoteCount / info.behaviour.voting.totalCount;
-    const bias = Math.abs(0.5 - ratio);
-
-    return -Math.round(Math.pow(bias * 2, 2) * MAX_PENALTY);
-  }
-
-  public static evalNoVotePenalty(info: IdentInfo) {
-    if (
-      info.behaviour.registrations.totalCount >= 5 &&
-      info.behaviour.voting.totalCount === 0
-    ) {
-      const excess = info.behaviour.registrations.totalCount - 5;
-      return -15 - Math.min(excess * 2, 10);
-    }
-
-    return 0;
-  }
-
-  public static evalRegistrationAbusePenalty(info: IdentInfo) {
-    return -CredibilityHeuristic.penaltyForAverageInterval(
-      info.behaviour.registrations.averageRegistrationInterval,
-      info.behaviour.registrations.totalCount,
-      5 * 60 * 1000,
-      20,
-    );
-  }
-
-  public static evalVotingAbusePenalty(info: IdentInfo) {
-    return -CredibilityHeuristic.penaltyForAverageInterval(
-      info.behaviour.voting.averageVotingInterval,
-      info.behaviour.voting.totalCount,
-      5 * 60 * 1000,
-      20,
-    );
-  }
-
-  public static evalInactivePenalty(info: IdentInfo) {
-    const total =
-      info.behaviour.voting.totalCount +
-      info.behaviour.registrations.totalCount;
-
-    if (total >= 5) return 0;
-    return -Math.round((5 - total) * 2);
-  }
-
-  public static evalIdentityAgePenalty(info: IdentInfo) {
-    const ageMs = Date.now() - info.issuedAt.getTime();
-    const DAY = 24 * 60 * 60 * 1000;
-
-    if (ageMs >= 28 * DAY) {
-      // Since the 28th day, no penalty
-      return 0;
-    } else if (ageMs <= 2 * DAY) {
-      // Linear penalty between 30 and 40 for the first 2 days
-      const ratio = ageMs / (2 * DAY);
-      return -Math.round((1 - ratio) * 30 + 10);
-    } else {
-      // Up to the 28th day linearly decreasing from -10 to 0
-      const ratio = (ageMs - 2 * DAY) / (26 * DAY);
-      return -Math.round((1 - ratio) * 10);
-    }
-  }
-
-  public static penaltyForAverageInterval(
-    interval: number,
-    count: number,
-    minInterval: number,
-    penaltyCap: number,
-  ): number {
-    if (count < 5) return 0;
-    const severity = Math.max(0, 1 - interval / minInterval);
-    const scaling = Math.min(1, Math.log(count + 1) / Math.log(50));
-    return Math.round(penaltyCap * severity * scaling);
-  }
-
-  public static evalUnrealisticVotingBehaviourPenalty(info: IdentInfo) {
-    const issuedNDaysAgo =
-      (Date.now() - info.issuedAt.getTime()) / 1000 / 60 / 60 / 24;
-    const averageVotesPerDay =
-      info.behaviour.voting.totalCount / issuedNDaysAgo;
-
-    if (averageVotesPerDay < 0.5) return 0;
-
-    return -Math.round(Math.pow(averageVotesPerDay, 2) * 10);
-  }
-
-  public static evalUnrealisticRegistrationBehaviourPenalty(info: IdentInfo) {
-    const issuedNDaysAgo =
-      (Date.now() - info.issuedAt.getTime()) / 1000 / 60 / 60 / 24;
-    const averageRegistrationsPerDay =
-      info.behaviour.registrations.totalCount / issuedNDaysAgo;
-
-    if (averageRegistrationsPerDay < 0.25) return 0;
-
-    return -Math.round(Math.pow(averageRegistrationsPerDay, 2) * 10);
-  }
-}
 
 @Injectable()
 export class IdentService {
@@ -264,7 +91,10 @@ export class IdentService {
       },
     };
 
-    info.credibility = CredibilityHeuristic.computeCredibility(info);
+    info.credibility = computeCredibility({
+      ...info.behaviour,
+      issuedAt: info.issuedAt,
+    });
 
     await this.identModel.create({
       ...info,
@@ -440,7 +270,10 @@ export class IdentService {
       info.behaviour.registrations.totalCount++;
     }
 
-    info.credibility = CredibilityHeuristic.computeCredibility(info);
+    info.credibility = computeCredibility({
+      ...info.behaviour,
+      issuedAt: info.issuedAt,
+    });
 
     // Update specific action behaviour
     if (interaction === 'upvote' || interaction === 'downvote') {

@@ -12,15 +12,27 @@ identities.set('4c12ee89-4672-44dd-a23c-29c1ace369b2', {
   secret: '0xCAFEBABE',
   issuedAt: new Date(),
   credibility: 60,
-  lastInteractionAt: undefined,
-  averageInteractionInterval: 61231,
-  lastInteractionPosition: {
-    type: 'Point',
-    coordinates: [48.09900075726553, 11.602646642911846],
+  behaviour: {
+    lastInteractionAt: undefined,
+    averageInteractionInterval: 61231,
+    lastInteractionPosition: {
+      type: 'Point',
+      coordinates: [48.09900075726553, 11.602646642911846],
+    },
+    unrealisticMovementCount: 0,
+    voting: {
+      totalCount: 44,
+      upvoteCount: 30,
+      downvoteCount: 13,
+      lastVotedAt: undefined,
+      averageVotingInterval: 0,
+    },
+    registrations: {
+      totalCount: 0,
+      lastRegistrationAt: undefined,
+      averageRegistrationInterval: 0,
+    },
   },
-  unrealisticMovementCount: 0,
-  voting: { totalCount: 44, upvoteCount: 30, downvoteCount: 13 },
-  registrations: { totalCount: 0 },
 });
 
 describe('IdentService', () => {

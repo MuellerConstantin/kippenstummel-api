@@ -11,7 +11,7 @@ const CVM_VOTE_DELAY = 7;
 /**
  * The radius in meters where a CVM is considered "same" as another.
  */
-const SAME_CVM_RADIUS = 25;
+const SAME_CVM_RADIUS = 50;
 
 /**
  * The radius in kilometers where a CVM is considered "nearby" to an user.
