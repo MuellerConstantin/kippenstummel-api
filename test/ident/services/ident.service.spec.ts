@@ -27,7 +27,7 @@ identities.set('4c12ee89-4672-44dd-a23c-29c1ace369b2', {
       lastVotedAt: undefined,
       averageVotingInterval: 0,
     },
-    registrations: {
+    registration: {
       totalCount: 0,
       lastRegistrationAt: undefined,
       averageRegistrationInterval: 0,
@@ -93,17 +93,6 @@ describe('IdentService', () => {
       );
 
       expect(identInfo).toBeDefined();
-    });
-  });
-
-  describe('getIdentityCredibility', () => {
-    it('Should get identity credibility successfully"', async () => {
-      const identService = app.get(IdentService);
-      const credibility = await identService.getCredibility(
-        '4c12ee89-4672-44dd-a23c-29c1ace369b2',
-      );
-
-      expect(credibility).toBeDefined();
     });
   });
 });

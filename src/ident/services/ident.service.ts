@@ -10,12 +10,6 @@ import {
   Pageable,
   UnknownIdentityError,
 } from 'src/common/models';
-import {
-  calculateEwma,
-  calculateDistanceInKm,
-  calculateSpeed,
-  computeCredibility,
-} from 'src/lib';
 import { InjectModel } from '@nestjs/mongoose';
 import { Ident } from '../repositories';
 import { Model } from 'mongoose';
@@ -69,32 +63,9 @@ export class IdentService {
 
     const info: IdentInfo = {
       identity,
-      credibility: 0,
+      credibility: 50,
       issuedAt: new Date(),
-      behaviour: {
-        lastInteractionAt: undefined,
-        averageInteractionInterval: 0,
-        lastInteractionPosition: undefined,
-        unrealisticMovementCount: 0,
-        voting: {
-          totalCount: 0,
-          upvoteCount: 0,
-          downvoteCount: 0,
-          lastVotedAt: undefined,
-          averageVotingInterval: 0,
-        },
-        registrations: {
-          totalCount: 0,
-          lastRegistrationAt: undefined,
-          averageRegistrationInterval: 0,
-        },
-      },
     };
-
-    info.credibility = computeCredibility({
-      ...info.behaviour,
-      issuedAt: info.issuedAt,
-    });
 
     await this.identModel.create({
       ...info,
@@ -112,11 +83,6 @@ export class IdentService {
     return (await this.identModel.countDocuments({ identity })) > 0;
   }
 
-  async getCredibility(identity: string): Promise<number> {
-    const info = await this.getIdentity(identity);
-    return info.credibility;
-  }
-
   async getIdentity(identity: string): Promise<IdentInfo> {
     const result = await this.identModel.findOne({ identity });
 
@@ -128,7 +94,7 @@ export class IdentService {
       identity: result.identity,
       credibility: result.credibility,
       issuedAt: result.issuedAt,
-      behaviour: {
+      behaviour: result.behaviour && {
         lastInteractionAt: result.behaviour.lastInteractionAt,
         averageInteractionInterval: result.behaviour.averageInteractionInterval,
         unrealisticMovementCount: result.behaviour.unrealisticMovementCount,
@@ -146,11 +112,11 @@ export class IdentService {
           lastVotedAt: result.behaviour.voting.lastVotedAt,
           averageVotingInterval: result.behaviour.voting.averageVotingInterval,
         },
-        registrations: {
-          totalCount: result.behaviour.registrations.totalCount,
-          lastRegistrationAt: result.behaviour.registrations.lastRegistrationAt,
+        registration: {
+          totalCount: result.behaviour.registration.totalCount,
+          lastRegistrationAt: result.behaviour.registration.lastRegistrationAt,
           averageRegistrationInterval:
-            result.behaviour.registrations.averageRegistrationInterval,
+            result.behaviour.registration.averageRegistrationInterval,
         },
       },
     };
@@ -176,7 +142,7 @@ export class IdentService {
         identity: ident.identity,
         credibility: ident.credibility,
         issuedAt: ident.issuedAt,
-        behaviour: {
+        behaviour: ident.behaviour && {
           lastInteractionAt: ident.behaviour.lastInteractionAt,
           averageInteractionInterval:
             ident.behaviour.averageInteractionInterval,
@@ -196,12 +162,11 @@ export class IdentService {
             lastVotedAt: ident.behaviour.voting.lastVotedAt,
             averageVotingInterval: ident.behaviour.voting.averageVotingInterval,
           },
-          registrations: {
-            totalCount: ident.behaviour.registrations.totalCount,
-            lastRegistrationAt:
-              ident.behaviour.registrations.lastRegistrationAt,
+          registration: {
+            totalCount: ident.behaviour.registration.totalCount,
+            lastRegistrationAt: ident.behaviour.registration.lastRegistrationAt,
             averageRegistrationInterval:
-              ident.behaviour.registrations.averageRegistrationInterval,
+              ident.behaviour.registration.averageRegistrationInterval,
           },
         },
       })),
@@ -212,119 +177,6 @@ export class IdentService {
         totalPages,
       },
     };
-  }
-
-  async updateIdentity(
-    identity: string,
-    location: {
-      longitude: number;
-      latitude: number;
-    },
-    interaction: 'upvote' | 'downvote' | 'registration',
-  ): Promise<void> {
-    const info = await this.getIdentity(identity);
-
-    // Check for unrealistic movement
-    if (
-      info.behaviour.lastInteractionPosition &&
-      info.behaviour.lastInteractionAt
-    ) {
-      const hasUnrealisticallyMoved: boolean =
-        IdentService.isUnrealisticallyMovement(
-          info.behaviour.lastInteractionPosition,
-          location,
-          info.behaviour.lastInteractionAt,
-        );
-
-      if (hasUnrealisticallyMoved) {
-        info.behaviour.unrealisticMovementCount++;
-      }
-    }
-
-    // Calculate average interaction interval
-    if (info.behaviour.lastInteractionAt) {
-      const duration =
-        new Date().getTime() - info.behaviour.lastInteractionAt.getTime();
-      const previousEwma =
-        info.behaviour.averageInteractionInterval > 0
-          ? info.behaviour.averageInteractionInterval
-          : duration;
-
-      info.behaviour.averageInteractionInterval = calculateEwma(
-        previousEwma,
-        duration,
-        0.1,
-      );
-    }
-
-    info.behaviour.lastInteractionAt = new Date();
-    info.behaviour.lastInteractionPosition = location;
-
-    if (interaction === 'upvote') {
-      info.behaviour.voting.totalCount++;
-      info.behaviour.voting.upvoteCount++;
-    } else if (interaction === 'downvote') {
-      info.behaviour.voting.totalCount++;
-      info.behaviour.voting.downvoteCount++;
-    } else if (interaction === 'registration') {
-      info.behaviour.registrations.totalCount++;
-    }
-
-    info.credibility = computeCredibility({
-      ...info.behaviour,
-      issuedAt: info.issuedAt,
-    });
-
-    // Update specific action behaviour
-    if (interaction === 'upvote' || interaction === 'downvote') {
-      // Calculate average voting interval
-      if (info.behaviour.voting.lastVotedAt) {
-        const duration =
-          new Date().getTime() - info.behaviour.voting.lastVotedAt.getTime();
-        const previousEwma =
-          info.behaviour.voting.averageVotingInterval > 0
-            ? info.behaviour.voting.averageVotingInterval
-            : duration;
-
-        info.behaviour.voting.averageVotingInterval = calculateEwma(
-          previousEwma,
-          duration,
-          0.1,
-        );
-      }
-
-      info.behaviour.voting.lastVotedAt = new Date();
-    } else if (interaction === 'registration') {
-      // Calculate average registration interval
-      if (info.behaviour.registrations.lastRegistrationAt) {
-        const duration =
-          new Date().getTime() -
-          info.behaviour.registrations.lastRegistrationAt.getTime();
-        const previousEwma =
-          info.behaviour.registrations.averageRegistrationInterval > 0
-            ? info.behaviour.registrations.averageRegistrationInterval
-            : duration;
-
-        info.behaviour.registrations.averageRegistrationInterval =
-          calculateEwma(previousEwma, duration, 0.1);
-      }
-
-      info.behaviour.registrations.lastRegistrationAt = new Date();
-    }
-
-    await this.identModel.updateOne(
-      { identity },
-      {
-        ...info,
-        behaviour: {
-          ...info.behaviour,
-          lastInteractionPosition: {
-            type: 'Point',
-            coordinates: [location.longitude, location.latitude],
-          },
-        },
-      },
-    );
   }
 
   async getTotalStats(lastNDays: number): Promise<IdentTotalStats> {
@@ -368,46 +220,6 @@ export class IdentService {
     ]);
 
     return result[0].averageCredibility;
-  }
-
-  private static isUnrealisticallyMovement(
-    lastInteractionPosition: { latitude: number; longitude: number },
-    currentPosition: { latitude: number; longitude: number },
-    lastInteractionAt: Date,
-  ): boolean {
-    const distance = calculateDistanceInKm(
-      lastInteractionPosition,
-      currentPosition,
-    );
-    const speed = calculateSpeed(
-      lastInteractionPosition,
-      currentPosition,
-      lastInteractionAt.getTime(),
-    );
-
-    let maxAllowedSpeed: number;
-
-    if (distance < 1) {
-      // Max 10 km/h for very short distances
-      maxAllowedSpeed = 10;
-    } else if (distance < 10) {
-      // Max 50 km/h for short distances within cities
-      maxAllowedSpeed = 50;
-    } else if (distance < 100) {
-      // Max 120 km/h for medium distances between cities
-      maxAllowedSpeed = 120;
-    } else if (distance < 500) {
-      // Max 200 km/h for long distances between counties or big cities
-      maxAllowedSpeed = 200;
-    } else if (distance < 1000) {
-      // Max 700 km/h for very long distances via aircraft
-      maxAllowedSpeed = 700;
-    } else {
-      // Max 900 km/h for very long distances across continents or oceans
-      maxAllowedSpeed = 900;
-    }
-
-    return speed > maxAllowedSpeed;
   }
 
   private async getNewIdentsPerDay(lastNDays: number) {

@@ -74,7 +74,7 @@ export function generateNormalBehaviour(): BehaviourInfo {
       lastVotedAt: new Date(lastInteractionAt),
       averageVotingInterval,
     },
-    registrations: {
+    registration: {
       totalCount: registrationInteractions,
       lastRegistrationAt: new Date(lastInteractionAt),
       averageRegistrationInterval,
@@ -120,7 +120,7 @@ export function generateNewbieBehaviour(): BehaviourInfo {
       lastVotedAt: new Date(lastInteractionAt),
       averageVotingInterval,
     },
-    registrations: {
+    registration: {
       totalCount: registrationInteractions,
       lastRegistrationAt: new Date(lastInteractionAt),
       averageRegistrationInterval,
@@ -171,7 +171,7 @@ export function generatePowerBehaviour(): BehaviourInfo {
       lastVotedAt: new Date(lastInteractionAt),
       averageVotingInterval,
     },
-    registrations: {
+    registration: {
       totalCount: registrationInteractions,
       lastRegistrationAt: new Date(lastInteractionAt),
       averageRegistrationInterval,
@@ -260,7 +260,7 @@ export function generateBotBehaviour(): BehaviourInfo {
       lastVotedAt: new Date(lastInteractionAt),
       averageVotingInterval,
     },
-    registrations: {
+    registration: {
       totalCount: registrationInteractions,
       lastRegistrationAt: new Date(lastInteractionAt),
       averageRegistrationInterval,
@@ -349,7 +349,7 @@ export function generateSpamBehaviour(): BehaviourInfo {
       lastVotedAt: new Date(lastInteractionAt),
       averageVotingInterval,
     },
-    registrations: {
+    registration: {
       totalCount: registrationInteractions,
       lastRegistrationAt: new Date(lastInteractionAt),
       averageRegistrationInterval,

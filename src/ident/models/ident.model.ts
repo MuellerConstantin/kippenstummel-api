@@ -8,26 +8,28 @@ export interface IdentSecret {
   secret: string;
 }
 
+export interface IdentBehaviour {
+  lastInteractionAt?: Date;
+  averageInteractionInterval: number;
+  lastInteractionPosition?: { longitude: number; latitude: number };
+  unrealisticMovementCount: number;
+  voting: {
+    totalCount: number;
+    upvoteCount: number;
+    downvoteCount: number;
+    lastVotedAt?: Date;
+    averageVotingInterval: number;
+  };
+  registration: {
+    totalCount: number;
+    lastRegistrationAt?: Date;
+    averageRegistrationInterval: number;
+  };
+}
+
 export interface IdentInfo {
   identity: string;
   credibility: number;
   issuedAt: Date;
-  behaviour: {
-    lastInteractionAt?: Date;
-    averageInteractionInterval: number;
-    lastInteractionPosition?: { longitude: number; latitude: number };
-    unrealisticMovementCount: number;
-    voting: {
-      totalCount: number;
-      upvoteCount: number;
-      downvoteCount: number;
-      lastVotedAt?: Date;
-      averageVotingInterval: number;
-    };
-    registrations: {
-      totalCount: number;
-      lastRegistrationAt?: Date;
-      averageRegistrationInterval: number;
-    };
-  };
+  behaviour?: IdentBehaviour;
 }

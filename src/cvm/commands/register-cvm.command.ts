@@ -7,7 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository, Cvm } from '../repositories';
-import { IdentService } from 'src/ident/services';
+import { CredibilityService } from 'src/ident/services';
 import { constants } from 'src/lib';
 
 export class RegisterCvmCommand implements ICommand {
@@ -23,7 +23,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
-    private readonly identService: IdentService,
+    private readonly credibilityService: CredibilityService,
   ) {}
 
   async execute(command: RegisterCvmCommand): Promise<void> {
@@ -41,7 +41,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       })
       .exec();
 
-    const credibility = await this.identService.getCredibility(
+    const credibility = await this.credibilityService.getCredibility(
       command.identity,
     );
 

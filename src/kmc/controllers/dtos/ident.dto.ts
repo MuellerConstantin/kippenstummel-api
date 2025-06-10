@@ -2,7 +2,7 @@ export interface IdentInfoDto {
   identity: string;
   credibility: number;
   issuedAt: Date;
-  behaviour: {
+  behaviour?: {
     lastInteractionAt?: Date;
     averageInteractionInterval: number;
     lastInteractionPosition?: { longitude: number; latitude: number };
@@ -14,7 +14,7 @@ export interface IdentInfoDto {
       lastVotedAt?: Date;
       averageVotingInterval: number;
     };
-    registrations: {
+    registration: {
       totalCount: number;
       lastRegistrationAt?: Date;
       averageRegistrationInterval: number;

@@ -1,13 +1,13 @@
 import { Logger } from '@nestjs/common';
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
-import { IdentService } from './ident.service';
 import { JobService } from 'src/common/services';
+import { CredibilityService } from './credibility.service';
 
 @Processor('credibility-computation')
 export class CredibilityComputationConsumer extends WorkerHost {
   constructor(
-    private readonly identService: IdentService,
+    private readonly credibilityService: CredibilityService,
     private readonly jobService: JobService,
     private readonly logger: Logger,
   ) {
@@ -48,7 +48,7 @@ export class CredibilityComputationConsumer extends WorkerHost {
       'CredibilityComputationConsumer',
     );
 
-    await this.identService.updateIdentity(
+    await this.credibilityService.updateBehaviour(
       job.data.identity,
       {
         longitude: job.data.position.longitude,

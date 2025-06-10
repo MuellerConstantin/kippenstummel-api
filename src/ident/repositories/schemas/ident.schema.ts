@@ -15,7 +15,7 @@ class GeoPoint {
 export const GeoPointSchema = SchemaFactory.createForClass(GeoPoint);
 
 @Schema({ _id: false })
-class Voting {
+class VotingBehaviour {
   @Prop()
   totalCount: number;
 
@@ -32,10 +32,11 @@ class Voting {
   averageVotingInterval: number;
 }
 
-export const VotingSchema = SchemaFactory.createForClass(Voting);
+export const VotingBehaviourSchema =
+  SchemaFactory.createForClass(VotingBehaviour);
 
 @Schema({ _id: false })
-class Registrations {
+class RegistrationBehaviour {
   @Prop()
   totalCount: number;
 
@@ -46,7 +47,9 @@ class Registrations {
   averageRegistrationInterval: number;
 }
 
-export const RegistrationsSchema = SchemaFactory.createForClass(Registrations);
+export const RegistrationBehaviourSchema = SchemaFactory.createForClass(
+  RegistrationBehaviour,
+);
 
 @Schema({ _id: false })
 class Behaviour {
@@ -62,11 +65,11 @@ class Behaviour {
   @Prop()
   unrealisticMovementCount: number;
 
-  @Prop({ type: VotingSchema })
-  voting: Voting;
+  @Prop({ type: VotingBehaviourSchema })
+  voting: VotingBehaviour;
 
-  @Prop({ type: RegistrationsSchema })
-  registrations: Registrations;
+  @Prop({ type: RegistrationBehaviourSchema })
+  registration: RegistrationBehaviour;
 }
 
 export const BehaviourSchema = SchemaFactory.createForClass(Behaviour);
@@ -88,7 +91,7 @@ export class Ident {
   credibility: number;
 
   @Prop({ type: Behaviour })
-  behaviour: Behaviour;
+  behaviour?: Behaviour;
 }
 
 export const IdentSchema = SchemaFactory.createForClass(Ident);

@@ -11,7 +11,7 @@ export interface BehaviourInfo {
     lastVotedAt?: Date;
     averageVotingInterval: number;
   };
-  registrations: {
+  registration: {
     totalCount: number;
     lastRegistrationAt?: Date;
     averageRegistrationInterval: number;
@@ -95,8 +95,8 @@ export function evalVotingBiasPenalty(info: BehaviourInfo) {
 }
 
 export function evalNoVotePenalty(info: BehaviourInfo) {
-  if (info.registrations.totalCount >= 5 && info.voting.totalCount === 0) {
-    const excess = info.registrations.totalCount - 5;
+  if (info.registration.totalCount >= 5 && info.voting.totalCount === 0) {
+    const excess = info.registration.totalCount - 5;
     return -15 - Math.min(excess * 2, 10);
   }
 
@@ -105,8 +105,8 @@ export function evalNoVotePenalty(info: BehaviourInfo) {
 
 export function evalRegistrationAbusePenalty(info: BehaviourInfo) {
   return -penaltyForAverageInterval(
-    info.registrations.averageRegistrationInterval,
-    info.registrations.totalCount,
+    info.registration.averageRegistrationInterval,
+    info.registration.totalCount,
     5 * 60 * 1000,
     20,
   );
@@ -122,7 +122,7 @@ export function evalVotingAbusePenalty(info: BehaviourInfo) {
 }
 
 export function evalInactivePenalty(info: BehaviourInfo) {
-  const total = info.voting.totalCount + info.registrations.totalCount;
+  const total = info.voting.totalCount + info.registration.totalCount;
 
   if (total >= 5) return 0;
   return -Math.round((5 - total) * 2);
@@ -180,7 +180,7 @@ export function evalUnrealisticRegistrationBehaviourPenalty(
   const issuedNDaysAgo = Math.max(ageInDaysRaw, 1);
 
   const averageRegistrationsPerDay =
-    info.registrations.totalCount / issuedNDaysAgo;
+    info.registration.totalCount / issuedNDaysAgo;
 
   if (averageRegistrationsPerDay < 0.25) return 0;
 
