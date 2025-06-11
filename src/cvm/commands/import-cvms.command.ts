@@ -95,14 +95,5 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
         })),
       ],
     });
-
-    await this.tileComputationQueue.add('viable', {
-      positions: [
-        ...command.cvms.map((cvm) => ({
-          longitude: cvm.longitude,
-          latitude: cvm.latitude,
-        })),
-      ],
-    });
   }
 }

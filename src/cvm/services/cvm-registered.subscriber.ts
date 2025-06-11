@@ -49,15 +49,6 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
       ],
     });
 
-    await this.tileComputationQueue.add('viable', {
-      positions: [
-        {
-          longitude: position.longitude,
-          latitude: position.latitude,
-        },
-      ],
-    });
-
     await this.credibilityComputationQueue.add('recompute', {
       identity,
       position: {

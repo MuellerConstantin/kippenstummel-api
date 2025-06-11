@@ -89,7 +89,7 @@ export class CvmTileService {
 
   async updateTile(
     tile: { x: number; y: number; z: number },
-    variant: 'all' | 'trusted' | 'approved' | 'viable' = 'all',
+    variant: 'all' | 'trusted' | 'approved' = 'all',
   ) {
     const Supercluster = (await import('supercluster')).default;
 
@@ -112,16 +112,12 @@ export class CvmTileService {
     ];
 
     switch (variant) {
-      case 'viable': {
-        filters.push({ score: { $gt: -200 } });
-        break;
-      }
       case 'approved': {
-        filters.push({ score: { $gt: 0 } });
+        filters.push({ score: { $gte: -100 } });
         break;
       }
       case 'trusted': {
-        filters.push({ score: { $gt: 200 } });
+        filters.push({ score: { $gt: 100 } });
         break;
       }
       case 'all':
@@ -195,7 +191,7 @@ export class CvmTileService {
       longitude: number;
       latitude: number;
     },
-    variant: 'all' | 'trusted' | 'approved' | 'viable' = 'all',
+    variant: 'all' | 'trusted' | 'approved' = 'all',
   ) {
     // Supported zoom levels
     const zoomLevels = [
@@ -217,7 +213,7 @@ export class CvmTileService {
 
   async updateTilesByPositions(
     positions: { longitude: number; latitude: number }[],
-    variant: 'all' | 'trusted' | 'approved' | 'viable' = 'all',
+    variant: 'all' | 'trusted' | 'approved' = 'all',
   ) {
     // Supported zoom levels
     const zoomLevels = [

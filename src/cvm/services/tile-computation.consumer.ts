@@ -43,15 +43,6 @@ export class TileComputationConsumer extends WorkerHost {
           >,
         );
       }
-      case 'viable': {
-        return this.recomputeViable(
-          job as Job<
-            { positions: { longitude: number; latitude: number }[] },
-            void,
-            string
-          >,
-        );
-      }
     }
   }
 
@@ -103,24 +94,6 @@ export class TileComputationConsumer extends WorkerHost {
     await this.cvmTileService.updateTilesByPositions(
       job.data.positions,
       'approved',
-    );
-  }
-
-  async recomputeViable(
-    job: Job<
-      { positions: { longitude: number; latitude: number }[] },
-      void,
-      string
-    >,
-  ): Promise<void> {
-    this.logger.debug(
-      `Updating tiles for variant 'viable'...`,
-      'TileComputationConsumer',
-    );
-
-    await this.cvmTileService.updateTilesByPositions(
-      job.data.positions,
-      'viable',
     );
   }
 
