@@ -48,7 +48,12 @@ export class CvmController {
       latitude: queryParams.topRightCoordinates[1],
     };
 
-    const query = new GetAllWithinQuery(bottomLeft, topRight, queryParams.zoom);
+    const query = new GetAllWithinQuery(
+      bottomLeft,
+      topRight,
+      queryParams.zoom,
+      queryParams.variant,
+    );
     const result = await this.queryBus.execute<
       GetAllWithinQuery,
       (CvmProjection | CvmClusterProjection)[]

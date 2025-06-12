@@ -14,6 +14,7 @@ export class GetAllWithinQuery implements IQuery {
     public readonly bottomLeft: { longitude: number; latitude: number },
     public readonly topRight: { longitude: number; latitude: number },
     public readonly zoom: number,
+    public readonly variant: 'all' | 'trusted' | 'approved' = 'all',
   ) {}
 }
 
@@ -38,7 +39,7 @@ export class GetAllWithinQueryHandler
     const data = await this.cvmTileModel
       .find({
         $and: [
-          { variant: 'all' },
+          { variant: query.variant },
           {
             $or: tiles.map((coord) => ({
               x: coord.x,

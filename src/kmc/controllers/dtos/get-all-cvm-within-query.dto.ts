@@ -1,5 +1,13 @@
 import { Transform } from 'class-transformer';
-import { IsLatLong, IsNumber, Max, Min } from 'class-validator';
+import {
+  IsEnum,
+  IsLatLong,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 import { constants } from 'src/lib';
 
 export class GetAllCvmWithinQueryDto {
@@ -14,6 +22,11 @@ export class GetAllCvmWithinQueryDto {
   @Max(constants.MAX_TILE_ZOOM)
   @Transform(({ value }) => Number(value))
   public zoom: number;
+
+  @IsString()
+  @IsOptional()
+  @IsEnum(['all', 'trusted', 'approved'])
+  public variant?: 'all' | 'trusted' | 'approved';
 
   get bottomLeftCoordinates(): [number, number] {
     const [latitude, longitude] = this.bottomLeft.split(',').map(Number);
