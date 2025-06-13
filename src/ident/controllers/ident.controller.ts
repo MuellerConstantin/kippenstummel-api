@@ -1,12 +1,24 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { IdentService } from 'src/ident/services';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { IdentService, IdentTransferService } from 'src/ident/services';
 import { PoWGuard } from './pow.guard';
 import { CaptchaGuard } from './captcha.guard';
-import { IdentityDto, IdentSecretDto, IdentTokenDto } from './dtos';
+import {
+  EncryptedIdentityDto,
+  IdentityDto,
+  IdentSecretDto,
+  IdentTokenDto,
+  TransferIdentityParamsDto,
+  TransferTokenDto,
+} from './dtos';
+import { IdentGuard } from './ident.guard';
+import { Identity } from './ident.decorator';
 
 @Controller({ path: 'ident', version: '1' })
 export class IdentController {
-  constructor(private readonly identService: IdentService) {}
+  constructor(
+    private readonly identService: IdentService,
+    private readonly transferService: IdentTransferService,
+  ) {}
 
   @UseGuards(PoWGuard, CaptchaGuard)
   @Get()
@@ -20,5 +32,24 @@ export class IdentController {
       body.identity,
       body.secret,
     );
+  }
+
+  @UseGuards(IdentGuard)
+  @Post('/transfer')
+  async requestTransferToken(
+    @Identity() identity: string,
+    @Body() body: EncryptedIdentityDto,
+  ): Promise<TransferTokenDto> {
+    return await this.transferService.generateTransferToken(
+      identity,
+      body.encryptedSecret,
+    );
+  }
+
+  @Get('/transfer/:token')
+  async transferIdentity(
+    @Param() params: TransferIdentityParamsDto,
+  ): Promise<EncryptedIdentityDto> {
+    return await this.transferService.verifyTransferToken(params.token);
   }
 }

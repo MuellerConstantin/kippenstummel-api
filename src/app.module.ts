@@ -33,6 +33,7 @@ import { KmcModule } from './kmc/kmc.module';
         IDENT_SECRET: Joi.string().required(),
         IDENT_EXPIRES_IN: Joi.number().default(60 * 60 * 24 * 7),
         CAPTCHA_EXPIRES_IN: Joi.number().default(60 * 5),
+        TRANSFER_EXPIRES_IN: Joi.number().default(60 * 5),
         TMP_DIR: Joi.string().required(),
       }),
       validationOptions: {

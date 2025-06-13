@@ -8,6 +8,11 @@ export interface IdentSecret {
   secret: string;
 }
 
+export interface EncryptedIdentSecret {
+  identity: string;
+  encryptedSecret: string;
+}
+
 export interface IdentBehaviour {
   lastInteractionAt?: Date;
   averageInteractionInterval: number;

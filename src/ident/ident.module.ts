@@ -13,6 +13,7 @@ import {
   IdentService,
   PoWService,
   CredibilityService,
+  IdentTransferService,
   CredibilityComputationConsumer,
 } from './services';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -29,6 +30,7 @@ import { Ident, IdentSchema } from './repositories';
     IdentService,
     CaptchaService,
     CredibilityService,
+    IdentTransferService,
     CredibilityComputationConsumer,
     PoWGuard,
     IdentGuard,

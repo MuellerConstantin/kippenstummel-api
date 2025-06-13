@@ -19,3 +19,13 @@ export class IdentityDto {
   @IsString()
   public secret: string;
 }
+
+export class EncryptedIdentityDto {
+  @IsDefined()
+  @IsUUID()
+  public identity: string;
+
+  @IsDefined()
+  @IsString()
+  public encryptedSecret: string;
+}
