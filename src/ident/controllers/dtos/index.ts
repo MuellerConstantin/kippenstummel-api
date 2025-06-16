@@ -3,6 +3,7 @@ export {
   IdentityDto,
   IdentSecretDto,
   EncryptedIdentityDto,
+  EncryptedIdentSecretDto,
 } from './ident-token.dto';
 export { CaptchaDto } from './captcha.dto';
 export { TransferTokenDto } from './transfer-token.dto';

@@ -4,6 +4,7 @@ import { PoWGuard } from './pow.guard';
 import { CaptchaGuard } from './captcha.guard';
 import {
   EncryptedIdentityDto,
+  EncryptedIdentSecretDto,
   IdentityDto,
   IdentSecretDto,
   IdentTokenDto,
@@ -49,7 +50,7 @@ export class IdentController {
   @Get('/transfer/:token')
   async transferIdentity(
     @Param() params: TransferIdentityParamsDto,
-  ): Promise<EncryptedIdentityDto> {
+  ): Promise<EncryptedIdentSecretDto> {
     return await this.transferService.verifyTransferToken(params.token);
   }
 }

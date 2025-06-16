@@ -10,6 +10,11 @@ export interface IdentSecretDto {
   secret: string;
 }
 
+export interface EncryptedIdentSecretDto {
+  identity: string;
+  encryptedSecret: string;
+}
+
 export class IdentityDto {
   @IsDefined()
   @IsUUID()
