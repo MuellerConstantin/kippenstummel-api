@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { computeCredibility } from '@kippenstummel/credlib';
 import { UnknownIdentityError } from 'src/common/models';
-import {
-  calculateEwma,
-  calculateDistanceInKm,
-  calculateSpeed,
-  computeCredibility,
-} from 'src/lib';
+import { calculateEwma, calculateDistanceInKm, calculateSpeed } from 'src/lib';
 import { InjectModel } from '@nestjs/mongoose';
 import { Ident } from '../repositories';
 import { Model } from 'mongoose';
