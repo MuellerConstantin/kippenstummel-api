@@ -141,11 +141,6 @@ export class CredibilityService {
       info.behaviour!.registration.totalCount++;
     }
 
-    info.credibility = computeCredibility({
-      ...info.behaviour!,
-      issuedAt: info.issuedAt,
-    });
-
     // Update specific action behaviour
     if (interaction === 'upvote' || interaction === 'downvote') {
       // Calculate average voting interval
@@ -182,6 +177,13 @@ export class CredibilityService {
 
       info.behaviour!.registration.lastRegistrationAt = new Date();
     }
+
+    // Recompute credibility
+    info.credibility = computeCredibility({
+      ...info.behaviour!,
+      credibility: info.credibility,
+      issuedAt: info.issuedAt,
+    });
 
     await this.identModel.updateOne(
       { identity },

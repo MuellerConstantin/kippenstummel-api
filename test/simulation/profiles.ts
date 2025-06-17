@@ -62,6 +62,7 @@ export function generateNormalBehaviour(): BehaviourInfo {
   );
 
   return {
+    credibility: 0,
     issuedAt: new Date(issuedAt),
     lastInteractionAt: new Date(lastInteractionAt),
     averageInteractionInterval: averageInterval,
@@ -108,6 +109,7 @@ export function generateNewbieBehaviour(): BehaviourInfo {
   const averageVotingInterval = crypto.randomInt(0, 1000 * 60 * 60 * 24);
 
   return {
+    credibility: 0,
     issuedAt: new Date(issuedAt),
     lastInteractionAt: new Date(lastInteractionAt),
     averageInteractionInterval: averageInterval,
@@ -159,6 +161,7 @@ export function generatePowerBehaviour(): BehaviourInfo {
   );
 
   return {
+    credibility: 0,
     issuedAt: new Date(issuedAt),
     lastInteractionAt: new Date(lastInteractionAt),
     averageInteractionInterval: averageInterval,
@@ -248,6 +251,7 @@ export function generateBotBehaviour(): BehaviourInfo {
   }
 
   return {
+    credibility: 0,
     issuedAt: new Date(issuedAt),
     lastInteractionAt: new Date(lastInteractionAt),
     averageInteractionInterval: averageInterval,
@@ -337,6 +341,7 @@ export function generateSpamBehaviour(): BehaviourInfo {
   }
 
   return {
+    credibility: 0,
     issuedAt: new Date(issuedAt),
     lastInteractionAt: new Date(lastInteractionAt),
     averageInteractionInterval: averageInterval,

@@ -1,4 +1,7 @@
+import { calculateEwma } from './metrics';
+
 export interface BehaviourInfo {
+  credibility: number;
   issuedAt: Date;
   lastInteractionAt?: Date;
   averageInteractionInterval: number;
@@ -57,6 +60,11 @@ export function computeCredibility(
   // Normalize final score between 0 and 100
   score = Math.max(0, Math.min(100, Math.round(score)));
 
+  // Smoothes the score to reduce the impact of outliers
+  if (info.credibility > 0) {
+    score = Math.round(calculateEwma(score, info.credibility, 0.4));
+  }
+
   return score;
 }
 
@@ -67,20 +75,36 @@ export function evalUnrealisticMovementCountPenalty(info: BehaviourInfo) {
 }
 
 export function evalInteractionFrequencyPenalty(info: BehaviourInfo) {
-  const interval = info.averageInteractionInterval;
   const MAX_PENALTY = 25;
-  const MIN_INTERVAL = 5 * 1000; // 5 seconds
-  const MAX_INTERVAL = 3 * 60 * 1000; // 3 minutes
+  const INTERVAL_LIMIT = 1000 * 60 * 60 * 24; // 1 day
 
-  // Requires at least two staggered interactions
-  if (interval === 0) return 0;
+  const identityAgeMinutes = (Date.now() - info.issuedAt.getTime()) / 1000 / 60;
 
-  if (interval < MIN_INTERVAL) return -MAX_PENALTY;
+  /*
+   * Using logistic growth, the penalty is weighted with the age of the identity
+   * in order not to unnecessarily penalize new identities for shorter interaction
+   * intervals.
+   *
+   * The logistic function starts near 0 for very new identities, gradually increases,
+   * and approaches 1 as the identity gets older. This ensures that penalties for
+   * suspicious behavior (like rapid interactions) are minimal during the early phase
+   * of an identity's lifetime.
+   *
+   * The constant 60 represents the inflection point of the curve (in minutes),
+   * where the logistic weight is 0.5 — meaning the penalty is applied at half strength
+   * when the identity is 30 minutes old. After that, the penalty impact grows rapidly.
+   */
 
-  if (interval >= MAX_INTERVAL) return 0;
+  const logisticWeight = 1 / (1 + Math.exp(-0.2 * (identityAgeMinutes - 60)));
 
-  const ratio = (MAX_INTERVAL - interval) / (MAX_INTERVAL - MIN_INTERVAL);
-  return -Math.round(ratio * MAX_PENALTY);
+  const penalty = penaltyForAverageInterval(
+    info.averageInteractionInterval,
+    info.voting.totalCount + info.registration.totalCount,
+    INTERVAL_LIMIT,
+    MAX_PENALTY,
+  );
+
+  return -Math.round(logisticWeight * penalty);
 }
 
 export function evalVotingBiasPenalty(info: BehaviourInfo) {
@@ -104,21 +128,69 @@ export function evalNoVotePenalty(info: BehaviourInfo) {
 }
 
 export function evalRegistrationAbusePenalty(info: BehaviourInfo) {
-  return -penaltyForAverageInterval(
+  const MAX_PENALTY = 20;
+  const INTERVAL_LIMIT = 5 * 60 * 1000; // 5 minutes
+
+  const identityAgeMinutes = (Date.now() - info.issuedAt.getTime()) / 1000 / 60;
+
+  /*
+   * Using logistic growth, the penalty is weighted with the age of the identity
+   * in order not to unnecessarily penalize new identities for shorter interaction
+   * intervals.
+   *
+   * The logistic function starts near 0 for very new identities, gradually increases,
+   * and approaches 1 as the identity gets older. This ensures that penalties for
+   * suspicious behavior (like rapid interactions) are minimal during the early phase
+   * of an identity's lifetime.
+   *
+   * The constant 15 represents the inflection point of the curve (in minutes),
+   * where the logistic weight is 0.5 — meaning the penalty is applied at half strength
+   * when the identity is 30 minutes old. After that, the penalty impact grows rapidly.
+   */
+
+  const logisticWeight = 1 / (1 + Math.exp(-0.2 * (identityAgeMinutes - 15)));
+
+  const penalty = penaltyForAverageInterval(
     info.registration.averageRegistrationInterval,
     info.registration.totalCount,
-    5 * 60 * 1000,
-    20,
+    INTERVAL_LIMIT,
+    MAX_PENALTY,
   );
+
+  return -Math.round(logisticWeight * penalty);
 }
 
 export function evalVotingAbusePenalty(info: BehaviourInfo) {
-  return -penaltyForAverageInterval(
+  const MAX_PENALTY = 20;
+  const INTERVAL_LIMIT = 5 * 60 * 1000; // 5 minutes
+
+  const identityAgeMinutes = (Date.now() - info.issuedAt.getTime()) / 1000 / 60;
+
+  /*
+   * Using logistic growth, the penalty is weighted with the age of the identity
+   * in order not to unnecessarily penalize new identities for shorter interaction
+   * intervals.
+   *
+   * The logistic function starts near 0 for very new identities, gradually increases,
+   * and approaches 1 as the identity gets older. This ensures that penalties for
+   * suspicious behavior (like rapid interactions) are minimal during the early phase
+   * of an identity's lifetime.
+   *
+   * The constant 15 represents the inflection point of the curve (in minutes),
+   * where the logistic weight is 0.5 — meaning the penalty is applied at half strength
+   * when the identity is 30 minutes old. After that, the penalty impact grows rapidly.
+   */
+
+  const logisticWeight = 1 / (1 + Math.exp(-0.2 * (identityAgeMinutes - 15)));
+
+  const penalty = penaltyForAverageInterval(
     info.voting.averageVotingInterval,
     info.voting.totalCount,
-    5 * 60 * 1000,
-    20,
+    INTERVAL_LIMIT,
+    MAX_PENALTY,
   );
+
+  return -Math.round(logisticWeight * penalty);
 }
 
 export function evalInactivePenalty(info: BehaviourInfo) {
@@ -144,18 +216,6 @@ export function evalIdentityAgePenalty(info: BehaviourInfo) {
     const ratio = (ageMs - 2 * DAY) / (26 * DAY);
     return -Math.round((1 - ratio) * 10);
   }
-}
-
-export function penaltyForAverageInterval(
-  interval: number,
-  count: number,
-  minInterval: number,
-  penaltyCap: number,
-): number {
-  if (count < 5) return 0;
-  const severity = Math.max(0, 1 - interval / minInterval);
-  const scaling = Math.min(1, Math.log(count + 1) / Math.log(50));
-  return Math.round(penaltyCap * severity * scaling);
 }
 
 export function evalUnrealisticVotingBehaviourPenalty(info: BehaviourInfo) {
@@ -185,4 +245,43 @@ export function evalUnrealisticRegistrationBehaviourPenalty(
   if (averageRegistrationsPerDay < 0.25) return 0;
 
   return -Math.round(Math.pow(averageRegistrationsPerDay, 2) * 10);
+}
+
+/**
+ * Calculates a behavioral penalty based on how frequently a user interacts.
+ *
+ * The penalty increases when the average interaction interval is shorter than a defined minimum.
+ * It is scaled logarithmically by the number of interactions to ensure more reliable patterns
+ * receive stronger penalties, and avoids penalizing users with too few interactions.
+ *
+ * @param interval - Average time between interactions.
+ * @param count - Total number of interactions recorded.
+ * @param minInterval - Minimum reasonable interval between actions before it is considered suspicious.
+ * @param penaltyCap - Maximum possible penalty.
+ * @returns A penalty score between 0 and `penaltyCap`.
+ */
+function penaltyForAverageInterval(
+  interval: number,
+  count: number,
+  minInterval: number,
+  penaltyCap: number,
+): number {
+  // Avoid penalizing users with too few data points (unreliable pattern)
+  if (count < 5) return 0;
+
+  /*
+   * Determine severity based on how much the average interval falls below the minimum.
+   * If interval >= minInterval, severity is 0 (no penalty); if interval is very short,
+   * severity approaches 1.
+   */
+  const severity = Math.max(0, 1 - interval / minInterval);
+
+  /*
+   * Logarithmic scaling: more interactions strengthen the confidence in the user's
+   * behavior pattern. Scales from 0 to 1, capping at 50 interactions.
+   */
+  const scaling = Math.min(1, Math.log(count + 1) / Math.log(50));
+
+  // Final penalty is a product of severity, scaling, and the configured penalty cap
+  return Math.round(penaltyCap * severity * scaling);
 }
