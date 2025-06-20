@@ -56,7 +56,7 @@ export class CvmEventStoreRepository {
         ?.creatorIdentity || undefined;
 
     const result = await this.cvmModel.findOneAndUpdate(
-      { aggregate_id: aggregate.id.value },
+      { aggregateId: aggregate.id.value },
       {
         $set: {
           position: {
@@ -67,7 +67,7 @@ export class CvmEventStoreRepository {
           imported: aggregate.imported,
         },
         $setOnInsert: {
-          aggregate_id: aggregate.id.value,
+          aggregateId: aggregate.id.value,
           registeredBy,
         },
       },

@@ -55,7 +55,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       await this.cvmEventStoreRepository.save(aggregate);
     } else {
       const aggregate = (await this.cvmEventStoreRepository.load(
-        CvmId.from(result.aggregate_id),
+        CvmId.from(result.aggregateId),
       ))!;
 
       // Ensure voter has not already voted

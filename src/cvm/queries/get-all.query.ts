@@ -38,7 +38,7 @@ export class GetAllQueryHandler
 
     return {
       content: content.map((cvm) => ({
-        id: cvm.aggregate_id,
+        id: cvm.aggregateId,
         longitude: cvm.position.coordinates[0],
         latitude: cvm.position.coordinates[1],
         score: cvm.score,

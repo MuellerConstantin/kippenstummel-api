@@ -29,7 +29,7 @@ export class GetByIdQueryHandler
     }
 
     return {
-      id: result.aggregate_id,
+      id: result.aggregateId,
       longitude: result.position.coordinates[0],
       latitude: result.position.coordinates[1],
       score: result.score,

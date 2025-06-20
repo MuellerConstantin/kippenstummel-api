@@ -55,7 +55,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
         await this.cvmEventStoreRepository.save(aggregate);
       } else {
         const aggregate = await this.cvmEventStoreRepository.load(
-          CvmId.from(result.aggregate_id),
+          CvmId.from(result.aggregateId),
         );
         aggregate!.synchronize({
           longitude: cvm.longitude,
