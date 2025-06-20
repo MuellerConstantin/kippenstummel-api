@@ -33,7 +33,7 @@ export class CvmUpvotedEventSubscriber implements IEventSubscriber {
       tokenizedIdentity,
     )) as string | null;
 
-    const result = await this.cvmModel.findOne({ aggregate_id: cvmId }).exec();
+    const result = await this.cvmModel.findOne({ aggregateId: cvmId }).exec();
 
     if (!result) {
       return;
