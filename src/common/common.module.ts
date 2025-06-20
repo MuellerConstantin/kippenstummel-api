@@ -23,8 +23,8 @@ import {
 import { InvalidPayloadError } from './models/error';
 import * as CvmModuleEvents from '../cvm/events';
 import { ValidationError } from 'class-validator';
-import { Job, JobSchema } from './repositories';
-import { JobService } from './services';
+import { Job, JobSchema, PiiToken, PiiTokenSchema } from './repositories';
+import { JobService, PiiService } from './services';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 
@@ -112,6 +112,9 @@ import multer from 'multer';
     }),
     PassportModule,
     MongooseModule.forFeature([{ name: Job.name, schema: JobSchema }]),
+    MongooseModule.forFeature([
+      { name: PiiToken.name, schema: PiiTokenSchema },
+    ]),
   ],
   controllers: [],
   providers: [
@@ -177,6 +180,7 @@ import multer from 'multer';
       }),
     },
     JobService,
+    PiiService,
   ],
   exports: [
     BullModule,
@@ -185,6 +189,7 @@ import multer from 'multer';
     EventSourcingModule,
     CacheModule,
     JobService,
+    PiiService,
   ],
 })
 export class CommonModule {}

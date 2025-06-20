@@ -9,6 +9,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Cvm } from '../repositories/schemas';
 import { CvmUpvotedEvent } from '../events';
+import { PiiService } from 'src/common/services';
 
 @EventSubscriber(CvmUpvotedEvent)
 export class CvmUpvotedEventSubscriber implements IEventSubscriber {
@@ -16,11 +17,21 @@ export class CvmUpvotedEventSubscriber implements IEventSubscriber {
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     @InjectQueue('credibility-computation')
     private credibilityComputationQueue: Queue,
+    private readonly piiService: PiiService,
   ) {}
 
   async handle(envelope: EventEnvelope<CvmUpvotedEvent>) {
     const cvmId = envelope.payload.cvmId as string;
-    const identity = envelope.payload.voterIdentity as string;
+    const tokenizedIdentity = envelope.payload.voterIdentity as string;
+
+    /*
+     * Due to GDPR, PII is tokenized. This step must be reversed when reading,
+     * if still possible and the authority has not already been deleted.
+     */
+
+    const untokenizedIdentity = (await this.piiService.untokenizePii(
+      tokenizedIdentity,
+    )) as string | null;
 
     const result = await this.cvmModel.findOne({ aggregate_id: cvmId }).exec();
 
@@ -33,13 +44,15 @@ export class CvmUpvotedEventSubscriber implements IEventSubscriber {
       latitude: result.position.coordinates[1],
     };
 
-    await this.credibilityComputationQueue.add('recompute', {
-      identity,
-      position: {
-        longitude: position.longitude,
-        latitude: position.latitude,
-      },
-      action: 'upvote',
-    });
+    if (untokenizedIdentity) {
+      await this.credibilityComputationQueue.add('recompute', {
+        identity: untokenizedIdentity,
+        position: {
+          longitude: position.longitude,
+          latitude: position.latitude,
+        },
+        action: 'upvote',
+      });
+    }
   }
 }
