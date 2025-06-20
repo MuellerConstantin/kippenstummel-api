@@ -14,7 +14,7 @@ export class RegisterCvmCommand implements ICommand {
   constructor(
     public readonly longitude: number,
     public readonly latitude: number,
-    public readonly identity: string,
+    public readonly creatorIdentity: string,
   ) {}
 }
 
@@ -43,15 +43,14 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       .exec();
 
     const credibility = await this.credibilityService.getCredibility(
-      command.identity,
+      command.creatorIdentity,
     );
 
     if (!result) {
       const aggregate = CvmAggregate.register(
         command.longitude,
         command.latitude,
-        undefined,
-        command.identity,
+        command.creatorIdentity,
       );
       await this.cvmEventStoreRepository.save(aggregate);
     } else {
@@ -61,7 +60,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
 
       // Ensure voter has not already voted
       const hasVoted = await this.hasVotedRecently(
-        command.identity,
+        command.creatorIdentity,
         aggregate.id.value,
       );
 
@@ -69,7 +68,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
         return;
       }
 
-      aggregate.upvote(command.identity, credibility);
+      aggregate.upvote(command.creatorIdentity, credibility);
 
       await this.cvmEventStoreRepository.save(aggregate);
     }

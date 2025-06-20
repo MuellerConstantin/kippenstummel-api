@@ -16,7 +16,7 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
   ) {}
 
   async handle(envelope: EventEnvelope<CvmRegisteredEvent>) {
-    const identity = envelope.payload.identity as string;
+    const identity = envelope.payload.creatorIdentity as string;
     const position = envelope.payload.position as {
       longitude: number;
       latitude: number;

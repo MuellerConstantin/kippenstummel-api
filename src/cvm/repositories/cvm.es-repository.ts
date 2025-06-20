@@ -52,20 +52,24 @@ export class CvmEventStoreRepository {
     await this.cvmSnapshotRepository.save(aggregate.id, aggregate);
 
     const registeredBy =
-      events.find((event) => event instanceof CvmRegisteredEvent)?.identity ||
-      undefined;
+      events.find((event) => event instanceof CvmRegisteredEvent)
+        ?.creatorIdentity || undefined;
 
     const result = await this.cvmModel.findOneAndUpdate(
       { aggregate_id: aggregate.id.value },
       {
-        aggregate_id: aggregate.id.value,
-        position: {
-          type: 'Point',
-          coordinates: [aggregate.longitude, aggregate.latitude],
+        $set: {
+          position: {
+            type: 'Point',
+            coordinates: [aggregate.longitude, aggregate.latitude],
+          },
+          score: aggregate.score,
+          imported: aggregate.imported,
         },
-        score: aggregate.score,
-        imported: aggregate.imported,
-        registeredBy,
+        $setOnInsert: {
+          aggregate_id: aggregate.id.value,
+          registeredBy,
+        },
       },
       {
         upsert: true,
@@ -76,14 +80,14 @@ export class CvmEventStoreRepository {
     for (const event of events) {
       if (event instanceof CvmUpvotedEvent) {
         await this.voteModel.create({
-          identity: event.identity,
+          identity: event.voterIdentity,
           cvm: result._id,
           weight: event.credibility,
           type: 'upvote',
         });
       } else if (event instanceof CvmDownvotedEvent) {
         await this.voteModel.create({
-          identity: event.identity,
+          identity: event.voterIdentity,
           cvm: result._id,
           weight: event.credibility,
           type: 'downvote',

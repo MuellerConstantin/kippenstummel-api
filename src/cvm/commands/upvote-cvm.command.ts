@@ -16,7 +16,7 @@ export class UpvoteCvmCommand implements ICommand {
     public readonly id: string,
     public readonly voterLongitude: number,
     public readonly voterLatitude: number,
-    public readonly identity: string,
+    public readonly voterIdentity: string,
   ) {}
 }
 
@@ -55,7 +55,7 @@ export class UpvoteCvmCommandHandler implements ICommandHandler {
 
     // Ensure voter has not already voted
     const hasVoted = await this.hasVotedRecently(
-      command.identity,
+      command.voterIdentity,
       aggregate.id.value,
     );
 
@@ -64,10 +64,10 @@ export class UpvoteCvmCommandHandler implements ICommandHandler {
     }
 
     const credibility = await this.credibilityService.getCredibility(
-      command.identity,
+      command.voterIdentity,
     );
 
-    aggregate.upvote(command.identity, credibility);
+    aggregate.upvote(command.voterIdentity, credibility);
     await this.cvmEventStoreRepository.save(aggregate);
   }
 

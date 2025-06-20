@@ -20,7 +20,7 @@ export class CvmUpvotedEventSubscriber implements IEventSubscriber {
 
   async handle(envelope: EventEnvelope<CvmUpvotedEvent>) {
     const cvmId = envelope.payload.cvmId as string;
-    const identity = envelope.payload.identity as string;
+    const identity = envelope.payload.voterIdentity as string;
 
     const result = await this.cvmModel.findOne({ aggregate_id: cvmId }).exec();
 

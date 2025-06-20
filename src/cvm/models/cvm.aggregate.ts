@@ -63,21 +63,23 @@ export class CvmAggregate extends AggregateRoot {
     this._imported = imported;
   }
 
-  public upvote(identity: string, credibility: number) {
+  public upvote(voterIdentity: string, credibility: number) {
     if (this._score >= constants.MAX_CVM_SCORE) {
       return;
     }
 
-    this.applyEvent(new CvmUpvotedEvent(this.id.value, identity, credibility));
+    this.applyEvent(
+      new CvmUpvotedEvent(this.id.value, voterIdentity, credibility),
+    );
   }
 
-  public downvote(identity: string, credibility: number) {
+  public downvote(voterIdentity: string, credibility: number) {
     if (this._score <= constants.MIN_CVM_SCORE) {
       return;
     }
 
     this.applyEvent(
-      new CvmDownvotedEvent(this.id.value, identity, credibility),
+      new CvmDownvotedEvent(this.id.value, voterIdentity, credibility),
     );
   }
 
@@ -106,25 +108,15 @@ export class CvmAggregate extends AggregateRoot {
   public static register(
     longitude: number,
     latitude: number,
-    initialScore?: number,
-    identity?: string,
+    creatorIdentity: string,
   ): CvmAggregate {
-    if (
-      initialScore &&
-      (initialScore < constants.MIN_CVM_SCORE ||
-        initialScore > constants.MAX_CVM_SCORE)
-    ) {
-      throw new Error('Invalid initial score');
-    }
-
     const aggregate = new CvmAggregate();
 
     aggregate.applyEvent(
       new CvmRegisteredEvent(
         CvmId.generate().value,
         { longitude, latitude },
-        initialScore,
-        identity,
+        creatorIdentity,
       ),
     );
 
@@ -162,7 +154,7 @@ export class CvmAggregate extends AggregateRoot {
     this._id = CvmId.from(event.cvmId);
     this._longitude = event.position.longitude;
     this._latitude = event.position.latitude;
-    this._score = event.initialScore || 0;
+    this._score = 0;
     this._imported = false;
   }
 
