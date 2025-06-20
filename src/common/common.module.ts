@@ -24,7 +24,7 @@ import { InvalidPayloadError } from './models/error';
 import * as CvmModuleEvents from '../cvm/events';
 import { ValidationError } from 'class-validator';
 import { Job, JobSchema, PiiToken, PiiTokenSchema } from './repositories';
-import { JobService, PiiService } from './services';
+import { JobService, PiiService, JobManagementConsumer } from './services';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 
@@ -81,6 +81,9 @@ import multer from 'multer';
     }),
     BullModule.registerQueue({
       name: 'cvm-import',
+    }),
+    BullModule.registerQueue({
+      name: 'job-management',
     }),
     JwtModule.registerAsync({
       global: true,
@@ -181,6 +184,7 @@ import multer from 'multer';
     },
     JobService,
     PiiService,
+    JobManagementConsumer,
   ],
   exports: [
     BullModule,

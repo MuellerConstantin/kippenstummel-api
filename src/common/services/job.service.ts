@@ -1,15 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Job as JobModel } from '../repositories';
-import { Job as BullMqJob } from 'bullmq';
+import { Job as BullMqJob, Queue } from 'bullmq';
 import { Job, JobTotalStats, Page, Pageable } from '../models';
+import { InjectQueue } from '@nestjs/bullmq';
 
 @Injectable()
-export class JobService {
+export class JobService implements OnModuleInit {
   constructor(
     @InjectModel(JobModel.name) private readonly jobModel: Model<JobModel>,
+    @InjectQueue('job-management')
+    private jobManagementQueue: Queue,
   ) {}
+
+  async onModuleInit() {
+    await this.jobManagementQueue.upsertJobScheduler('cleanup', {
+      pattern: '*/2 * * * *',
+      immediately: true,
+    });
+  }
 
   async upsertJobLog({
     job,
@@ -44,6 +54,14 @@ export class JobService {
       },
       { upsert: true },
     );
+  }
+
+  async deleteAllFinishedJobsOlderThan(days: number) {
+    const cutOffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    await this.jobModel.deleteMany({
+      finishedOn: { $lt: cutOffDate },
+    });
   }
 
   async getJobs(pageable: Pageable): Promise<Page<Job>> {
