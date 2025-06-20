@@ -14,12 +14,12 @@ export class RsqlToMongoIdentTransformer extends RsqlToMongoTransformer {
       return true;
     }
 
-    if (field === 'credibility' && operator !== '=like=') {
+    if (field === 'credibility.rating' && operator !== '=like=') {
       return true;
     }
 
     if (
-      field === 'issuedAt' &&
+      field === 'createdAt' &&
       operator !== '=like=' &&
       operator !== '=in=' &&
       operator !== '=out='
@@ -44,7 +44,7 @@ export class RsqlToMongoIdentTransformer extends RsqlToMongoTransformer {
       ]);
     }
 
-    if (selector === 'credibility') {
+    if (selector === 'credibility.rating') {
       value = Number(value);
     }
 

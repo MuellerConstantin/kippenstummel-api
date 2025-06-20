@@ -1,23 +1,26 @@
 export interface IdentInfoDto {
   identity: string;
-  credibility: number;
-  issuedAt: Date;
-  behaviour?: {
-    lastInteractionAt?: Date;
-    averageInteractionInterval: number;
-    lastInteractionPosition?: { longitude: number; latitude: number };
-    unrealisticMovementCount: number;
-    voting: {
-      totalCount: number;
-      upvoteCount: number;
-      downvoteCount: number;
-      lastVotedAt?: Date;
-      averageVotingInterval: number;
-    };
-    registration: {
-      totalCount: number;
-      lastRegistrationAt?: Date;
-      averageRegistrationInterval: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+  credibility: {
+    rating: number;
+    behaviour?: {
+      lastInteractionAt?: Date;
+      averageInteractionInterval: number;
+      lastInteractionPosition?: { longitude: number; latitude: number };
+      unrealisticMovementCount: number;
+      voting: {
+        totalCount: number;
+        upvoteCount: number;
+        downvoteCount: number;
+        lastVotedAt?: Date;
+        averageVotingInterval: number;
+      };
+      registration: {
+        totalCount: number;
+        lastRegistrationAt?: Date;
+        averageRegistrationInterval: number;
+      };
     };
   };
 }

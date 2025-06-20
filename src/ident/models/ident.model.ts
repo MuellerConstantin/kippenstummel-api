@@ -32,9 +32,14 @@ export interface IdentBehaviour {
   };
 }
 
+export interface IdentCredibility {
+  rating: number;
+  behaviour?: IdentBehaviour;
+}
+
 export interface IdentInfo {
   identity: string;
-  credibility: number;
-  issuedAt: Date;
-  behaviour?: IdentBehaviour;
+  credibility: IdentCredibility;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

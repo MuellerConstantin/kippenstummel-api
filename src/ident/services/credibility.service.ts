@@ -20,7 +20,7 @@ export class CredibilityService {
       throw new UnknownIdentityError();
     }
 
-    return result.credibility;
+    return result.credibility.rating;
   }
 
   async updateBehaviour(
@@ -39,157 +39,170 @@ export class CredibilityService {
 
     const info: IdentInfo = {
       identity: result.identity,
-      credibility: result.credibility,
-      issuedAt: result.issuedAt,
-      behaviour: result.behaviour
-        ? {
-            lastInteractionAt: result.behaviour.lastInteractionAt,
-            averageInteractionInterval:
-              result.behaviour.averageInteractionInterval,
-            unrealisticMovementCount: result.behaviour.unrealisticMovementCount,
-            lastInteractionPosition: result.behaviour.lastInteractionPosition
-              ? {
-                  longitude:
-                    result.behaviour.lastInteractionPosition.coordinates[0],
-                  latitude:
-                    result.behaviour.lastInteractionPosition.coordinates[1],
-                }
-              : undefined,
-            voting: {
-              totalCount: result.behaviour.voting.totalCount,
-              upvoteCount: result.behaviour.voting.upvoteCount,
-              downvoteCount: result.behaviour.voting.downvoteCount,
-              lastVotedAt: result.behaviour.voting.lastVotedAt,
-              averageVotingInterval:
-                result.behaviour.voting.averageVotingInterval,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+      credibility: {
+        rating: result.credibility.rating,
+        behaviour: result.credibility.behaviour
+          ? {
+              lastInteractionAt: result.credibility.behaviour.lastInteractionAt,
+              averageInteractionInterval:
+                result.credibility.behaviour.averageInteractionInterval,
+              unrealisticMovementCount:
+                result.credibility.behaviour.unrealisticMovementCount,
+              lastInteractionPosition: result.credibility.behaviour
+                .lastInteractionPosition
+                ? {
+                    longitude:
+                      result.credibility.behaviour.lastInteractionPosition
+                        .coordinates[0],
+                    latitude:
+                      result.credibility.behaviour.lastInteractionPosition
+                        .coordinates[1],
+                  }
+                : undefined,
+              voting: {
+                totalCount: result.credibility.behaviour.voting.totalCount,
+                upvoteCount: result.credibility.behaviour.voting.upvoteCount,
+                downvoteCount:
+                  result.credibility.behaviour.voting.downvoteCount,
+                lastVotedAt: result.credibility.behaviour.voting.lastVotedAt,
+                averageVotingInterval:
+                  result.credibility.behaviour.voting.averageVotingInterval,
+              },
+              registration: {
+                totalCount:
+                  result.credibility.behaviour.registration.totalCount,
+                lastRegistrationAt:
+                  result.credibility.behaviour.registration.lastRegistrationAt,
+                averageRegistrationInterval:
+                  result.credibility.behaviour.registration
+                    .averageRegistrationInterval,
+              },
+            }
+          : {
+              lastInteractionAt: undefined,
+              averageInteractionInterval: 0,
+              lastInteractionPosition: undefined,
+              unrealisticMovementCount: 0,
+              voting: {
+                totalCount: 0,
+                upvoteCount: 0,
+                downvoteCount: 0,
+                lastVotedAt: undefined,
+                averageVotingInterval: 0,
+              },
+              registration: {
+                totalCount: 0,
+                lastRegistrationAt: undefined,
+                averageRegistrationInterval: 0,
+              },
             },
-            registration: {
-              totalCount: result.behaviour.registration.totalCount,
-              lastRegistrationAt:
-                result.behaviour.registration.lastRegistrationAt,
-              averageRegistrationInterval:
-                result.behaviour.registration.averageRegistrationInterval,
-            },
-          }
-        : {
-            lastInteractionAt: undefined,
-            averageInteractionInterval: 0,
-            lastInteractionPosition: undefined,
-            unrealisticMovementCount: 0,
-            voting: {
-              totalCount: 0,
-              upvoteCount: 0,
-              downvoteCount: 0,
-              lastVotedAt: undefined,
-              averageVotingInterval: 0,
-            },
-            registration: {
-              totalCount: 0,
-              lastRegistrationAt: undefined,
-              averageRegistrationInterval: 0,
-            },
-          },
+      },
     };
 
     // Check for unrealistic movement
     if (
-      info.behaviour!.lastInteractionPosition &&
-      info.behaviour!.lastInteractionAt
+      info.credibility.behaviour!.lastInteractionPosition &&
+      info.credibility.behaviour!.lastInteractionAt
     ) {
       const hasUnrealisticallyMoved: boolean =
         CredibilityService.isUnrealisticallyMovement(
-          info.behaviour!.lastInteractionPosition,
+          info.credibility.behaviour!.lastInteractionPosition,
           location,
-          info.behaviour!.lastInteractionAt,
+          info.credibility.behaviour!.lastInteractionAt,
         );
 
       if (hasUnrealisticallyMoved) {
-        info.behaviour!.unrealisticMovementCount++;
+        info.credibility.behaviour!.unrealisticMovementCount++;
       }
     }
 
     // Calculate average interaction interval
-    if (info.behaviour!.lastInteractionAt) {
+    if (info.credibility.behaviour!.lastInteractionAt) {
       const duration =
-        new Date().getTime() - info.behaviour!.lastInteractionAt.getTime();
+        new Date().getTime() -
+        info.credibility.behaviour!.lastInteractionAt.getTime();
       const previousEwma =
-        info.behaviour!.averageInteractionInterval > 0
-          ? info.behaviour!.averageInteractionInterval
+        info.credibility.behaviour!.averageInteractionInterval > 0
+          ? info.credibility.behaviour!.averageInteractionInterval
           : duration;
 
-      info.behaviour!.averageInteractionInterval = calculateEwma(
+      info.credibility.behaviour!.averageInteractionInterval = calculateEwma(
         previousEwma,
         duration,
         0.1,
       );
     }
 
-    info.behaviour!.lastInteractionAt = new Date();
-    info.behaviour!.lastInteractionPosition = location;
+    info.credibility.behaviour!.lastInteractionAt = new Date();
+    info.credibility.behaviour!.lastInteractionPosition = location;
 
     if (interaction === 'upvote') {
-      info.behaviour!.voting.totalCount++;
-      info.behaviour!.voting.upvoteCount++;
+      info.credibility.behaviour!.voting.totalCount++;
+      info.credibility.behaviour!.voting.upvoteCount++;
     } else if (interaction === 'downvote') {
-      info.behaviour!.voting.totalCount++;
-      info.behaviour!.voting.downvoteCount++;
+      info.credibility.behaviour!.voting.totalCount++;
+      info.credibility.behaviour!.voting.downvoteCount++;
     } else if (interaction === 'registration') {
-      info.behaviour!.registration.totalCount++;
+      info.credibility.behaviour!.registration.totalCount++;
     }
 
     // Update specific action behaviour
     if (interaction === 'upvote' || interaction === 'downvote') {
       // Calculate average voting interval
-      if (info.behaviour!.voting.lastVotedAt) {
-        const duration =
-          new Date().getTime() - info.behaviour!.voting.lastVotedAt.getTime();
-        const previousEwma =
-          info.behaviour!.voting.averageVotingInterval > 0
-            ? info.behaviour!.voting.averageVotingInterval
-            : duration;
-
-        info.behaviour!.voting.averageVotingInterval = calculateEwma(
-          previousEwma,
-          duration,
-          0.1,
-        );
-      }
-
-      info.behaviour!.voting.lastVotedAt = new Date();
-    } else if (interaction === 'registration') {
-      // Calculate average registration interval
-      if (info.behaviour!.registration.lastRegistrationAt) {
+      if (info.credibility.behaviour!.voting.lastVotedAt) {
         const duration =
           new Date().getTime() -
-          info.behaviour!.registration.lastRegistrationAt.getTime();
+          info.credibility.behaviour!.voting.lastVotedAt.getTime();
         const previousEwma =
-          info.behaviour!.registration.averageRegistrationInterval > 0
-            ? info.behaviour!.registration.averageRegistrationInterval
+          info.credibility.behaviour!.voting.averageVotingInterval > 0
+            ? info.credibility.behaviour!.voting.averageVotingInterval
             : duration;
 
-        info.behaviour!.registration.averageRegistrationInterval =
+        info.credibility.behaviour!.voting.averageVotingInterval =
           calculateEwma(previousEwma, duration, 0.1);
       }
 
-      info.behaviour!.registration.lastRegistrationAt = new Date();
+      info.credibility.behaviour!.voting.lastVotedAt = new Date();
+    } else if (interaction === 'registration') {
+      // Calculate average registration interval
+      if (info.credibility.behaviour!.registration.lastRegistrationAt) {
+        const duration =
+          new Date().getTime() -
+          info.credibility.behaviour!.registration.lastRegistrationAt.getTime();
+        const previousEwma =
+          info.credibility.behaviour!.registration.averageRegistrationInterval >
+          0
+            ? info.credibility.behaviour!.registration
+                .averageRegistrationInterval
+            : duration;
+
+        info.credibility.behaviour!.registration.averageRegistrationInterval =
+          calculateEwma(previousEwma, duration, 0.1);
+      }
+
+      info.credibility.behaviour!.registration.lastRegistrationAt = new Date();
     }
 
     // Recompute credibility
-    info.credibility = computeCredibility({
-      ...info.behaviour!,
-      credibility: info.credibility,
-      issuedAt: info.issuedAt,
+    const updatedRating = computeCredibility({
+      ...info.credibility.behaviour!,
+      credibility: info.credibility.rating,
+      issuedAt: info.createdAt!,
     });
 
     await this.identModel.updateOne(
       { identity },
       {
-        ...info,
-        behaviour: {
-          ...info.behaviour,
-          lastInteractionPosition: {
-            type: 'Point',
-            coordinates: [location.longitude, location.latitude],
+        credibility: {
+          rating: updatedRating,
+          behaviour: {
+            ...info.credibility.behaviour,
+            lastInteractionPosition: {
+              type: 'Point',
+              coordinates: [location.longitude, location.latitude],
+            },
           },
         },
       },

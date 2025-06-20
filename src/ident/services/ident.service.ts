@@ -61,15 +61,12 @@ export class IdentService {
     const salt = await bcrypt.genSalt(10);
     const hashedSecret = await bcrypt.hash(secret, salt);
 
-    const info: IdentInfo = {
-      identity,
-      credibility: 50,
-      issuedAt: new Date(),
-    };
-
     await this.identModel.create({
-      ...info,
+      identity,
       secret: hashedSecret,
+      credibility: {
+        rating: 50,
+      },
     });
 
     return { identity, secret };
@@ -92,31 +89,43 @@ export class IdentService {
 
     return {
       identity: result.identity,
-      credibility: result.credibility,
-      issuedAt: result.issuedAt,
-      behaviour: result.behaviour && {
-        lastInteractionAt: result.behaviour.lastInteractionAt,
-        averageInteractionInterval: result.behaviour.averageInteractionInterval,
-        unrealisticMovementCount: result.behaviour.unrealisticMovementCount,
-        lastInteractionPosition: result.behaviour.lastInteractionPosition
-          ? {
-              longitude:
-                result.behaviour.lastInteractionPosition.coordinates[0],
-              latitude: result.behaviour.lastInteractionPosition.coordinates[1],
-            }
-          : undefined,
-        voting: {
-          totalCount: result.behaviour.voting.totalCount,
-          upvoteCount: result.behaviour.voting.upvoteCount,
-          downvoteCount: result.behaviour.voting.downvoteCount,
-          lastVotedAt: result.behaviour.voting.lastVotedAt,
-          averageVotingInterval: result.behaviour.voting.averageVotingInterval,
-        },
-        registration: {
-          totalCount: result.behaviour.registration.totalCount,
-          lastRegistrationAt: result.behaviour.registration.lastRegistrationAt,
-          averageRegistrationInterval:
-            result.behaviour.registration.averageRegistrationInterval,
+      createdAt: result.createdAt,
+      updatedAt: result.updatedAt,
+      credibility: {
+        rating: result.credibility.rating,
+        behaviour: result.credibility.behaviour && {
+          lastInteractionAt: result.credibility.behaviour.lastInteractionAt,
+          averageInteractionInterval:
+            result.credibility.behaviour.averageInteractionInterval,
+          unrealisticMovementCount:
+            result.credibility.behaviour.unrealisticMovementCount,
+          lastInteractionPosition: result.credibility.behaviour
+            .lastInteractionPosition
+            ? {
+                longitude:
+                  result.credibility.behaviour.lastInteractionPosition
+                    .coordinates[0],
+                latitude:
+                  result.credibility.behaviour.lastInteractionPosition
+                    .coordinates[1],
+              }
+            : undefined,
+          voting: {
+            totalCount: result.credibility.behaviour.voting.totalCount,
+            upvoteCount: result.credibility.behaviour.voting.upvoteCount,
+            downvoteCount: result.credibility.behaviour.voting.downvoteCount,
+            lastVotedAt: result.credibility.behaviour.voting.lastVotedAt,
+            averageVotingInterval:
+              result.credibility.behaviour.voting.averageVotingInterval,
+          },
+          registration: {
+            totalCount: result.credibility.behaviour.registration.totalCount,
+            lastRegistrationAt:
+              result.credibility.behaviour.registration.lastRegistrationAt,
+            averageRegistrationInterval:
+              result.credibility.behaviour.registration
+                .averageRegistrationInterval,
+          },
         },
       },
     };
@@ -140,33 +149,43 @@ export class IdentService {
     return {
       content: content.map((ident) => ({
         identity: ident.identity,
-        credibility: ident.credibility,
-        issuedAt: ident.issuedAt,
-        behaviour: ident.behaviour && {
-          lastInteractionAt: ident.behaviour.lastInteractionAt,
-          averageInteractionInterval:
-            ident.behaviour.averageInteractionInterval,
-          unrealisticMovementCount: ident.behaviour.unrealisticMovementCount,
-          lastInteractionPosition: ident.behaviour.lastInteractionPosition
-            ? {
-                longitude:
-                  ident.behaviour.lastInteractionPosition.coordinates[0],
-                latitude:
-                  ident.behaviour.lastInteractionPosition.coordinates[1],
-              }
-            : undefined,
-          voting: {
-            totalCount: ident.behaviour.voting.totalCount,
-            upvoteCount: ident.behaviour.voting.upvoteCount,
-            downvoteCount: ident.behaviour.voting.downvoteCount,
-            lastVotedAt: ident.behaviour.voting.lastVotedAt,
-            averageVotingInterval: ident.behaviour.voting.averageVotingInterval,
-          },
-          registration: {
-            totalCount: ident.behaviour.registration.totalCount,
-            lastRegistrationAt: ident.behaviour.registration.lastRegistrationAt,
-            averageRegistrationInterval:
-              ident.behaviour.registration.averageRegistrationInterval,
+        createdAt: ident.createdAt,
+        updatedAt: ident.updatedAt,
+        credibility: {
+          rating: ident.credibility.rating,
+          behaviour: ident.credibility.behaviour && {
+            lastInteractionAt: ident.credibility.behaviour.lastInteractionAt,
+            averageInteractionInterval:
+              ident.credibility.behaviour.averageInteractionInterval,
+            unrealisticMovementCount:
+              ident.credibility.behaviour.unrealisticMovementCount,
+            lastInteractionPosition: ident.credibility.behaviour
+              .lastInteractionPosition
+              ? {
+                  longitude:
+                    ident.credibility.behaviour.lastInteractionPosition
+                      .coordinates[0],
+                  latitude:
+                    ident.credibility.behaviour.lastInteractionPosition
+                      .coordinates[1],
+                }
+              : undefined,
+            voting: {
+              totalCount: ident.credibility.behaviour.voting.totalCount,
+              upvoteCount: ident.credibility.behaviour.voting.upvoteCount,
+              downvoteCount: ident.credibility.behaviour.voting.downvoteCount,
+              lastVotedAt: ident.credibility.behaviour.voting.lastVotedAt,
+              averageVotingInterval:
+                ident.credibility.behaviour.voting.averageVotingInterval,
+            },
+            registration: {
+              totalCount: ident.credibility.behaviour.registration.totalCount,
+              lastRegistrationAt:
+                ident.credibility.behaviour.registration.lastRegistrationAt,
+              averageRegistrationInterval:
+                ident.credibility.behaviour.registration
+                  .averageRegistrationInterval,
+            },
           },
         },
       })),

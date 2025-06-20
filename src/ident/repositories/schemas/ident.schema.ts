@@ -76,6 +76,17 @@ export const BehaviourSchema = SchemaFactory.createForClass(Behaviour);
 
 BehaviourSchema.index({ lastInteractionPosition: '2dsphere' });
 
+@Schema({ _id: false })
+class Credibility {
+  @Prop()
+  rating: number;
+
+  @Prop({ type: Behaviour })
+  behaviour?: Behaviour;
+}
+
+export const CredibilitySchema = SchemaFactory.createForClass(Credibility);
+
 @Schema({ collection: 'idents', timestamps: true })
 export class Ident {
   @Prop()
@@ -84,14 +95,8 @@ export class Ident {
   @Prop()
   secret: string;
 
-  @Prop({ type: Date })
-  issuedAt: Date;
-
-  @Prop()
-  credibility: number;
-
-  @Prop({ type: Behaviour })
-  behaviour?: Behaviour;
+  @Prop({ type: Credibility })
+  credibility: Credibility;
 
   createdAt?: Date;
   updatedAt?: Date;
