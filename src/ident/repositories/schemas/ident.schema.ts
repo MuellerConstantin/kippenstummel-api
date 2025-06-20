@@ -92,6 +92,9 @@ export class Ident {
 
   @Prop({ type: Behaviour })
   behaviour?: Behaviour;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const IdentSchema = SchemaFactory.createForClass(Ident);
