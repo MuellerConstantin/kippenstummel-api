@@ -8,6 +8,7 @@ import {
   MongoDBEventStore,
   type MongoDBEventStoreConfig,
 } from '@ocoda/event-sourcing-mongodb';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { CacheModule } from '@nestjs/cache-manager';
 import { createKeyv } from '@keyv/redis';
 import { JwtModule } from '@nestjs/jwt';
@@ -27,9 +28,11 @@ import { Job, JobSchema, PiiToken, PiiTokenSchema } from './repositories';
 import { JobService, PiiService, JobManagementConsumer } from './services';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
+import { Domain2ApplicationEventPublisher } from './events';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -185,6 +188,7 @@ import multer from 'multer';
     JobService,
     PiiService,
     JobManagementConsumer,
+    Domain2ApplicationEventPublisher,
   ],
   exports: [
     BullModule,
