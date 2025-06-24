@@ -25,6 +25,7 @@ import {
   CvmRegisteredEventSubscriber,
   CvmUpvotedEventSubscriber,
   CvmDownvotedEventSubscriber,
+  IdentRemovedEventSubscriber,
 } from './services';
 import {
   GetAllQueryHandler,
@@ -62,6 +63,7 @@ import { CvmController } from './controllers';
     CvmUpvotedEventSubscriber,
     CvmDownvotedEventSubscriber,
     CvmImportConsumer,
+    IdentRemovedEventSubscriber,
   ],
 })
 export class CvmModule {}

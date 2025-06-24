@@ -13,6 +13,8 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Ident } from '../repositories';
 import { Model } from 'mongoose';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { IdentCreatedEvent, IdentRemovedEvent } from '../events';
 
 @Injectable()
 export class IdentService {
@@ -20,6 +22,7 @@ export class IdentService {
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     @InjectModel(Ident.name) private readonly identModel: Model<Ident>,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async generateIdentToken(
@@ -69,11 +72,15 @@ export class IdentService {
       },
     });
 
+    this.eventEmitter.emit('ident-created', new IdentCreatedEvent(identity));
+
     return { identity, secret };
   }
 
   async unregisterIdentity(identity: string): Promise<void> {
     await this.identModel.deleteOne({ identity });
+
+    this.eventEmitter.emit('ident-removed', new IdentRemovedEvent(identity));
   }
 
   async existsIdentity(identity: string): Promise<boolean> {

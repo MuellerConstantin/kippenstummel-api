@@ -25,7 +25,12 @@ import { InvalidPayloadError } from './models/error';
 import * as CvmModuleEvents from '../cvm/events';
 import { ValidationError } from 'class-validator';
 import { Job, JobSchema, PiiToken, PiiTokenSchema } from './repositories';
-import { JobService, PiiService, JobManagementConsumer } from './services';
+import {
+  JobService,
+  PiiService,
+  JobManagementConsumer,
+  IdentRemovedEventSubscriber,
+} from './services';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 import { Domain2ApplicationEventPublisher } from './events';
@@ -189,6 +194,7 @@ import { Domain2ApplicationEventPublisher } from './events';
     PiiService,
     JobManagementConsumer,
     Domain2ApplicationEventPublisher,
+    IdentRemovedEventSubscriber,
   ],
   exports: [
     BullModule,

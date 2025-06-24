@@ -8,7 +8,7 @@ export type VoteDocument = HydratedDocument<Vote>;
 @Schema({ collection: 'votes', timestamps: true })
 export class Vote {
   @Prop()
-  identity: string;
+  identity?: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Cvm' })
   cvm: Cvm;
