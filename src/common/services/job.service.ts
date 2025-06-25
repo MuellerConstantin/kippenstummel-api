@@ -8,11 +8,25 @@ import { InjectQueue } from '@nestjs/bullmq';
 
 @Injectable()
 export class JobService implements OnModuleInit {
+  private jobQueues: Map<string, Queue> = new Map();
+
   constructor(
     @InjectModel(JobModel.name) private readonly jobModel: Model<JobModel>,
     @InjectQueue('job-management')
     private jobManagementQueue: Queue,
-  ) {}
+    @InjectQueue('credibility-computation')
+    private credibilityComputationQueue: Queue,
+    @InjectQueue('tile-computation') private tileComputationQueue: Queue,
+    @InjectQueue('cvm-import') private cvmImportQueue: Queue,
+  ) {
+    this.jobQueues.set('job-management', this.jobManagementQueue);
+    this.jobQueues.set(
+      'credibility-computation',
+      this.credibilityComputationQueue,
+    );
+    this.jobQueues.set('tile-computation', this.tileComputationQueue);
+    this.jobQueues.set('cvm-import', this.cvmImportQueue);
+  }
 
   async onModuleInit() {
     await this.jobManagementQueue.upsertJobScheduler('cleanup', {
@@ -32,6 +46,9 @@ export class JobService implements OnModuleInit {
     result?: any;
     error?: Error;
   }) {
+    const queue = this.jobQueues.get(job.queueName);
+    const logs = await queue?.getJobLogs(job.id!);
+
     await this.jobModel.updateOne(
       { jobId: job.id, queue: job.queueName },
       {
@@ -44,6 +61,7 @@ export class JobService implements OnModuleInit {
           attemptsMade: job.attemptsMade,
           timestamp: new Date(job.timestamp ?? Date.now()),
           finishedOn: status !== 'running' ? new Date() : undefined,
+          logs: logs ? logs.logs : undefined,
           updatedAt: new Date(),
         },
         $setOnInsert: {
@@ -90,6 +108,7 @@ export class JobService implements OnModuleInit {
         attemptsMade: job.attemptsMade,
         timestamp: job.timestamp,
         finishedOn: job.finishedOn,
+        logs: job.logs,
         createdAt: job.createdAt,
         updatedAt: job.updatedAt,
       })),

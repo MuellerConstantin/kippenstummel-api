@@ -57,8 +57,11 @@ export class TileComputationConsumer extends WorkerHost {
       `Updating tiles for variant 'all'...`,
       'TileComputationConsumer',
     );
+    await job.log(`Updating tiles for variant 'all'...`);
 
     await this.cvmTileService.updateTilesByPositions(job.data.positions, 'all');
+
+    await job.log(`Updated tiles for variant 'all'`);
   }
 
   async recomputeTrusted(
@@ -72,11 +75,14 @@ export class TileComputationConsumer extends WorkerHost {
       `Updating tiles for variant 'trusted'...`,
       'TileComputationConsumer',
     );
+    await job.log(`Updating tiles for variant 'trusted'...`);
 
     await this.cvmTileService.updateTilesByPositions(
       job.data.positions,
       'trusted',
     );
+
+    await job.log(`Updated tiles for variant 'trusted'`);
   }
 
   async recomputeApproved(
@@ -90,11 +96,14 @@ export class TileComputationConsumer extends WorkerHost {
       `Updating tiles for variant 'approved'...`,
       'TileComputationConsumer',
     );
+    await job.log(`Updating tiles for variant 'approved'...`);
 
     await this.cvmTileService.updateTilesByPositions(
       job.data.positions,
       'approved',
     );
+
+    await job.log(`Updated tiles for variant 'approved'`);
   }
 
   @OnWorkerEvent('active')
@@ -111,6 +120,7 @@ export class TileComputationConsumer extends WorkerHost {
   @OnWorkerEvent('failed')
   async onFailed(job: Job, error: Error): Promise<void> {
     this.logger.error(error.message, error.stack, 'TileComputationConsumer');
+    await job.log(error.name + ': ' + error.message + '\n' + error.stack);
     await this.jobService.upsertJobLog({ job, error, status: 'failed' });
   }
 }

@@ -9,6 +9,7 @@ export interface JobDto {
   attemptsMade: number;
   timestamp?: Date;
   finishedOn?: Date;
+  logs?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }

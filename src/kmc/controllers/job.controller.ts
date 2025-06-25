@@ -40,6 +40,7 @@ export class JobController {
         attemptsMade: job.attemptsMade,
         timestamp: job.timestamp,
         finishedOn: job.finishedOn,
+        logs: job.logs,
         createdAt: job.createdAt,
         updatedAt: job.updatedAt,
       })),

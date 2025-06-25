@@ -75,12 +75,17 @@ export class CvmImportConsumer extends WorkerHost {
 
     const command = new ImportCvmsCommand(content);
     await this.commandBus.execute<ImportCvmsCommand>(command);
+
+    await job.log(`Imported ${content.length} CVMs from file`);
   }
 
   async importOsm(job: Job<{ region: string }, void, string>): Promise<void> {
     this.logger.debug(
       `Importing CVM data from OSM for region '${job.data.region}'...`,
       'CvmImportConsumer',
+    );
+    await job.log(
+      `Importing CVM data from OSM for region '${job.data.region}'...`,
     );
 
     const fetchOsmAreaId = async (region: string) => {
@@ -186,6 +191,8 @@ export class CvmImportConsumer extends WorkerHost {
 
     const command = new ImportCvmsCommand(cvms);
     await this.commandBus.execute<ImportCvmsCommand>(command);
+
+    await job.log(`Imported ${cvms.length} CVMs from OSM`);
   }
 
   async importManual(
@@ -202,6 +209,8 @@ export class CvmImportConsumer extends WorkerHost {
 
     const command = new ImportCvmsCommand(job.data.cvms);
     await this.commandBus.execute<ImportCvmsCommand>(command);
+
+    await job.log(`Imported ${job.data.cvms.length} CVMs from manual records`);
   }
 
   @OnWorkerEvent('active')
@@ -218,6 +227,7 @@ export class CvmImportConsumer extends WorkerHost {
   @OnWorkerEvent('failed')
   async onFailed(job: Job, error: Error): Promise<void> {
     this.logger.error(error.message, error.stack, 'CvmImportConsumer');
+    await job.log(error.name + ': ' + error.message + '\n' + error.stack);
     await this.jobService.upsertJobLog({ job, error, status: 'failed' });
   }
 }

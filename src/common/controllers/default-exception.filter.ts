@@ -16,7 +16,11 @@ export class DefaultExceptionFilter extends BaseExceptionFilter {
         ? new InternalError(exception)
         : new InternalError();
 
-    this.logger.error(exception);
+    if (exception instanceof Error) {
+      this.logger.error(exception.message, exception.stack);
+    } else {
+      this.logger.error(exception);
+    }
 
     const responseBody: ApiErrorDto = {
       timestamp: apiError.timestamp.toISOString(),

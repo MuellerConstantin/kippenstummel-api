@@ -38,6 +38,9 @@ export class Job {
   @Prop()
   finishedOn?: Date;
 
+  @Prop()
+  logs?: string[];
+
   createdAt?: Date;
   updatedAt?: Date;
 }

@@ -47,6 +47,9 @@ export class CredibilityComputationConsumer extends WorkerHost {
       `Updating credibility for identity '${job.data.identity}'...`,
       'CredibilityComputationConsumer',
     );
+    await job.log(
+      `Updating credibility for identity '${job.data.identity}'...`,
+    );
 
     await this.credibilityService.updateBehaviour(
       job.data.identity,
@@ -56,6 +59,8 @@ export class CredibilityComputationConsumer extends WorkerHost {
       },
       job.data.action,
     );
+
+    await job.log(`Updated credibility for identity '${job.data.identity}'`);
   }
 
   @OnWorkerEvent('active')
@@ -76,6 +81,8 @@ export class CredibilityComputationConsumer extends WorkerHost {
       error.stack,
       'CredibilityComputationConsumer',
     );
+    await job.log(error.name + ': ' + error.message + '\n' + error.stack);
+
     await this.jobService.upsertJobLog({ job, error, status: 'failed' });
   }
 }

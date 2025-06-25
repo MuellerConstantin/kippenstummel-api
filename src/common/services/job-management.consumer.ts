@@ -15,17 +15,19 @@ export class JobManagementConsumer extends WorkerHost {
   async process(job: Job<any, any, string>): Promise<any> {
     switch (job.name) {
       case 'cleanup': {
-        return this.cleanup();
+        return this.cleanup(job);
       }
     }
   }
 
-  async cleanup() {
+  async cleanup(job: Job<any, any, string>) {
     this.logger.log(
       'Cleanup outdated job logs older than 14 days...',
       'JobManagementConsumer',
     );
+    await job.log('Cleanup outdated job logs older than 14 days...');
     await this.jobService.deleteAllFinishedJobsOlderThan(14);
+    await job.log('Cleanup finished');
   }
 
   @OnWorkerEvent('active')
@@ -42,6 +44,7 @@ export class JobManagementConsumer extends WorkerHost {
   @OnWorkerEvent('failed')
   async onFailed(job: Job, error: Error): Promise<void> {
     this.logger.error(error.message, error.stack, 'JobManagementConsumer');
+    await job.log(error.name + ': ' + error.message + '\n' + error.stack);
     await this.jobService.upsertJobLog({ job, error, status: 'failed' });
   }
 }
