@@ -18,4 +18,5 @@ export {
   InvalidImportFileError,
   InvalidFilterQueryError,
   UnsupportedFilterFieldError,
+  AlterationConflictError,
 } from './error';

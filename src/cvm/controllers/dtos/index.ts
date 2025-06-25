@@ -7,3 +7,5 @@ export { UpvoteParamsDto } from './upvote-params.dto';
 export { UpvoteCvmDto } from './upvote-cvm.dto';
 export { DownvoteCvmDto } from './downvote-cvm.dto';
 export { GetCvmByIdParamsDto } from './get-cvm-by-id-params.dto';
+export { RepositionCvmDto } from './reposition-cvm.dto';
+export { RepositionParamsDto } from './reposition-params.dto';

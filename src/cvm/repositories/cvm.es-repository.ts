@@ -7,9 +7,10 @@ import {
   CvmDownvotedEvent,
   CvmId,
   CvmRegisteredEvent,
+  CvmRepositionedEvent,
   CvmUpvotedEvent,
 } from '../models';
-import { Cvm, Vote } from './schemas';
+import { Cvm, Repositioning, Vote } from './schemas';
 import { CvmSnapshotRepository } from './cvm.snapshot-repository';
 import { PiiService } from 'src/common/services';
 import { deepCopy } from 'src/lib';
@@ -21,6 +22,8 @@ export class CvmEventStoreRepository {
     private readonly cvmSnapshotRepository: CvmSnapshotRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
+    @InjectModel(Repositioning.name)
+    private readonly repositioningModel: Model<Repositioning>,
     private readonly piiService: PiiService,
   ) {}
 
@@ -69,6 +72,18 @@ export class CvmEventStoreRepository {
           untokenizedIdentity || event.voterIdentity,
           event.credibility,
         );
+      } else if (event instanceof CvmRepositionedEvent) {
+        const untokenizedIdentity = (await this.piiService.untokenizePii(
+          event.editorIdentity,
+        )) as string | null;
+
+        return new CvmRepositionedEvent(
+          event.cvmId,
+          untokenizedIdentity || event.editorIdentity,
+          event.credibility,
+          event.formerPosition,
+          event.repositionedPosition,
+        );
       }
 
       return event;
@@ -100,52 +115,7 @@ export class CvmEventStoreRepository {
       return;
     }
 
-    const stream = EventStream.for<CvmAggregate>(CvmAggregate, aggregate.id);
-
-    /*
-     * If Art. 17 of the GDPR applies, a user can insist on the deletion of their data.
-     * To meet the legal requirements and still not violate the immutability of the event
-     * store, no PII (Personally Identifiable Information) may be stored in the events themselves.
-     * Instead, these are replaced by tokens. The tokens can be translated back into PII
-     * using a mapping. In the case of Art. 17, the corresponding token mapping is deleted,
-     * and the PII in the event history is lost without changing the event store.
-     */
-
-    const tokenizedEvents = await Promise.all(
-      deepCopy(events).map(async (event) => {
-        if (event instanceof CvmRegisteredEvent) {
-          const token = await this.piiService.tokenizePii(
-            event.creatorIdentity,
-            event.creatorIdentity,
-          );
-
-          return new CvmRegisteredEvent(event.cvmId, event.position, token);
-        } else if (event instanceof CvmUpvotedEvent) {
-          const token = await this.piiService.tokenizePii(
-            event.voterIdentity,
-            event.voterIdentity,
-          );
-
-          return new CvmUpvotedEvent(event.cvmId, token, event.credibility);
-        } else if (event instanceof CvmDownvotedEvent) {
-          const token = await this.piiService.tokenizePii(
-            event.voterIdentity,
-            event.voterIdentity,
-          );
-
-          return new CvmDownvotedEvent(event.cvmId, token, event.credibility);
-        }
-
-        return event;
-      }),
-    );
-
-    await this.eventStore.appendEvents(
-      stream,
-      aggregate.version,
-      tokenizedEvents,
-    );
-    await this.cvmSnapshotRepository.save(aggregate.id, aggregate);
+    // Update read model
 
     const registeredBy =
       events.find((event) => event instanceof CvmRegisteredEvent)
@@ -188,7 +158,86 @@ export class CvmEventStoreRepository {
           weight: event.credibility,
           type: 'downvote',
         });
+      } else if (event instanceof CvmRepositionedEvent) {
+        await this.repositioningModel.create({
+          identity: event.editorIdentity,
+          cvm: result._id,
+          weight: event.credibility,
+          position: {
+            type: 'Point',
+            coordinates: [
+              event.repositionedPosition.longitude,
+              event.repositionedPosition.latitude,
+            ],
+          },
+        });
       }
     }
+
+    /*
+     * Updating the write model is done after updating the read model. The reason is that
+     * updating the write model publishes all changed events immidiately and hence notifys
+     * subscribers which rely on a consistent read model.
+     */
+
+    const stream = EventStream.for<CvmAggregate>(CvmAggregate, aggregate.id);
+
+    /*
+     * If Art. 17 of the GDPR applies, a user can insist on the deletion of their data.
+     * To meet the legal requirements and still not violate the immutability of the event
+     * store, no PII (Personally Identifiable Information) may be stored in the events themselves.
+     * Instead, these are replaced by tokens. The tokens can be translated back into PII
+     * using a mapping. In the case of Art. 17, the corresponding token mapping is deleted,
+     * and the PII in the event history is lost without changing the event store.
+     */
+
+    const tokenizedEvents = await Promise.all(
+      deepCopy(events).map(async (event) => {
+        if (event instanceof CvmRegisteredEvent) {
+          const token = await this.piiService.tokenizePii(
+            event.creatorIdentity,
+            event.creatorIdentity,
+          );
+
+          return new CvmRegisteredEvent(event.cvmId, event.position, token);
+        } else if (event instanceof CvmUpvotedEvent) {
+          const token = await this.piiService.tokenizePii(
+            event.voterIdentity,
+            event.voterIdentity,
+          );
+
+          return new CvmUpvotedEvent(event.cvmId, token, event.credibility);
+        } else if (event instanceof CvmDownvotedEvent) {
+          const token = await this.piiService.tokenizePii(
+            event.voterIdentity,
+            event.voterIdentity,
+          );
+
+          return new CvmDownvotedEvent(event.cvmId, token, event.credibility);
+        } else if (event instanceof CvmRepositionedEvent) {
+          const token = await this.piiService.tokenizePii(
+            event.editorIdentity,
+            event.editorIdentity,
+          );
+
+          return new CvmRepositionedEvent(
+            event.cvmId,
+            token,
+            event.credibility,
+            event.formerPosition,
+            event.repositionedPosition,
+          );
+        }
+
+        return event;
+      }),
+    );
+
+    await this.eventStore.appendEvents(
+      stream,
+      aggregate.version,
+      tokenizedEvents,
+    );
+    await this.cvmSnapshotRepository.save(aggregate.id, aggregate);
   }
 }

@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -25,8 +26,11 @@ import {
   DownvoteCvmDto,
   UpvoteCvmDto,
   GetCvmByIdParamsDto,
+  RepositionParamsDto,
+  RepositionCvmDto,
 } from './dtos';
 import { Identity, IdentGuard } from 'src/ident/controllers';
+import { RepositionCvmCommand } from '../commands/reposition-cvm.command';
 
 @Controller({ path: '/cvms', version: '1' })
 export class CvmController {
@@ -75,6 +79,25 @@ export class CvmController {
     );
 
     await this.commandBus.execute<RegisterCvmCommand>(command);
+  }
+
+  @UseGuards(IdentGuard)
+  @Patch('/:id')
+  async reposition(
+    @Param() params: RepositionParamsDto,
+    @Identity() identity: string,
+    @Body() body: RepositionCvmDto,
+  ): Promise<void> {
+    const command = new RepositionCvmCommand(
+      params.id,
+      body.repositionedLatitude,
+      body.repositionedLongitude,
+      body.editorLatitude,
+      body.editorLongitude,
+      identity,
+    );
+
+    await this.commandBus.execute<RepositionCvmCommand>(command);
   }
 
   @Get('/:id')

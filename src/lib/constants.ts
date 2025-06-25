@@ -9,6 +9,16 @@ const MAX_TILE_ZOOM = 18;
 const CVM_VOTE_DELAY = 7;
 
 /**
+ * The number of days that a user can not reposition a CVM again.
+ */
+const CVM_REPOSITION_DELAY = 7;
+
+/**
+ * The radius in meters within a CVM can be repositioned.
+ */
+const NEARBY_REPOSITION_RADIUS = 0.025;
+
+/**
  * The radius in meters where a CVM is considered "same" as another.
  */
 const SAME_CVM_RADIUS = 50;
@@ -26,4 +36,6 @@ export {
   SAME_CVM_RADIUS,
   NEARBY_CVM_RADIUS,
   CVM_VOTE_DELAY,
+  CVM_REPOSITION_DELAY,
+  NEARBY_REPOSITION_RADIUS,
 };

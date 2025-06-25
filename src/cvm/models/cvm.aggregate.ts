@@ -10,6 +10,7 @@ import {
   CvmDownvotedEvent,
   CvmSynchronizedEvent,
   CvmImportedEvent,
+  CvmRepositionedEvent,
 } from '../events';
 import { constants } from 'src/lib';
 
@@ -105,6 +106,29 @@ export class CvmAggregate extends AggregateRoot {
     );
   }
 
+  public reposition(
+    editor: string,
+    credibility: number,
+    repositionedLongitude: number,
+    repositionedLatitude: number,
+  ) {
+    this.applyEvent(
+      new CvmRepositionedEvent(
+        this.id.value,
+        editor,
+        credibility,
+        {
+          longitude: this.longitude,
+          latitude: this.latitude,
+        },
+        {
+          longitude: repositionedLongitude,
+          latitude: repositionedLatitude,
+        },
+      ),
+    );
+  }
+
   public static register(
     longitude: number,
     latitude: number,
@@ -190,5 +214,11 @@ export class CvmAggregate extends AggregateRoot {
   @EventHandler(CvmDownvotedEvent)
   onCvmDownvotedEvent(event: CvmDownvotedEvent): void {
     this._score -= event.credibility;
+  }
+
+  @EventHandler(CvmRepositionedEvent)
+  onCvmRepositionedEvent(event: CvmRepositionedEvent): void {
+    this._longitude = event.repositionedPosition.longitude;
+    this._latitude = event.repositionedPosition.latitude;
   }
 }

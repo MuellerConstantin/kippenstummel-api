@@ -11,12 +11,15 @@ import {
   CvmTile,
   CvmTileSchema,
   Vote,
+  Repositioning,
+  RepositioningSchema,
 } from './repositories';
 import {
   RegisterCvmCommandHandler,
   UpvoteCvmCommandHandler,
   DownvoteCvmCommandHandler,
   ImportCvmsCommandHandler,
+  RepositionCvmCommandHandler,
 } from './commands';
 import {
   CvmTileService,
@@ -26,6 +29,7 @@ import {
   CvmUpvotedEventSubscriber,
   CvmDownvotedEventSubscriber,
   IdentRemovedEventSubscriber,
+  CvmRepositionedEventSubscriber,
 } from './services';
 import {
   GetAllQueryHandler,
@@ -42,6 +46,9 @@ import { CvmController } from './controllers';
     IdentModule,
     MongooseModule.forFeature([{ name: Cvm.name, schema: CvmSchema }]),
     MongooseModule.forFeature([{ name: Vote.name, schema: VoteSchema }]),
+    MongooseModule.forFeature([
+      { name: Repositioning.name, schema: RepositioningSchema },
+    ]),
     MongooseModule.forFeature([{ name: CvmTile.name, schema: CvmTileSchema }]),
   ],
   controllers: [CvmController],
@@ -64,6 +71,8 @@ import { CvmController } from './controllers';
     CvmDownvotedEventSubscriber,
     CvmImportConsumer,
     IdentRemovedEventSubscriber,
+    RepositionCvmCommandHandler,
+    CvmRepositionedEventSubscriber,
   ],
 })
 export class CvmModule {}

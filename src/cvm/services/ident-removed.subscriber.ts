@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { Model } from 'mongoose';
 import { IdentRemovedEvent } from 'src/ident/events';
-import { Cvm, Vote } from '../repositories';
+import { Cvm, Repositioning, Vote } from '../repositories';
 import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
@@ -10,6 +10,8 @@ export class IdentRemovedEventSubscriber {
   constructor(
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
+    @InjectModel(Repositioning.name)
+    private readonly repositioningModel: Model<Repositioning>,
   ) {}
 
   @OnEvent('ident-removed')
@@ -28,5 +30,10 @@ export class IdentRemovedEventSubscriber {
     );
 
     await this.voteModel.updateMany({ identity }, { $unset: { identity: '' } });
+
+    await this.repositioningModel.updateMany(
+      { identity },
+      { $unset: { identity: '' } },
+    );
   }
 }

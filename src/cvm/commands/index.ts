@@ -17,3 +17,8 @@ export {
   ImportCvmsCommandHandler,
   ImportCvmsCommand,
 } from './import-cvms.command';
+
+export {
+  RepositionCvmCommandHandler,
+  RepositionCvmCommand,
+} from './reposition-cvm.command';

@@ -14,6 +14,7 @@ export enum ApiErrorCode {
   INVALID_IMPORT_FILE_ERROR = 'INVALID_IMPORT_FILE_ERROR',
   INVALID_FILTER_QUERY_ERROR = 'INVALID_FILTER_QUERY_ERROR',
   UNSUPPORTED_FILTER_FIELD_ERROR = 'UNSUPPORTED_FILTER_FIELD_ERROR',
+  ALTERATION_CONFLICT_ERROR = 'ALTERATION_CONFLICT_ERROR',
 }
 
 export const ApiErrorMessages: Record<ApiErrorCode, string> = {
@@ -32,6 +33,7 @@ export const ApiErrorMessages: Record<ApiErrorCode, string> = {
   [ApiErrorCode.INVALID_IMPORT_FILE_ERROR]: 'Invalid import file',
   [ApiErrorCode.INVALID_FILTER_QUERY_ERROR]: 'Invalid filter query',
   [ApiErrorCode.UNSUPPORTED_FILTER_FIELD_ERROR]: 'Unsupported filter field',
+  [ApiErrorCode.ALTERATION_CONFLICT_ERROR]: 'Alteration conflict',
 };
 
 export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
@@ -50,6 +52,7 @@ export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
   [ApiErrorCode.INVALID_IMPORT_FILE_ERROR]: 400,
   [ApiErrorCode.INVALID_FILTER_QUERY_ERROR]: 400,
   [ApiErrorCode.UNSUPPORTED_FILTER_FIELD_ERROR]: 400,
+  [ApiErrorCode.ALTERATION_CONFLICT_ERROR]: 409,
 };
 
 export abstract class ApiError extends Error {
@@ -181,5 +184,11 @@ export class InvalidFilterQueryError extends ApiError {
 export class UnsupportedFilterFieldError extends ApiError {
   constructor(details?: { [key: string]: any }[], cause?: Error) {
     super(ApiErrorCode.UNSUPPORTED_FILTER_FIELD_ERROR, details, cause);
+  }
+}
+
+export class AlterationConflictError extends ApiError {
+  constructor(cause?: Error) {
+    super(ApiErrorCode.ALTERATION_CONFLICT_ERROR, undefined, cause);
   }
 }

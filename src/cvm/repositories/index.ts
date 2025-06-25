@@ -7,4 +7,6 @@ export {
   CvmTile,
   VoteSchema,
   Vote,
+  RepositioningSchema,
+  Repositioning,
 } from './schemas';
