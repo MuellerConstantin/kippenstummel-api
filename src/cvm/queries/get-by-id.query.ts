@@ -21,7 +21,7 @@ export class GetByIdQueryHandler
 
   public async execute(query: GetByIdQuery): Promise<CvmProjection> {
     const result = await this.cvmModel
-      .findOne({ aggregate_id: query.id })
+      .findOne({ aggregateId: query.id })
       .exec();
 
     if (!result) {
