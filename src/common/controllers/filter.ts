@@ -19,7 +19,27 @@ import {
 } from '@rsql/ast';
 import { InvalidFilterQueryError } from '../models';
 
+export type RsqlToMongoQueryResult =
+  | { useAggregate: false; filter: object }
+  | { useAggregate: true; pipeline: object[] };
+
+export type RsqlToMongoRefDefinition = {
+  collection: string;
+  localField: string;
+  foreignField: string;
+};
+
 export class RsqlToMongoTransformer {
+  private supportedRefs: Record<string, RsqlToMongoRefDefinition> = {};
+  private usedRefs = new Set<string>();
+  private usesRefs = false;
+
+  constructor(refs: RsqlToMongoRefDefinition[] = []) {
+    refs.forEach((ref) => {
+      this.supportedRefs[ref.localField] = ref;
+    });
+  }
+
   private visitAndNode(node: LogicNode): object {
     const left = this.visitExpressionNode(node.left);
     const right = this.visitExpressionNode(node.right);
@@ -57,6 +77,14 @@ export class RsqlToMongoTransformer {
     operator: string,
     value: string | string[] | number,
   ): object {
+    if (selector.includes('.')) {
+      const [refRoot] = selector.split('.');
+      if (this.supportedRefs[refRoot]) {
+        this.usedRefs.add(refRoot);
+        this.usesRefs = true;
+      }
+    }
+
     switch (operator) {
       case EQ: {
         return { [selector]: value };
@@ -100,8 +128,11 @@ export class RsqlToMongoTransformer {
     }
   }
 
-  public transform(rsql: string): object {
+  public transform(rsql: string): RsqlToMongoQueryResult {
     let rootNode: ExpressionNode;
+
+    this.usedRefs.clear();
+    this.usesRefs = false;
 
     try {
       rootNode = parse(rsql);
@@ -109,6 +140,41 @@ export class RsqlToMongoTransformer {
       throw new InvalidFilterQueryError();
     }
 
-    return this.visitExpressionNode(rootNode);
+    const matchStage = this.visitExpressionNode(rootNode);
+
+    if (this.usesRefs) {
+      const lookupStages: object[] = [];
+
+      for (const ref of this.usedRefs) {
+        const refDef = this.supportedRefs[ref];
+
+        lookupStages.push(
+          {
+            $lookup: {
+              from: refDef.collection,
+              localField: refDef.localField,
+              foreignField: refDef.foreignField,
+              as: refDef.localField,
+            },
+          },
+          {
+            $unwind: {
+              path: `$${refDef.localField}`,
+              preserveNullAndEmptyArrays: false,
+            },
+          },
+        );
+      }
+
+      return {
+        useAggregate: true,
+        pipeline: [...lookupStages, { $match: matchStage }],
+      };
+    }
+
+    return {
+      useAggregate: false,
+      filter: matchStage,
+    };
   }
 }

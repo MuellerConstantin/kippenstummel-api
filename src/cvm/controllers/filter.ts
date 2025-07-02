@@ -2,6 +2,10 @@ import { RsqlToMongoTransformer } from 'src/common/controllers';
 import { UnsupportedFilterFieldError } from 'src/common/models';
 
 export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
+  constructor() {
+    super([]);
+  }
+
   private isSupported(field: string, operator: string) {
     if (
       field === 'id' &&
@@ -58,7 +62,7 @@ export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
     }
 
     if (selector === 'id') {
-      selector = 'aggregate_id';
+      selector = 'aggregateId';
     }
 
     if (selector === 'score') {

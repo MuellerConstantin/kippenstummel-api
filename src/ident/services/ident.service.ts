@@ -12,9 +12,11 @@ import {
 } from 'src/common/models';
 import { InjectModel } from '@nestjs/mongoose';
 import { Ident } from '../repositories';
-import { Model } from 'mongoose';
+import { Model, PipelineStage } from 'mongoose';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { IdentCreatedEvent, IdentRemovedEvent } from '../events';
+import { RsqlToMongoQueryResult } from 'src/common/controllers/filter';
+import { IdentDocument } from '../repositories/schemas/ident.schema';
 
 @Injectable()
 export class IdentService {
@@ -140,69 +142,148 @@ export class IdentService {
 
   async getIdentities(
     pageable: Pageable,
-    filter?: object,
+    filter?: RsqlToMongoQueryResult,
   ): Promise<Page<IdentInfo>> {
-    const skip = pageable.page * pageable.perPage;
+    const { page, perPage } = pageable;
+    const skip = page * perPage;
 
-    const totalElements = await this.identModel.countDocuments(filter || {});
+    /*
+     * Depending on the complexity of the filter, aggregate() or find() can be used
+     * here. More complex queries that require a reference lookup must be executed
+     * as an aggregate pipeline.
+     */
 
-    const content = await this.identModel
-      .find(filter || {})
-      .skip(skip)
-      .limit(pageable.perPage);
+    if (filter?.useAggregate) {
+      const basePipeline = filter.pipeline || [];
 
-    const totalPages = Math.ceil(totalElements / pageable.perPage);
+      const countPipeline = [...basePipeline, { $count: 'total' }];
+      const countResult = await this.identModel.aggregate<{ total: number }>(
+        countPipeline as PipelineStage[],
+      );
+      const totalElements = countResult[0]?.total ?? 0;
 
-    return {
-      content: content.map((ident) => ({
-        identity: ident.identity,
-        createdAt: ident.createdAt,
-        updatedAt: ident.updatedAt,
-        credibility: {
-          rating: ident.credibility.rating,
-          behaviour: ident.credibility.behaviour && {
-            lastInteractionAt: ident.credibility.behaviour.lastInteractionAt,
-            averageInteractionInterval:
-              ident.credibility.behaviour.averageInteractionInterval,
-            unrealisticMovementCount:
-              ident.credibility.behaviour.unrealisticMovementCount,
-            lastInteractionPosition: ident.credibility.behaviour
-              .lastInteractionPosition
-              ? {
-                  longitude:
-                    ident.credibility.behaviour.lastInteractionPosition
-                      .coordinates[0],
-                  latitude:
-                    ident.credibility.behaviour.lastInteractionPosition
-                      .coordinates[1],
-                }
-              : undefined,
-            voting: {
-              totalCount: ident.credibility.behaviour.voting.totalCount,
-              upvoteCount: ident.credibility.behaviour.voting.upvoteCount,
-              downvoteCount: ident.credibility.behaviour.voting.downvoteCount,
-              lastVotedAt: ident.credibility.behaviour.voting.lastVotedAt,
-              averageVotingInterval:
-                ident.credibility.behaviour.voting.averageVotingInterval,
-            },
-            registration: {
-              totalCount: ident.credibility.behaviour.registration.totalCount,
-              lastRegistrationAt:
-                ident.credibility.behaviour.registration.lastRegistrationAt,
-              averageRegistrationInterval:
-                ident.credibility.behaviour.registration
-                  .averageRegistrationInterval,
+      const dataPipeline = [
+        ...basePipeline,
+        { $skip: skip },
+        { $limit: perPage },
+      ];
+      const results = await this.identModel.aggregate<IdentDocument>(
+        dataPipeline as PipelineStage[],
+      );
+
+      return {
+        content: results.map((ident) => ({
+          identity: ident.identity,
+          createdAt: ident.createdAt,
+          updatedAt: ident.updatedAt,
+          credibility: {
+            rating: ident.credibility.rating,
+            behaviour: ident.credibility.behaviour && {
+              lastInteractionAt: ident.credibility.behaviour.lastInteractionAt,
+              averageInteractionInterval:
+                ident.credibility.behaviour.averageInteractionInterval,
+              unrealisticMovementCount:
+                ident.credibility.behaviour.unrealisticMovementCount,
+              lastInteractionPosition: ident.credibility.behaviour
+                .lastInteractionPosition
+                ? {
+                    longitude:
+                      ident.credibility.behaviour.lastInteractionPosition
+                        .coordinates[0],
+                    latitude:
+                      ident.credibility.behaviour.lastInteractionPosition
+                        .coordinates[1],
+                  }
+                : undefined,
+              voting: {
+                totalCount: ident.credibility.behaviour.voting.totalCount,
+                upvoteCount: ident.credibility.behaviour.voting.upvoteCount,
+                downvoteCount: ident.credibility.behaviour.voting.downvoteCount,
+                lastVotedAt: ident.credibility.behaviour.voting.lastVotedAt,
+                averageVotingInterval:
+                  ident.credibility.behaviour.voting.averageVotingInterval,
+              },
+              registration: {
+                totalCount: ident.credibility.behaviour.registration.totalCount,
+                lastRegistrationAt:
+                  ident.credibility.behaviour.registration.lastRegistrationAt,
+                averageRegistrationInterval:
+                  ident.credibility.behaviour.registration
+                    .averageRegistrationInterval,
+              },
             },
           },
+        })),
+        info: {
+          page,
+          perPage,
+          totalElements,
+          totalPages: Math.ceil(totalElements / perPage),
         },
-      })),
-      info: {
-        page: pageable.page,
-        perPage: pageable.perPage,
-        totalElements,
-        totalPages,
-      },
-    };
+      };
+    } else {
+      const filterObj = filter?.filter || {};
+
+      const totalElements = await this.identModel.countDocuments(filterObj);
+
+      const content = await this.identModel
+        .find(filterObj)
+        .skip(skip)
+        .limit(pageable.perPage);
+
+      const totalPages = Math.ceil(totalElements / pageable.perPage);
+
+      return {
+        content: content.map((ident) => ({
+          identity: ident.identity,
+          createdAt: ident.createdAt,
+          updatedAt: ident.updatedAt,
+          credibility: {
+            rating: ident.credibility.rating,
+            behaviour: ident.credibility.behaviour && {
+              lastInteractionAt: ident.credibility.behaviour.lastInteractionAt,
+              averageInteractionInterval:
+                ident.credibility.behaviour.averageInteractionInterval,
+              unrealisticMovementCount:
+                ident.credibility.behaviour.unrealisticMovementCount,
+              lastInteractionPosition: ident.credibility.behaviour
+                .lastInteractionPosition
+                ? {
+                    longitude:
+                      ident.credibility.behaviour.lastInteractionPosition
+                        .coordinates[0],
+                    latitude:
+                      ident.credibility.behaviour.lastInteractionPosition
+                        .coordinates[1],
+                  }
+                : undefined,
+              voting: {
+                totalCount: ident.credibility.behaviour.voting.totalCount,
+                upvoteCount: ident.credibility.behaviour.voting.upvoteCount,
+                downvoteCount: ident.credibility.behaviour.voting.downvoteCount,
+                lastVotedAt: ident.credibility.behaviour.voting.lastVotedAt,
+                averageVotingInterval:
+                  ident.credibility.behaviour.voting.averageVotingInterval,
+              },
+              registration: {
+                totalCount: ident.credibility.behaviour.registration.totalCount,
+                lastRegistrationAt:
+                  ident.credibility.behaviour.registration.lastRegistrationAt,
+                averageRegistrationInterval:
+                  ident.credibility.behaviour.registration
+                    .averageRegistrationInterval,
+              },
+            },
+          },
+        })),
+        info: {
+          page: pageable.page,
+          perPage: pageable.perPage,
+          totalElements,
+          totalPages,
+        },
+      };
+    }
   }
 
   async getTotalStats(lastNDays: number): Promise<IdentTotalStats> {

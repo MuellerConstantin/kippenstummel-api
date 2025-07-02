@@ -2,6 +2,10 @@ import { RsqlToMongoTransformer } from 'src/common/controllers';
 import { UnsupportedFilterFieldError } from 'src/common/models';
 
 export class RsqlToMongoIdentTransformer extends RsqlToMongoTransformer {
+  constructor() {
+    super([]);
+  }
+
   private isSupported(field: string, operator: string) {
     if (
       field === 'identity' &&
