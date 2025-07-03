@@ -11,7 +11,7 @@ import {
   UnknownIdentityError,
 } from 'src/common/models';
 import { InjectModel } from '@nestjs/mongoose';
-import { Ident } from '../repositories';
+import { Credibility, Ident } from '../repositories';
 import { Model, PipelineStage } from 'mongoose';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { IdentCreatedEvent, IdentRemovedEvent } from '../events';
@@ -24,6 +24,8 @@ export class IdentService {
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     @InjectModel(Ident.name) private readonly identModel: Model<Ident>,
+    @InjectModel(Credibility.name)
+    private readonly credibilityModel: Model<Credibility>,
     private eventEmitter: EventEmitter2,
   ) {}
 
@@ -66,12 +68,15 @@ export class IdentService {
     const salt = await bcrypt.genSalt(10);
     const hashedSecret = await bcrypt.hash(secret, salt);
 
+    const credibility = await this.credibilityModel.create({
+      identity,
+      rating: 50,
+    });
+
     await this.identModel.create({
       identity,
       secret: hashedSecret,
-      credibility: {
-        rating: 50,
-      },
+      credibility: credibility._id,
     });
 
     this.eventEmitter.emit('ident-created', new IdentCreatedEvent(identity));
@@ -90,7 +95,9 @@ export class IdentService {
   }
 
   async getIdentity(identity: string): Promise<IdentInfo> {
-    const result = await this.identModel.findOne({ identity });
+    const result = await this.identModel
+      .findOne({ identity })
+      .populate('credibility');
 
     if (!result) {
       throw new UnknownIdentityError();
@@ -98,45 +105,9 @@ export class IdentService {
 
     return {
       identity: result.identity,
+      credibility: result.credibility.rating,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
-      credibility: {
-        rating: result.credibility.rating,
-        behaviour: result.credibility.behaviour && {
-          lastInteractionAt: result.credibility.behaviour.lastInteractionAt,
-          averageInteractionInterval:
-            result.credibility.behaviour.averageInteractionInterval,
-          unrealisticMovementCount:
-            result.credibility.behaviour.unrealisticMovementCount,
-          lastInteractionPosition: result.credibility.behaviour
-            .lastInteractionPosition
-            ? {
-                longitude:
-                  result.credibility.behaviour.lastInteractionPosition
-                    .coordinates[0],
-                latitude:
-                  result.credibility.behaviour.lastInteractionPosition
-                    .coordinates[1],
-              }
-            : undefined,
-          voting: {
-            totalCount: result.credibility.behaviour.voting.totalCount,
-            upvoteCount: result.credibility.behaviour.voting.upvoteCount,
-            downvoteCount: result.credibility.behaviour.voting.downvoteCount,
-            lastVotedAt: result.credibility.behaviour.voting.lastVotedAt,
-            averageVotingInterval:
-              result.credibility.behaviour.voting.averageVotingInterval,
-          },
-          registration: {
-            totalCount: result.credibility.behaviour.registration.totalCount,
-            lastRegistrationAt:
-              result.credibility.behaviour.registration.lastRegistrationAt,
-            averageRegistrationInterval:
-              result.credibility.behaviour.registration
-                .averageRegistrationInterval,
-          },
-        },
-      },
     };
   }
 
@@ -167,52 +138,32 @@ export class IdentService {
         { $skip: skip },
         { $limit: perPage },
       ];
-      const results = await this.identModel.aggregate<IdentDocument>(
-        dataPipeline as PipelineStage[],
-      );
+      const results = await this.identModel.aggregate<IdentDocument>([
+        /*
+         * In any case, we always need a credibility lookup to correctly set
+         * the rating in the ident model. To avoid collisions between the lookups,
+         * in case the dynamic RSQL filter should already initiate a lookup; the
+         * lookup is intentionally renamed here.
+         */
+        {
+          $lookup: {
+            from: 'credibilities',
+            localField: 'credibility',
+            foreignField: '_id',
+            as: 'credibility_fallback',
+          },
+        },
+        { $unwind: '$credibility_fallback' },
+        ...(dataPipeline as PipelineStage[]),
+      ]);
 
       return {
         content: results.map((ident) => ({
           identity: ident.identity,
           createdAt: ident.createdAt,
           updatedAt: ident.updatedAt,
-          credibility: {
-            rating: ident.credibility.rating,
-            behaviour: ident.credibility.behaviour && {
-              lastInteractionAt: ident.credibility.behaviour.lastInteractionAt,
-              averageInteractionInterval:
-                ident.credibility.behaviour.averageInteractionInterval,
-              unrealisticMovementCount:
-                ident.credibility.behaviour.unrealisticMovementCount,
-              lastInteractionPosition: ident.credibility.behaviour
-                .lastInteractionPosition
-                ? {
-                    longitude:
-                      ident.credibility.behaviour.lastInteractionPosition
-                        .coordinates[0],
-                    latitude:
-                      ident.credibility.behaviour.lastInteractionPosition
-                        .coordinates[1],
-                  }
-                : undefined,
-              voting: {
-                totalCount: ident.credibility.behaviour.voting.totalCount,
-                upvoteCount: ident.credibility.behaviour.voting.upvoteCount,
-                downvoteCount: ident.credibility.behaviour.voting.downvoteCount,
-                lastVotedAt: ident.credibility.behaviour.voting.lastVotedAt,
-                averageVotingInterval:
-                  ident.credibility.behaviour.voting.averageVotingInterval,
-              },
-              registration: {
-                totalCount: ident.credibility.behaviour.registration.totalCount,
-                lastRegistrationAt:
-                  ident.credibility.behaviour.registration.lastRegistrationAt,
-                averageRegistrationInterval:
-                  ident.credibility.behaviour.registration
-                    .averageRegistrationInterval,
-              },
-            },
-          },
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          credibility: (ident as any).credibility_fallback.rating,
         })),
         info: {
           page,
@@ -228,6 +179,7 @@ export class IdentService {
 
       const content = await this.identModel
         .find(filterObj)
+        .populate('credibility')
         .skip(skip)
         .limit(pageable.perPage);
 
@@ -238,43 +190,7 @@ export class IdentService {
           identity: ident.identity,
           createdAt: ident.createdAt,
           updatedAt: ident.updatedAt,
-          credibility: {
-            rating: ident.credibility.rating,
-            behaviour: ident.credibility.behaviour && {
-              lastInteractionAt: ident.credibility.behaviour.lastInteractionAt,
-              averageInteractionInterval:
-                ident.credibility.behaviour.averageInteractionInterval,
-              unrealisticMovementCount:
-                ident.credibility.behaviour.unrealisticMovementCount,
-              lastInteractionPosition: ident.credibility.behaviour
-                .lastInteractionPosition
-                ? {
-                    longitude:
-                      ident.credibility.behaviour.lastInteractionPosition
-                        .coordinates[0],
-                    latitude:
-                      ident.credibility.behaviour.lastInteractionPosition
-                        .coordinates[1],
-                  }
-                : undefined,
-              voting: {
-                totalCount: ident.credibility.behaviour.voting.totalCount,
-                upvoteCount: ident.credibility.behaviour.voting.upvoteCount,
-                downvoteCount: ident.credibility.behaviour.voting.downvoteCount,
-                lastVotedAt: ident.credibility.behaviour.voting.lastVotedAt,
-                averageVotingInterval:
-                  ident.credibility.behaviour.voting.averageVotingInterval,
-              },
-              registration: {
-                totalCount: ident.credibility.behaviour.registration.totalCount,
-                lastRegistrationAt:
-                  ident.credibility.behaviour.registration.lastRegistrationAt,
-                averageRegistrationInterval:
-                  ident.credibility.behaviour.registration
-                    .averageRegistrationInterval,
-              },
-            },
-          },
+          credibility: ident.credibility.rating,
         })),
         info: {
           page: pageable.page,

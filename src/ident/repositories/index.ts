@@ -1,1 +1,1 @@
-export { Ident, IdentSchema } from './schemas';
+export { Ident, IdentSchema, Credibility, CredibilitySchema } from './schemas';

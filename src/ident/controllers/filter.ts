@@ -3,7 +3,13 @@ import { UnsupportedFilterFieldError } from 'src/common/models';
 
 export class RsqlToMongoIdentTransformer extends RsqlToMongoTransformer {
   constructor() {
-    super([]);
+    super([
+      {
+        collection: 'credibilities',
+        localField: 'credibility',
+        foreignField: '_id',
+      },
+    ]);
   }
 
   private isSupported(field: string, operator: string) {
@@ -18,7 +24,7 @@ export class RsqlToMongoIdentTransformer extends RsqlToMongoTransformer {
       return true;
     }
 
-    if (field === 'credibility.rating' && operator !== '=like=') {
+    if (field === 'credibility' && operator !== '=like=') {
       return true;
     }
 
@@ -48,7 +54,8 @@ export class RsqlToMongoIdentTransformer extends RsqlToMongoTransformer {
       ]);
     }
 
-    if (selector === 'credibility.rating') {
+    if (selector === 'credibility') {
+      selector = 'credibility.rating';
       value = Number(value);
     }
 

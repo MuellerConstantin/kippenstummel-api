@@ -17,12 +17,20 @@ import {
   CredibilityComputationConsumer,
 } from './services';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Ident, IdentSchema } from './repositories';
+import {
+  Credibility,
+  CredibilitySchema,
+  Ident,
+  IdentSchema,
+} from './repositories';
 
 @Module({
   imports: [
     CommonModule,
     MongooseModule.forFeature([{ name: Ident.name, schema: IdentSchema }]),
+    MongooseModule.forFeature([
+      { name: Credibility.name, schema: CredibilitySchema },
+    ]),
   ],
   controllers: [PoWController, IdentController, CaptchaController],
   providers: [
