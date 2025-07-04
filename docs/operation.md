@@ -20,12 +20,6 @@ business data and event sourcing.
 Redis is a key-value store that is used for the storage of temporary application state. This includes
 the tokens used for authentication and authorization as well as the state of the application itself.
 
-**[Keycloak](https://www.keycloak.org/)**
-
-Keycloak is an identity and access management solution that is used for user authentication and authorization.
-Technically, any authority capable of issuing OAuth2 JWT tokens can be used. However, the application is
-specifically tuned for Keycloak. Other OAuth2 authorization servers are not officially supported.
-
 ## Deployment
 
 As mentioned above, the Kippenstummel API service is generally operated on-premise. For error-free operation, the

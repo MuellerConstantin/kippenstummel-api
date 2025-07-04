@@ -46,7 +46,7 @@ The following configuration options are available:
 
 | Environment Variable | Description                                                                                                              | Required |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------- |
-| OAUTH2_KEY_PATH      | Path to the public key of the OAuth2 authorization server.                                                               | true     |
+| JWT_SECRET           | Symmetric key used to verify JWT tokens used for administrative authentication                                           | true     |
 | POW_DIFFICULTY       | The difficulty of the PoW algorithm used for authentication. The difficulty is a number between 1 and 256. Default is 20 | false    |
 | POW_EXPIRES_IN       | The number of seconds until the PoW challenge expires. Default is 5 minutes.                                             | false    |
 | CAPTCHA_EXPIRES_IN   | The number of seconds until the Captcha challenge expires. Default is 5 minutes.                                         | false    |
