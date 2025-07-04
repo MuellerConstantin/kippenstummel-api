@@ -1,6 +1,6 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@ocoda/event-sourcing';
-import { OAuth2Guard } from 'src/common/controllers';
+import { JwtGuard } from 'src/common/controllers';
 import { TotalStatsDto, GetStatsQueryDto } from './dtos';
 import {
   GetTotalRegistrationStatsQuery,
@@ -14,7 +14,7 @@ import { IdentService } from 'src/ident/services';
 import { JobService } from 'src/common/services';
 
 @Controller({ path: '/kmc/stats', version: '1' })
-@UseGuards(OAuth2Guard)
+@UseGuards(JwtGuard)
 export class StatsController {
   constructor(
     private readonly commandBus: CommandBus,

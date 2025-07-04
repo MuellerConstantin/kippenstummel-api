@@ -1,12 +1,12 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { OAuth2Guard } from 'src/common/controllers';
+import { JwtGuard } from 'src/common/controllers';
 import { GetAllJobQueryDto, JobPageDto } from './dtos';
 import { JobService } from 'src/common/services';
 import { Page } from 'src/common/models';
 import { Job } from 'src/common/repositories';
 
 @Controller({ path: '/kmc/jobs', version: '1' })
-@UseGuards(OAuth2Guard)
+@UseGuards(JwtGuard)
 export class JobController {
   constructor(private readonly jobService: JobService) {}
 

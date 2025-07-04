@@ -23,13 +23,13 @@ import {
   ImportOsmDto,
   ImportManualDto,
 } from './dtos';
-import { OAuth2Guard } from 'src/common/controllers';
+import { JwtGuard } from 'src/common/controllers';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 
 @Controller({ path: '/kmc/cvms', version: '1' })
-@UseGuards(OAuth2Guard)
+@UseGuards(JwtGuard)
 export class CvmController {
   constructor(
     private readonly commandBus: CommandBus,

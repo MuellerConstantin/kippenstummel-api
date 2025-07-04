@@ -18,8 +18,8 @@ import {
   DefaultExceptionFilter,
   HttpExceptionFilter,
   ApiExceptionFilter,
-  OAuth2Strategy,
-  OAuth2Guard,
+  JwtStrategy,
+  JwtGuard,
 } from './controllers';
 import { InvalidPayloadError } from './models/error';
 import * as CvmModuleEvents from '../cvm/events';
@@ -133,8 +133,8 @@ import { Domain2ApplicationEventPublisher } from './events';
     DefaultExceptionFilter,
     HttpExceptionFilter,
     ApiExceptionFilter,
-    OAuth2Strategy,
-    OAuth2Guard,
+    JwtStrategy,
+    JwtGuard,
     {
       provide: ValidationPipe,
       useValue: new ValidationPipe({

@@ -6,12 +6,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { OAuth2Guard } from 'src/common/controllers';
+import { JwtGuard } from 'src/common/controllers';
 import { GetAllIdentQueryDto, IdentInfoDto, IdentPageDto } from './dtos';
 import { IdentService } from 'src/ident/services';
 
 @Controller({ path: '/kmc/ident', version: '1' })
-@UseGuards(OAuth2Guard)
+@UseGuards(JwtGuard)
 export class IdentController {
   constructor(private readonly identService: IdentService) {}
 

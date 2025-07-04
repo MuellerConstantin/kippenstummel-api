@@ -27,7 +27,7 @@ import { KmcModule } from './kmc/kmc.module';
         PORT: Joi.number().default(8080),
         MONGO_URI: Joi.string().uri().required(),
         REDIS_URI: Joi.string().uri().required(),
-        OAUTH2_KEY_PATH: Joi.string().required(),
+        JWT_SECRET: Joi.string().required(),
         POW_DIFFICULTY: Joi.number().default(20),
         POW_EXPIRES_IN: Joi.number().default(60 * 5),
         IDENT_SECRET: Joi.string().required(),
