@@ -14,6 +14,11 @@ const CVM_VOTE_DELAY = 7;
 const CVM_REPOSITION_DELAY = 7;
 
 /**
+ * The number of days that a user can not report on a CVM again.
+ */
+const CVM_REPORT_DELAY = 7;
+
+/**
  * The radius in meters within a CVM can be repositioned.
  */
 const NEARBY_REPOSITION_RADIUS = 0.025;
@@ -38,4 +43,5 @@ export {
   CVM_VOTE_DELAY,
   CVM_REPOSITION_DELAY,
   NEARBY_REPOSITION_RADIUS,
+  CVM_REPORT_DELAY,
 };

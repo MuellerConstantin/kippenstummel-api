@@ -9,4 +9,6 @@ export {
   Vote,
   RepositioningSchema,
   Repositioning,
+  ReportSchema,
+  Report,
 } from './schemas';

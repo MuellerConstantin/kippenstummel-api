@@ -11,10 +11,18 @@ import {
   CvmSynchronizedEvent,
   CvmImportedEvent,
   CvmRepositionedEvent,
+  CvmReportedEvent,
 } from '../events';
 import { constants } from 'src/lib';
 
 export class CvmId extends UUID {}
+
+export type ReportType = 'missing' | 'spam' | 'inactive' | 'inaccessible';
+
+export type ReportEntry = {
+  type: ReportType;
+  timestamp: Date;
+};
 
 @Aggregate({ streamName: 'cvm' })
 export class CvmAggregate extends AggregateRoot {
@@ -23,6 +31,9 @@ export class CvmAggregate extends AggregateRoot {
   private _latitude: number;
   private _score: number;
   private _imported: boolean;
+  private _recentReports: ReportEntry[] = [];
+
+  private readonly MAX_REPORTS_PER_TYPE = 10;
 
   public get id(): CvmId {
     return this._id;
@@ -44,6 +55,10 @@ export class CvmAggregate extends AggregateRoot {
     return this._imported;
   }
 
+  public get recentReports(): ReportEntry[] {
+    return this._recentReports;
+  }
+
   public set id(id: CvmId) {
     this._id = id;
   }
@@ -62,6 +77,10 @@ export class CvmAggregate extends AggregateRoot {
 
   public set imported(imported: boolean) {
     this._imported = imported;
+  }
+
+  public set recentReports(recentReports: ReportEntry[]) {
+    this._recentReports = recentReports;
   }
 
   public upvote(voterIdentity: string, credibility: number) {
@@ -107,7 +126,7 @@ export class CvmAggregate extends AggregateRoot {
   }
 
   public reposition(
-    editor: string,
+    editorIdentity: string,
     credibility: number,
     repositionedLongitude: number,
     repositionedLatitude: number,
@@ -115,7 +134,7 @@ export class CvmAggregate extends AggregateRoot {
     this.applyEvent(
       new CvmRepositionedEvent(
         this.id.value,
-        editor,
+        editorIdentity,
         credibility,
         {
           longitude: this.longitude,
@@ -126,6 +145,12 @@ export class CvmAggregate extends AggregateRoot {
           latitude: repositionedLatitude,
         },
       ),
+    );
+  }
+
+  public report(reporterIdentity: string, type: ReportType) {
+    this.applyEvent(
+      new CvmReportedEvent(this.id.value, reporterIdentity, type),
     );
   }
 
@@ -220,5 +245,31 @@ export class CvmAggregate extends AggregateRoot {
   onCvmRepositionedEvent(event: CvmRepositionedEvent): void {
     this._longitude = event.repositionedPosition.longitude;
     this._latitude = event.repositionedPosition.latitude;
+  }
+
+  @EventHandler(CvmReportedEvent)
+  onCvmReportedEvent(event: CvmReportedEvent): void {
+    const entry: ReportEntry = {
+      type: event.type,
+      timestamp: event.timestamp,
+    };
+
+    const sameTypeReports = this._recentReports.filter(
+      (report) => report.type === entry.type,
+    );
+
+    // Remove oldest report of the same type
+    if (sameTypeReports.length >= this.MAX_REPORTS_PER_TYPE) {
+      const indexToRemove = this._recentReports.findIndex(
+        (report) => report.type === entry.type,
+      );
+
+      if (indexToRemove !== -1) {
+        this._recentReports.splice(indexToRemove, 1);
+      }
+    }
+
+    // Inerst the new report
+    this._recentReports.push(entry);
   }
 }

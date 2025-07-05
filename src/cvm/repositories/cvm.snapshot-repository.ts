@@ -13,6 +13,7 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
     latitude,
     score,
     imported,
+    recentReports,
   }: CvmAggregate): ISnapshot<CvmAggregate> {
     return {
       id: id.value,
@@ -20,6 +21,7 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
       latitude,
       score,
       imported,
+      recentReports,
     };
   }
 
@@ -29,6 +31,7 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
     latitude,
     score,
     imported,
+    recentReports,
   }: ISnapshot<CvmAggregate>): CvmAggregate {
     const aggregate = new CvmAggregate();
 
@@ -37,6 +40,7 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
     aggregate.latitude = latitude as number;
     aggregate.score = score as number;
     aggregate.imported = imported as boolean;
+    aggregate.recentReports = recentReports as [];
 
     return aggregate;
   }

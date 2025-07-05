@@ -13,6 +13,8 @@ import {
   Vote,
   Repositioning,
   RepositioningSchema,
+  Report,
+  ReportSchema,
 } from './repositories';
 import {
   RegisterCvmCommandHandler,
@@ -20,6 +22,7 @@ import {
   DownvoteCvmCommandHandler,
   ImportCvmsCommandHandler,
   RepositionCvmCommandHandler,
+  ReportCvmCommandHandler,
 } from './commands';
 import {
   CvmTileService,
@@ -50,6 +53,7 @@ import { CvmController } from './controllers';
       { name: Repositioning.name, schema: RepositioningSchema },
     ]),
     MongooseModule.forFeature([{ name: CvmTile.name, schema: CvmTileSchema }]),
+    MongooseModule.forFeature([{ name: Report.name, schema: ReportSchema }]),
   ],
   controllers: [CvmController],
   providers: [
@@ -60,6 +64,7 @@ import { CvmController } from './controllers';
     UpvoteCvmCommandHandler,
     DownvoteCvmCommandHandler,
     ImportCvmsCommandHandler,
+    ReportCvmCommandHandler,
     GetAllQueryHandler,
     GetByIdQueryHandler,
     GetAllWithinQueryHandler,

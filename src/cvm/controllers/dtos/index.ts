@@ -9,3 +9,5 @@ export { DownvoteCvmDto } from './downvote-cvm.dto';
 export { GetCvmByIdParamsDto } from './get-cvm-by-id-params.dto';
 export { RepositionCvmDto } from './reposition-cvm.dto';
 export { RepositionParamsDto } from './reposition-params.dto';
+export { ReportCvmDto } from './report-cvm.dto';
+export { ReportParamsDto } from './report-params.dto';

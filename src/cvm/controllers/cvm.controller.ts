@@ -14,6 +14,7 @@ import {
   RegisterCvmCommand,
   DownvoteCvmCommand,
   UpvoteCvmCommand,
+  ReportCvmCommand,
 } from '../commands';
 import { CvmClusterProjection, CvmProjection } from '../models';
 import {
@@ -28,6 +29,8 @@ import {
   GetCvmByIdParamsDto,
   RepositionParamsDto,
   RepositionCvmDto,
+  ReportCvmDto,
+  ReportParamsDto,
 } from './dtos';
 import { Identity, IdentGuard } from 'src/ident/controllers';
 import { RepositionCvmCommand } from '../commands/reposition-cvm.command';
@@ -142,5 +145,23 @@ export class CvmController {
     );
 
     await this.commandBus.execute<UpvoteCvmCommand>(command);
+  }
+
+  @UseGuards(IdentGuard)
+  @Post('/:id/report')
+  async report(
+    @Param() params: ReportParamsDto,
+    @Identity() identity: string,
+    @Body() body: ReportCvmDto,
+  ): Promise<void> {
+    const command = new ReportCvmCommand(
+      params.id,
+      body.longitude,
+      body.latitude,
+      identity,
+      body.type,
+    );
+
+    await this.commandBus.execute<ReportCvmCommand>(command);
   }
 }

@@ -22,3 +22,8 @@ export {
   RepositionCvmCommandHandler,
   RepositionCvmCommand,
 } from './reposition-cvm.command';
+
+export {
+  ReportCvmCommandHandler,
+  ReportCvmCommand,
+} from './report-cvm.command';

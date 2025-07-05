@@ -7,10 +7,11 @@ import {
   CvmDownvotedEvent,
   CvmId,
   CvmRegisteredEvent,
+  CvmReportedEvent,
   CvmRepositionedEvent,
   CvmUpvotedEvent,
 } from '../models';
-import { Cvm, Repositioning, Vote } from './schemas';
+import { Cvm, Repositioning, Vote, Report } from './schemas';
 import { CvmSnapshotRepository } from './cvm.snapshot-repository';
 import { PiiService } from 'src/common/services';
 import { deepCopy } from 'src/lib';
@@ -24,6 +25,7 @@ export class CvmEventStoreRepository {
     @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
     @InjectModel(Repositioning.name)
     private readonly repositioningModel: Model<Repositioning>,
+    @InjectModel(Report.name) private readonly reportModel: Model<Report>,
     private readonly piiService: PiiService,
   ) {}
 
@@ -83,6 +85,17 @@ export class CvmEventStoreRepository {
           event.credibility,
           event.formerPosition,
           event.repositionedPosition,
+        );
+      } else if (event instanceof CvmReportedEvent) {
+        const untokenizedIdentity = (await this.piiService.untokenizePii(
+          event.reporterIdentity,
+        )) as string | null;
+
+        return new CvmReportedEvent(
+          event.cvmId,
+          untokenizedIdentity || event.reporterIdentity,
+          event.type,
+          event.timestamp,
         );
       }
 
@@ -171,6 +184,12 @@ export class CvmEventStoreRepository {
             ],
           },
         });
+      } else if (event instanceof CvmReportedEvent) {
+        await this.reportModel.create({
+          identity: event.reporterIdentity,
+          cvm: result._id,
+          type: event.type,
+        });
       }
     }
 
@@ -226,6 +245,18 @@ export class CvmEventStoreRepository {
             event.credibility,
             event.formerPosition,
             event.repositionedPosition,
+          );
+        } else if (event instanceof CvmReportedEvent) {
+          const token = await this.piiService.tokenizePii(
+            event.reporterIdentity,
+            event.reporterIdentity,
+          );
+
+          return new CvmReportedEvent(
+            event.cvmId,
+            token,
+            event.type,
+            event.timestamp,
           );
         }
 
