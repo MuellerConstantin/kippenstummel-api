@@ -18,6 +18,9 @@ export class Vote {
 
   @Prop()
   weight: number;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const VoteSchema = SchemaFactory.createForClass(Vote);

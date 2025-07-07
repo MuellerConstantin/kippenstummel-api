@@ -52,6 +52,9 @@ export class CvmTile {
 
   @Prop({ type: [CvmTileClusterSchema] })
   clusters: CvmTileCluster[];
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const CvmTileSchema = SchemaFactory.createForClass(CvmTile);

@@ -32,6 +32,9 @@ export class Repositioning {
 
   @Prop()
   weight: number;
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const RepositioningSchema = SchemaFactory.createForClass(Repositioning);

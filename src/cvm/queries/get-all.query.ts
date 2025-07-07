@@ -5,11 +5,13 @@ import {
 } from '@ocoda/event-sourcing';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, PipelineStage } from 'mongoose';
+import * as mongoose from 'mongoose';
 import { Pageable, Page } from 'src/common/models';
 import { CvmProjection } from '../models';
-import { Cvm } from '../repositories/schemas';
+import { Cvm, Report } from '../repositories/schemas';
 import { RsqlToMongoQueryResult } from 'src/common/controllers/filter';
 import { CvmDocument } from '../repositories/schemas/cvm.schema';
+import { RECENTLY_REPORTED_PERIOD } from 'src/lib/constants';
 
 export class GetAllQuery implements IQuery {
   constructor(
@@ -22,7 +24,10 @@ export class GetAllQuery implements IQuery {
 export class GetAllQueryHandler
   implements IQueryHandler<GetAllQuery, Page<CvmProjection>>
 {
-  constructor(@InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>) {}
+  constructor(
+    @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
+    @InjectModel(Report.name) private readonly reportModel: Model<Report>,
+  ) {}
 
   public async execute(query: GetAllQuery): Promise<Page<CvmProjection>> {
     const { filter } = query;
@@ -53,6 +58,10 @@ export class GetAllQueryHandler
         dataPipeline as PipelineStage[],
       );
 
+      const cvmIds = results.map((item) => item._id);
+
+      const reportCounts = await this.getRecentReportCounts(cvmIds);
+
       return {
         content: results.map((cvm) => ({
           id: cvm.aggregateId,
@@ -60,6 +69,12 @@ export class GetAllQueryHandler
           latitude: cvm.position.coordinates[1],
           score: cvm.score,
           imported: cvm.imported,
+          recentlyReported: reportCounts[cvm._id.toString()] || {
+            missing: 0,
+            spam: 0,
+            inactive: 0,
+            inaccessible: 0,
+          },
           createdAt: cvm.createdAt,
           updatedAt: cvm.updatedAt,
         })),
@@ -80,6 +95,10 @@ export class GetAllQueryHandler
         .skip(skip)
         .limit(perPage);
 
+      const cvmIds = results.map((item) => item._id);
+
+      const reportCounts = await this.getRecentReportCounts(cvmIds);
+
       return {
         content: results.map((cvm) => ({
           id: cvm.aggregateId,
@@ -87,6 +106,12 @@ export class GetAllQueryHandler
           latitude: cvm.position.coordinates[1],
           score: cvm.score,
           imported: cvm.imported,
+          recentlyReported: reportCounts[cvm._id.toString()] || {
+            missing: 0,
+            spam: 0,
+            inactive: 0,
+            inaccessible: 0,
+          },
           createdAt: cvm.createdAt,
           updatedAt: cvm.updatedAt,
         })),
@@ -98,5 +123,44 @@ export class GetAllQueryHandler
         },
       };
     }
+  }
+
+  private async getRecentReportCounts(cvmIds: mongoose.Types.ObjectId[]) {
+    const recentlyAgo = new Date();
+    recentlyAgo.setDate(recentlyAgo.getDate() - RECENTLY_REPORTED_PERIOD);
+
+    const result = await this.reportModel.aggregate<{
+      _id: { cvm: mongoose.Types.ObjectId; type: Report['type'] };
+      count: number;
+    }>([
+      {
+        $match: {
+          cvm: { $in: cvmIds },
+          createdAt: { $gte: recentlyAgo },
+        },
+      },
+      {
+        $group: {
+          _id: { cvm: '$cvm', type: '$type' },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const counts: Record<string, Record<Report['type'], number>> = {};
+
+    for (const entry of result) {
+      const cvmId = entry._id.cvm.toString();
+      const type = entry._id.type;
+      const count = entry.count;
+
+      if (!counts[cvmId]) {
+        counts[cvmId] = { missing: 0, spam: 0, inactive: 0, inaccessible: 0 };
+      }
+
+      counts[cvmId][type] = count;
+    }
+
+    return counts;
   }
 }

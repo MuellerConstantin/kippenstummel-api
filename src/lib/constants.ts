@@ -4,6 +4,11 @@ const MIN_TILE_ZOOM = 12;
 const MAX_TILE_ZOOM = 18;
 
 /**
+ * The number of days a CVM is considered "recently reported" if a report is made.
+ */
+const RECENTLY_REPORTED_PERIOD = 7;
+
+/**
  * The number of days that a user can not vote on a CVM again.
  */
 const CVM_VOTE_DELAY = 7;
@@ -44,4 +49,5 @@ export {
   CVM_REPOSITION_DELAY,
   NEARBY_REPOSITION_RADIUS,
   CVM_REPORT_DELAY,
+  RECENTLY_REPORTED_PERIOD,
 };

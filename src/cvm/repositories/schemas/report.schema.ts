@@ -15,6 +15,9 @@ export class Report {
 
   @Prop()
   type: 'missing' | 'spam' | 'inactive' | 'inaccessible';
+
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const ReportSchema = SchemaFactory.createForClass(Report);

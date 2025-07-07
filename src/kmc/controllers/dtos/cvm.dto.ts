@@ -4,6 +4,12 @@ export interface CvmDto {
   latitude: number;
   score: number;
   imported: boolean;
+  recentlyReported: {
+    missing: number;
+    spam: number;
+    inactive: number;
+    inaccessible: number;
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }

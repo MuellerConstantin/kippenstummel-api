@@ -11,4 +11,9 @@ export {
   Repositioning,
   ReportSchema,
   Report,
+  CvmDocument,
+  CvmTileDocument,
+  VoteDocument,
+  RepositioningDocument,
+  ReportDocument,
 } from './schemas';
