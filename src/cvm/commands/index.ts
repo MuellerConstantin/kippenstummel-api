@@ -27,3 +27,13 @@ export {
   ReportCvmCommandHandler,
   ReportCvmCommand,
 } from './report-cvm.command';
+
+export {
+  RemoveCvmCommandHandler,
+  RemoveCvmCommand,
+} from './remove-cvm.command';
+
+export {
+  RestoreCvmCommandHandler,
+  RestoreCvmCommand,
+} from './restore-cvm.command';

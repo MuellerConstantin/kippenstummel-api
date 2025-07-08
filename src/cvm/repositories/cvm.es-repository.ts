@@ -128,77 +128,6 @@ export class CvmEventStoreRepository {
       return;
     }
 
-    // Update read model
-
-    const registeredBy =
-      events.find((event) => event instanceof CvmRegisteredEvent)
-        ?.creatorIdentity || undefined;
-
-    const result = await this.cvmModel.findOneAndUpdate(
-      { aggregateId: aggregate.id.value },
-      {
-        $set: {
-          position: {
-            type: 'Point',
-            coordinates: [aggregate.longitude, aggregate.latitude],
-          },
-          score: aggregate.score,
-          imported: aggregate.imported,
-        },
-        $setOnInsert: {
-          aggregateId: aggregate.id.value,
-          registeredBy,
-        },
-      },
-      {
-        upsert: true,
-        new: true,
-      },
-    );
-
-    for (const event of events) {
-      if (event instanceof CvmUpvotedEvent) {
-        await this.voteModel.create({
-          identity: event.voterIdentity,
-          cvm: result._id,
-          weight: event.credibility,
-          type: 'upvote',
-        });
-      } else if (event instanceof CvmDownvotedEvent) {
-        await this.voteModel.create({
-          identity: event.voterIdentity,
-          cvm: result._id,
-          weight: event.credibility,
-          type: 'downvote',
-        });
-      } else if (event instanceof CvmRepositionedEvent) {
-        await this.repositioningModel.create({
-          identity: event.editorIdentity,
-          cvm: result._id,
-          weight: event.credibility,
-          position: {
-            type: 'Point',
-            coordinates: [
-              event.repositionedPosition.longitude,
-              event.repositionedPosition.latitude,
-            ],
-          },
-        });
-      } else if (event instanceof CvmReportedEvent) {
-        await this.reportModel.create({
-          identity: event.reporterIdentity,
-          cvm: result._id,
-          type: event.type,
-        });
-      }
-    }
-
-    /*
-     * Updating the write model is done after updating the read model. The reason is that
-     * updating the write model publishes all changed events immidiately and hence notifys
-     * subscribers which rely on a consistent read model.
-     */
-
     const stream = EventStream.for<CvmAggregate>(CvmAggregate, aggregate.id);
 
     /*
@@ -263,6 +192,93 @@ export class CvmEventStoreRepository {
         return event;
       }),
     );
+
+    // Update read model
+
+    if (aggregate.removed) {
+      const documentId = (
+        await this.cvmModel.findOne({
+          aggregateId: aggregate.id.value,
+        })
+      )?._id;
+
+      await this.voteModel.deleteMany({ cvm: documentId });
+
+      await this.reportModel.deleteMany({ cvm: documentId });
+
+      await this.repositioningModel.deleteMany({ cvm: documentId });
+
+      await this.cvmModel.deleteOne({ aggregateId: aggregate.id.value });
+    } else {
+      const registeredBy =
+        events.find((event) => event instanceof CvmRegisteredEvent)
+          ?.creatorIdentity || undefined;
+
+      const result = await this.cvmModel.findOneAndUpdate(
+        { aggregateId: aggregate.id.value },
+        {
+          $set: {
+            position: {
+              type: 'Point',
+              coordinates: [aggregate.longitude, aggregate.latitude],
+            },
+            score: aggregate.score,
+            imported: aggregate.imported,
+          },
+          $setOnInsert: {
+            aggregateId: aggregate.id.value,
+            registeredBy,
+          },
+        },
+        {
+          upsert: true,
+          new: true,
+        },
+      );
+
+      for (const event of events) {
+        if (event instanceof CvmUpvotedEvent) {
+          await this.voteModel.create({
+            identity: event.voterIdentity,
+            cvm: result._id,
+            weight: event.credibility,
+            type: 'upvote',
+          });
+        } else if (event instanceof CvmDownvotedEvent) {
+          await this.voteModel.create({
+            identity: event.voterIdentity,
+            cvm: result._id,
+            weight: event.credibility,
+            type: 'downvote',
+          });
+        } else if (event instanceof CvmRepositionedEvent) {
+          await this.repositioningModel.create({
+            identity: event.editorIdentity,
+            cvm: result._id,
+            weight: event.credibility,
+            position: {
+              type: 'Point',
+              coordinates: [
+                event.repositionedPosition.longitude,
+                event.repositionedPosition.latitude,
+              ],
+            },
+          });
+        } else if (event instanceof CvmReportedEvent) {
+          await this.reportModel.create({
+            identity: event.reporterIdentity,
+            cvm: result._id,
+            type: event.type,
+          });
+        }
+      }
+    }
+
+    /*
+     * Updating the write model is done after updating the read model. The reason is that
+     * updating the write model publishes all changed events immidiately and hence notifys
+     * subscribers which rely on a consistent read model.
+     */
 
     await this.eventStore.appendEvents(
       stream,

@@ -23,6 +23,8 @@ import {
   ImportCvmsCommandHandler,
   RepositionCvmCommandHandler,
   ReportCvmCommandHandler,
+  RemoveCvmCommandHandler,
+  RestoreCvmCommandHandler,
 } from './commands';
 import {
   CvmTileService,
@@ -33,6 +35,8 @@ import {
   CvmDownvotedEventSubscriber,
   IdentRemovedEventSubscriber,
   CvmRepositionedEventSubscriber,
+  CvmRemovedEventSubscriber,
+  CvmRestoredEventSubscriber,
 } from './services';
 import {
   GetAllQueryHandler,
@@ -65,6 +69,8 @@ import { CvmController } from './controllers';
     DownvoteCvmCommandHandler,
     ImportCvmsCommandHandler,
     ReportCvmCommandHandler,
+    RemoveCvmCommandHandler,
+    RestoreCvmCommandHandler,
     GetAllQueryHandler,
     GetByIdQueryHandler,
     GetAllWithinQueryHandler,
@@ -78,6 +84,8 @@ import { CvmController } from './controllers';
     IdentRemovedEventSubscriber,
     RepositionCvmCommandHandler,
     CvmRepositionedEventSubscriber,
+    CvmRemovedEventSubscriber,
+    CvmRestoredEventSubscriber,
   ],
 })
 export class CvmModule {}

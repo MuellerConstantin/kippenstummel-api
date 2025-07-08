@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseFilePipeBuilder,
@@ -27,6 +28,7 @@ import { JwtGuard } from 'src/common/controllers';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { RemoveCvmCommand } from 'src/cvm/commands';
 
 @Controller({ path: '/kmc/cvms', version: '1' })
 @UseGuards(JwtGuard)
@@ -93,6 +95,12 @@ export class CvmController {
     );
 
     return result;
+  }
+
+  @Delete('/:id')
+  async deleteById(@Param('id') id: string): Promise<void> {
+    const command = new RemoveCvmCommand(id);
+    await this.commandBus.execute(command);
   }
 
   @Post('/import/manual')

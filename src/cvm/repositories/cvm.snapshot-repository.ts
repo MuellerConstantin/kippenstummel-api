@@ -14,6 +14,7 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
     score,
     imported,
     recentReports,
+    removed,
   }: CvmAggregate): ISnapshot<CvmAggregate> {
     return {
       id: id.value,
@@ -22,6 +23,7 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
       score,
       imported,
       recentReports,
+      removed,
     };
   }
 
@@ -32,6 +34,7 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
     score,
     imported,
     recentReports,
+    removed,
   }: ISnapshot<CvmAggregate>): CvmAggregate {
     const aggregate = new CvmAggregate();
 
@@ -41,6 +44,7 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
     aggregate.score = score as number;
     aggregate.imported = imported as boolean;
     aggregate.recentReports = recentReports as [];
+    aggregate.removed = removed as boolean;
 
     return aggregate;
   }
