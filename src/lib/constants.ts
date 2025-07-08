@@ -9,6 +9,11 @@ const MAX_TILE_ZOOM = 18;
 const RECENTLY_REPORTED_PERIOD = 7;
 
 /**
+ * The maximum number of CVMs a user can register per day.
+ */
+const MAX_REGISTRATIONS_PER_DAY = 5;
+
+/**
  * The number of days that a user can not vote on a CVM again.
  */
 const CVM_VOTE_DELAY = 7;
@@ -50,4 +55,5 @@ export {
   NEARBY_REPOSITION_RADIUS,
   CVM_REPORT_DELAY,
   RECENTLY_REPORTED_PERIOD,
+  MAX_REGISTRATIONS_PER_DAY,
 };

@@ -47,6 +47,13 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
     );
 
     if (!result) {
+      // Limits the number of new messages per user to prevent spam
+      const throttle = await this.shouldThrottle(command.creatorIdentity);
+
+      if (throttle) {
+        return;
+      }
+
       const aggregate = CvmAggregate.register(
         command.longitude,
         command.latitude,
@@ -113,5 +120,17 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
     ]);
 
     return result.length > 0;
+  }
+
+  async shouldThrottle(identity: string): Promise<boolean> {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const count = await this.cvmModel.countDocuments({
+      creatorIdentity: identity,
+      createdAt: { $gte: yesterday },
+    });
+
+    return count >= constants.MAX_REGISTRATIONS_PER_DAY;
   }
 }
