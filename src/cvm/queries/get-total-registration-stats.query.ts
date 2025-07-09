@@ -177,6 +177,6 @@ export class GetTotalRegistrationStatsQueryHandler
       },
     ]);
 
-    return result[0].averageScore;
+    return result?.[0]?.averageScore || 0;
   }
 }
