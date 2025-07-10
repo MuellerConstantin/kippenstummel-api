@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import {
   CommandHandler,
   type ICommand,
@@ -28,6 +29,8 @@ export class RepositionCvmCommand implements ICommand {
 
 @CommandHandler(RepositionCvmCommand)
 export class RepositionCvmCommandHandler implements ICommandHandler {
+  private readonly logger = new Logger(RepositionCvmCommandHandler.name);
+
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     private readonly credibilityService: CredibilityService,
@@ -83,16 +86,14 @@ export class RepositionCvmCommandHandler implements ICommandHandler {
     );
 
     if (hasRepositioned) {
+      this.logger.debug(
+        `User '${command.editorIdentity}' has reached the reposition limit or is on cooldown`,
+      );
       return;
     }
 
-    const credibility = await this.credibilityService.getCredibility(
-      command.editorIdentity,
-    );
-
     aggregate.reposition(
       command.editorIdentity,
-      credibility,
       command.repositionedLongitude,
       command.repositionedLatitude,
     );
@@ -140,5 +141,35 @@ export class RepositionCvmCommandHandler implements ICommandHandler {
     ]);
 
     return result.length > 0;
+  }
+
+  async shouldThrottle(identity: string): Promise<boolean> {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const credibility = await this.credibilityService.getCredibility(identity);
+    const limit = constants.getRepositionLimitByCredibility(credibility);
+    const cooldown = constants.getRepositionCooldownByCredibility(credibility);
+
+    const count = await this.repositioningModel.countDocuments({
+      identity,
+      createdAt: { $gte: yesterday },
+    });
+
+    const lastReposition = await this.repositioningModel
+      .findOne({
+        identity,
+      })
+      .sort({ createdAt: -1 })
+      .exec();
+
+    if (!lastReposition) {
+      return count > limit;
+    }
+
+    const timePassedSince =
+      new Date().getTime() - lastReposition.createdAt!.getTime();
+
+    return timePassedSince < cooldown * 60 * 1000 || count > limit;
   }
 }

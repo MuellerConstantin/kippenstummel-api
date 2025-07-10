@@ -160,7 +160,6 @@ export class CvmAggregate extends AggregateRoot {
 
   public reposition(
     editorIdentity: string,
-    credibility: number,
     repositionedLongitude: number,
     repositionedLatitude: number,
   ) {

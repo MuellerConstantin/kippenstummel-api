@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import {
   CommandHandler,
   type ICommand,
@@ -7,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository, Cvm, Vote } from '../repositories';
+import { CredibilityService } from 'src/ident/services';
 import { constants } from 'src/lib';
 
 export class RegisterCvmCommand implements ICommand {
@@ -19,10 +21,13 @@ export class RegisterCvmCommand implements ICommand {
 
 @CommandHandler(RegisterCvmCommand)
 export class RegisterCvmCommandHandler implements ICommandHandler {
+  private readonly logger = new Logger(RegisterCvmCommandHandler.name);
+
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
+    private readonly credibilityService: CredibilityService,
   ) {}
 
   async execute(command: RegisterCvmCommand): Promise<void> {
@@ -45,6 +50,9 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       const throttle = await this.shouldThrottle(command.creatorIdentity);
 
       if (throttle) {
+        this.logger.debug(
+          `User '${command.creatorIdentity}' has reached the registration limit or is on cooldown`,
+        );
         return;
       }
 
@@ -120,11 +128,30 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
 
+    const credibility = await this.credibilityService.getCredibility(identity);
+    const limit = constants.getRegistrationLimitByCredibility(credibility);
+    const cooldown =
+      constants.getRegistrationCooldownByCredibility(credibility);
+
     const count = await this.cvmModel.countDocuments({
-      creatorIdentity: identity,
+      registeredBy: identity,
       createdAt: { $gte: yesterday },
     });
 
-    return count >= constants.MAX_REGISTRATIONS_PER_DAY;
+    const lastRegistration = await this.cvmModel
+      .findOne({
+        registeredBy: identity,
+      })
+      .sort({ createdAt: -1 })
+      .exec();
+
+    if (!lastRegistration) {
+      return count > limit;
+    }
+
+    const timePassedSince =
+      new Date().getTime() - lastRegistration.createdAt!.getTime();
+
+    return timePassedSince < cooldown * 60 * 1000 || count > limit;
   }
 }

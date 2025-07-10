@@ -13,6 +13,7 @@ import {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: WinstonModule.createLogger({
+      level: process.env.LOG_LEVEL || 'debug',
       transports: [
         new winston.transports.Console({
           format: winston.format.combine(
