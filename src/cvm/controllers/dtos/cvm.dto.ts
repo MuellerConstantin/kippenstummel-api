@@ -9,4 +9,5 @@ export interface CvmDto {
     inactive: number;
     inaccessible: number;
   };
+  alreadyVoted?: 'upvote' | 'downvote';
 }

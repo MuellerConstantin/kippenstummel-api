@@ -6,6 +6,7 @@ import {
   CaptchaController,
   PoWGuard,
   IdentGuard,
+  AnonymousGuard,
   CaptchaGuard,
 } from './controllers';
 import {
@@ -42,6 +43,7 @@ import {
     CredibilityComputationConsumer,
     PoWGuard,
     IdentGuard,
+    AnonymousGuard,
     CaptchaGuard,
   ],
   exports: [

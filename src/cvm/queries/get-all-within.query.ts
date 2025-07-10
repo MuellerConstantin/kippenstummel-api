@@ -6,10 +6,10 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as mongoose from 'mongoose';
-import { CvmDocument, CvmTile, Report } from '../repositories';
+import { CvmDocument, CvmTile, Report, Vote } from '../repositories';
 import { CvmClusterProjection, CvmProjection } from '../models';
 import { CvmTileService } from '../services';
-import { RECENTLY_REPORTED_PERIOD } from 'src/lib/constants';
+import { RECENTLY_REPORTED_PERIOD, CVM_VOTE_DELAY } from 'src/lib/constants';
 
 export class GetAllWithinQuery implements IQuery {
   constructor(
@@ -17,6 +17,7 @@ export class GetAllWithinQuery implements IQuery {
     public readonly topRight: { longitude: number; latitude: number },
     public readonly zoom: number,
     public readonly variant: 'all' | 'trusted' | 'approved' = 'all',
+    public readonly fetcherIdentity?: string,
   ) {}
 }
 
@@ -28,6 +29,7 @@ export class GetAllWithinQueryHandler
   constructor(
     @InjectModel(CvmTile.name) private readonly cvmTileModel: Model<CvmTile>,
     @InjectModel(Report.name) private readonly reportModel: Model<Report>,
+    @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
   ) {}
 
   public async execute(
@@ -61,6 +63,9 @@ export class GetAllWithinQueryHandler
       .map((item) => (item.cvm as CvmDocument)._id);
 
     const reportCounts = await this.getRecentReportCounts(cvmIds);
+    const votedStatus = query.fetcherIdentity
+      ? await this.getVotedStatus(cvmIds, query.fetcherIdentity)
+      : {};
 
     return data
       .flatMap((item) => item.clusters)
@@ -88,6 +93,7 @@ export class GetAllWithinQueryHandler
             inactive: 0,
             inaccessible: 0,
           },
+          alreadyVoted: votedStatus[(item.cvm as CvmDocument)._id.toString()],
           createdAt: item.cvm.createdAt,
           updatedAt: item.cvm.updatedAt,
         };
@@ -131,5 +137,50 @@ export class GetAllWithinQueryHandler
     }
 
     return counts;
+  }
+
+  private async getVotedStatus(
+    cvmIds: mongoose.Types.ObjectId[],
+    fetcherIdentity: string,
+  ): Promise<Record<string, 'upvote' | 'downvote' | undefined>> {
+    const sinceDate = new Date();
+    sinceDate.setDate(sinceDate.getDate() - CVM_VOTE_DELAY);
+
+    const votes = await this.voteModel.aggregate<{
+      _id: string;
+      voteType: 'upvote' | 'downvote';
+    }>([
+      {
+        $match: {
+          cvm: { $in: cvmIds },
+          identity: fetcherIdentity,
+          createdAt: { $gte: sinceDate },
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $group: {
+          _id: '$cvm',
+          voteType: { $first: '$type' },
+        },
+      },
+    ]);
+
+    const votedMap = votes.reduce<Record<string, 'upvote' | 'downvote'>>(
+      (acc, cur) => {
+        acc[cur._id.toString()] = cur.voteType;
+        return acc;
+      },
+      {},
+    );
+
+    const result: Record<string, 'upvote' | 'downvote' | undefined> = {};
+    for (const cvmId of cvmIds) {
+      result[cvmId.toString()] = votedMap[cvmId.toString()] || undefined;
+    }
+
+    return result;
   }
 }

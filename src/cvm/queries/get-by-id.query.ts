@@ -7,12 +7,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as mongoose from 'mongoose';
 import { CvmProjection } from '../models';
-import { Cvm, Report } from '../repositories/schemas';
+import { Cvm, Report, Vote } from '../repositories/schemas';
 import { NotFoundError } from 'src/common/models';
-import { RECENTLY_REPORTED_PERIOD } from 'src/lib/constants';
+import { RECENTLY_REPORTED_PERIOD, CVM_VOTE_DELAY } from 'src/lib/constants';
 
 export class GetByIdQuery implements IQuery {
-  constructor(public readonly id: string) {}
+  constructor(
+    public readonly id: string,
+    public readonly fetcherIdentity?: string,
+  ) {}
 }
 
 @QueryHandler(GetByIdQuery)
@@ -22,6 +25,7 @@ export class GetByIdQueryHandler
   constructor(
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     @InjectModel(Report.name) private readonly reportModel: Model<Report>,
+    @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
   ) {}
 
   public async execute(query: GetByIdQuery): Promise<CvmProjection> {
@@ -34,6 +38,9 @@ export class GetByIdQueryHandler
     }
 
     const reportCounts = await this.getRecentReportCounts([result._id]);
+    const votedStatus = query.fetcherIdentity
+      ? await this.getVotedStatus([result._id], query.fetcherIdentity)
+      : {};
 
     return {
       id: result.aggregateId,
@@ -47,6 +54,7 @@ export class GetByIdQueryHandler
         inactive: 0,
         inaccessible: 0,
       },
+      alreadyVoted: votedStatus[result._id.toString()],
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
     };
@@ -89,5 +97,50 @@ export class GetByIdQueryHandler
     }
 
     return counts;
+  }
+
+  private async getVotedStatus(
+    cvmIds: mongoose.Types.ObjectId[],
+    fetcherIdentity: string,
+  ): Promise<Record<string, 'upvote' | 'downvote' | undefined>> {
+    const sinceDate = new Date();
+    sinceDate.setDate(sinceDate.getDate() - CVM_VOTE_DELAY);
+
+    const votes = await this.voteModel.aggregate<{
+      _id: string;
+      voteType: 'upvote' | 'downvote';
+    }>([
+      {
+        $match: {
+          cvm: { $in: cvmIds },
+          identity: fetcherIdentity,
+          createdAt: { $gte: sinceDate },
+        },
+      },
+      {
+        $sort: { createdAt: -1 },
+      },
+      {
+        $group: {
+          _id: '$cvm',
+          voteType: { $first: '$type' },
+        },
+      },
+    ]);
+
+    const votedMap = votes.reduce<Record<string, 'upvote' | 'downvote'>>(
+      (acc, cur) => {
+        acc[cur._id.toString()] = cur.voteType;
+        return acc;
+      },
+      {},
+    );
+
+    const result: Record<string, 'upvote' | 'downvote' | undefined> = {};
+    for (const cvmId of cvmIds) {
+      result[cvmId.toString()] = votedMap[cvmId.toString()] || undefined;
+    }
+
+    return result;
   }
 }

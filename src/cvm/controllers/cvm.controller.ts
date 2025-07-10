@@ -32,7 +32,7 @@ import {
   ReportCvmDto,
   ReportParamsDto,
 } from './dtos';
-import { Identity, IdentGuard } from 'src/ident/controllers';
+import { Identity, IdentGuard, AnonymousGuard } from 'src/ident/controllers';
 import { RepositionCvmCommand } from '../commands/reposition-cvm.command';
 
 @Controller({ path: '/cvms', version: '1' })
@@ -43,8 +43,10 @@ export class CvmController {
   ) {}
 
   @Get()
+  @UseGuards(AnonymousGuard)
   async getAllWithin(
     @Query() queryParams: GetAllCvmWithinQueryDto,
+    @Identity() identity: string,
   ): Promise<(CvmDto | CvmClusterDto)[]> {
     const bottomLeft = {
       longitude: queryParams.bottomLeftCoordinates[0],
@@ -60,6 +62,7 @@ export class CvmController {
       topRight,
       queryParams.zoom,
       queryParams.variant,
+      identity,
     );
     const result = await this.queryBus.execute<
       GetAllWithinQuery,
@@ -104,8 +107,12 @@ export class CvmController {
   }
 
   @Get('/:id')
-  async getById(@Param() params: GetCvmByIdParamsDto): Promise<CvmDto> {
-    const query = new GetByIdQuery(params.id);
+  @UseGuards(AnonymousGuard)
+  async getById(
+    @Param() params: GetCvmByIdParamsDto,
+    @Identity() identity: string,
+  ): Promise<CvmDto> {
+    const query = new GetByIdQuery(params.id, identity);
     const result = await this.queryBus.execute<GetByIdQuery, CvmProjection>(
       query,
     );
