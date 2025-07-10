@@ -19,4 +19,5 @@ export {
   InvalidFilterQueryError,
   UnsupportedFilterFieldError,
   AlterationConflictError,
+  ThrottledError,
 } from './error';

@@ -10,6 +10,7 @@ import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository, Cvm, Vote } from '../repositories';
 import { CredibilityService } from 'src/ident/services';
 import { constants } from 'src/lib';
+import { ThrottledError } from 'src/common/models';
 
 export class RegisterCvmCommand implements ICommand {
   constructor(
@@ -53,7 +54,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
         this.logger.debug(
           `User '${command.creatorIdentity}' has reached the registration limit or is on cooldown`,
         );
-        return;
+        throw new ThrottledError();
       }
 
       const aggregate = CvmAggregate.register(

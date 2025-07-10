@@ -12,6 +12,7 @@ import {
   AlterationConflictError,
   NotFoundError,
   OutOfReachError,
+  ThrottledError,
 } from 'src/common/models';
 import { CredibilityService } from 'src/ident/services';
 import { calculateDistanceInKm, constants } from 'src/lib';
@@ -89,7 +90,7 @@ export class RepositionCvmCommandHandler implements ICommandHandler {
       this.logger.debug(
         `User '${command.editorIdentity}' has reached the reposition limit or is on cooldown`,
       );
-      return;
+      throw new ThrottledError();
     }
 
     aggregate.reposition(

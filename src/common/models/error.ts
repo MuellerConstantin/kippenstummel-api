@@ -15,6 +15,7 @@ export enum ApiErrorCode {
   INVALID_FILTER_QUERY_ERROR = 'INVALID_FILTER_QUERY_ERROR',
   UNSUPPORTED_FILTER_FIELD_ERROR = 'UNSUPPORTED_FILTER_FIELD_ERROR',
   ALTERATION_CONFLICT_ERROR = 'ALTERATION_CONFLICT_ERROR',
+  THROTTLED_ERROR = 'THROTTLED_ERROR',
 }
 
 export const ApiErrorMessages: Record<ApiErrorCode, string> = {
@@ -34,6 +35,7 @@ export const ApiErrorMessages: Record<ApiErrorCode, string> = {
   [ApiErrorCode.INVALID_FILTER_QUERY_ERROR]: 'Invalid filter query',
   [ApiErrorCode.UNSUPPORTED_FILTER_FIELD_ERROR]: 'Unsupported filter field',
   [ApiErrorCode.ALTERATION_CONFLICT_ERROR]: 'Alteration conflict',
+  [ApiErrorCode.THROTTLED_ERROR]: 'The action was throttled',
 };
 
 export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
@@ -53,6 +55,7 @@ export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
   [ApiErrorCode.INVALID_FILTER_QUERY_ERROR]: 400,
   [ApiErrorCode.UNSUPPORTED_FILTER_FIELD_ERROR]: 400,
   [ApiErrorCode.ALTERATION_CONFLICT_ERROR]: 409,
+  [ApiErrorCode.THROTTLED_ERROR]: 429,
 };
 
 export abstract class ApiError extends Error {
@@ -190,5 +193,11 @@ export class UnsupportedFilterFieldError extends ApiError {
 export class AlterationConflictError extends ApiError {
   constructor(cause?: Error) {
     super(ApiErrorCode.ALTERATION_CONFLICT_ERROR, undefined, cause);
+  }
+}
+
+export class ThrottledError extends ApiError {
+  constructor(cause?: Error) {
+    super(ApiErrorCode.THROTTLED_ERROR, undefined, cause);
   }
 }
