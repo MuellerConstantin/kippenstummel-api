@@ -30,7 +30,7 @@ export class JobService implements OnModuleInit {
 
   async onModuleInit() {
     await this.jobManagementQueue.upsertJobScheduler('cleanup', {
-      pattern: '*/2 * * * *',
+      pattern: '0 0 1,15 * *', // At 12:00 AM, on day 1 and 15 of the month
       immediately: true,
     });
   }
