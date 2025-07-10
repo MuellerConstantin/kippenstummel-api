@@ -30,9 +30,6 @@ export class Repositioning {
     coordinates: number[];
   };
 
-  @Prop()
-  weight: number;
-
   createdAt?: Date;
   updatedAt?: Date;
 }

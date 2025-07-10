@@ -94,7 +94,10 @@ export class CvmAggregate extends AggregateRoot {
     this._removed = removed;
   }
 
-  public upvote(voterIdentity: string, credibility: number) {
+  public upvote(
+    voterIdentity: string,
+    impact: number = constants.DEFAULT_CVM_VOTE_IMPACT,
+  ) {
     if (this._removed) {
       throw new Error('CVM has been removed');
     }
@@ -103,12 +106,13 @@ export class CvmAggregate extends AggregateRoot {
       return;
     }
 
-    this.applyEvent(
-      new CvmUpvotedEvent(this.id.value, voterIdentity, credibility),
-    );
+    this.applyEvent(new CvmUpvotedEvent(this.id.value, voterIdentity, impact));
   }
 
-  public downvote(voterIdentity: string, credibility: number) {
+  public downvote(
+    voterIdentity: string,
+    impact: number = constants.DEFAULT_CVM_VOTE_IMPACT,
+  ) {
     if (this._removed) {
       throw new Error('CVM has been removed');
     }
@@ -118,7 +122,7 @@ export class CvmAggregate extends AggregateRoot {
     }
 
     this.applyEvent(
-      new CvmDownvotedEvent(this.id.value, voterIdentity, credibility),
+      new CvmDownvotedEvent(this.id.value, voterIdentity, impact),
     );
   }
 
@@ -168,7 +172,6 @@ export class CvmAggregate extends AggregateRoot {
       new CvmRepositionedEvent(
         this.id.value,
         editorIdentity,
-        credibility,
         {
           longitude: this.longitude,
           latitude: this.latitude,
@@ -296,12 +299,20 @@ export class CvmAggregate extends AggregateRoot {
 
   @EventHandler(CvmUpvotedEvent)
   onCvmUpvotedEvent(event: CvmUpvotedEvent): void {
-    this._score += event.credibility;
+    this._score += event.impact;
+
+    if (this._score > constants.MAX_CVM_SCORE) {
+      this._score = constants.MAX_CVM_SCORE;
+    }
   }
 
   @EventHandler(CvmDownvotedEvent)
   onCvmDownvotedEvent(event: CvmDownvotedEvent): void {
-    this._score -= event.credibility;
+    this._score -= event.impact;
+
+    if (this._score < constants.MIN_CVM_SCORE) {
+      this._score = constants.MIN_CVM_SCORE;
+    }
   }
 
   @EventHandler(CvmRepositionedEvent)

@@ -7,7 +7,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository, Cvm, Vote } from '../repositories';
-import { CredibilityService } from 'src/ident/services';
 import { constants } from 'src/lib';
 
 export class RegisterCvmCommand implements ICommand {
@@ -24,7 +23,6 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
-    private readonly credibilityService: CredibilityService,
   ) {}
 
   async execute(command: RegisterCvmCommand): Promise<void> {
@@ -41,10 +39,6 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
         },
       })
       .exec();
-
-    const credibility = await this.credibilityService.getCredibility(
-      command.creatorIdentity,
-    );
 
     if (!result) {
       // Limits the number of new messages per user to prevent spam
@@ -75,7 +69,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
         return;
       }
 
-      aggregate.upvote(command.creatorIdentity, credibility);
+      aggregate.upvote(command.creatorIdentity);
 
       await this.cvmEventStoreRepository.save(aggregate);
     }

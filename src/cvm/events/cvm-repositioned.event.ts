@@ -5,7 +5,6 @@ export class CvmRepositionedEvent implements IEvent {
   constructor(
     public readonly cvmId: string,
     public readonly editorIdentity: string,
-    public readonly credibility: number,
     public readonly formerPosition: {
       longitude: number;
       latitude: number;

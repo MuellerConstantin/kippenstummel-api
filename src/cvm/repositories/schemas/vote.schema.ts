@@ -17,7 +17,7 @@ export class Vote {
   type: 'upvote' | 'downvote';
 
   @Prop()
-  weight: number;
+  impact: number;
 
   createdAt?: Date;
   updatedAt?: Date;

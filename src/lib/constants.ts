@@ -1,5 +1,6 @@
-const MIN_CVM_SCORE = -500;
-const MAX_CVM_SCORE = 500;
+const MIN_CVM_SCORE = -10;
+const MAX_CVM_SCORE = 10;
+const DEFAULT_CVM_VOTE_IMPACT = 1;
 const MIN_TILE_ZOOM = 12;
 const MAX_TILE_ZOOM = 18;
 
@@ -44,6 +45,7 @@ const SAME_CVM_RADIUS = 50;
 const NEARBY_CVM_RADIUS = 0.5;
 
 export {
+  DEFAULT_CVM_VOTE_IMPACT,
   MIN_CVM_SCORE,
   MAX_CVM_SCORE,
   MIN_TILE_ZOOM,

@@ -62,7 +62,7 @@ export class CvmEventStoreRepository {
         return new CvmUpvotedEvent(
           event.cvmId,
           untokenizedIdentity || event.voterIdentity,
-          event.credibility,
+          event.impact,
         );
       } else if (event instanceof CvmDownvotedEvent) {
         const untokenizedIdentity = (await this.piiService.untokenizePii(
@@ -72,7 +72,7 @@ export class CvmEventStoreRepository {
         return new CvmDownvotedEvent(
           event.cvmId,
           untokenizedIdentity || event.voterIdentity,
-          event.credibility,
+          event.impact,
         );
       } else if (event instanceof CvmRepositionedEvent) {
         const untokenizedIdentity = (await this.piiService.untokenizePii(
@@ -82,7 +82,6 @@ export class CvmEventStoreRepository {
         return new CvmRepositionedEvent(
           event.cvmId,
           untokenizedIdentity || event.editorIdentity,
-          event.credibility,
           event.formerPosition,
           event.repositionedPosition,
         );
@@ -154,14 +153,14 @@ export class CvmEventStoreRepository {
             event.voterIdentity,
           );
 
-          return new CvmUpvotedEvent(event.cvmId, token, event.credibility);
+          return new CvmUpvotedEvent(event.cvmId, token, event.impact);
         } else if (event instanceof CvmDownvotedEvent) {
           const token = await this.piiService.tokenizePii(
             event.voterIdentity,
             event.voterIdentity,
           );
 
-          return new CvmDownvotedEvent(event.cvmId, token, event.credibility);
+          return new CvmDownvotedEvent(event.cvmId, token, event.impact);
         } else if (event instanceof CvmRepositionedEvent) {
           const token = await this.piiService.tokenizePii(
             event.editorIdentity,
@@ -171,7 +170,6 @@ export class CvmEventStoreRepository {
           return new CvmRepositionedEvent(
             event.cvmId,
             token,
-            event.credibility,
             event.formerPosition,
             event.repositionedPosition,
           );
@@ -241,21 +239,20 @@ export class CvmEventStoreRepository {
           await this.voteModel.create({
             identity: event.voterIdentity,
             cvm: result._id,
-            weight: event.credibility,
+            impact: event.impact,
             type: 'upvote',
           });
         } else if (event instanceof CvmDownvotedEvent) {
           await this.voteModel.create({
             identity: event.voterIdentity,
             cvm: result._id,
-            weight: event.credibility,
+            impact: event.impact,
             type: 'downvote',
           });
         } else if (event instanceof CvmRepositionedEvent) {
           await this.repositioningModel.create({
             identity: event.editorIdentity,
             cvm: result._id,
-            weight: event.credibility,
             position: {
               type: 'Point',
               coordinates: [

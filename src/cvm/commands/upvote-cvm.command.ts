@@ -8,7 +8,6 @@ import { Model } from 'mongoose';
 import { CvmId } from '../models';
 import { CvmEventStoreRepository, Vote } from '../repositories';
 import { NotFoundError, OutOfReachError } from 'src/common/models';
-import { CredibilityService } from 'src/ident/services';
 import { calculateDistanceInKm, constants } from 'src/lib';
 
 export class UpvoteCvmCommand implements ICommand {
@@ -24,7 +23,6 @@ export class UpvoteCvmCommand implements ICommand {
 export class UpvoteCvmCommandHandler implements ICommandHandler {
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
-    private readonly credibilityService: CredibilityService,
     @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
   ) {}
 
@@ -63,11 +61,7 @@ export class UpvoteCvmCommandHandler implements ICommandHandler {
       return;
     }
 
-    const credibility = await this.credibilityService.getCredibility(
-      command.voterIdentity,
-    );
-
-    aggregate.upvote(command.voterIdentity, credibility);
+    aggregate.upvote(command.voterIdentity);
     await this.cvmEventStoreRepository.save(aggregate);
   }
 
