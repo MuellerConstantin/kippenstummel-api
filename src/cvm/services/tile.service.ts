@@ -113,11 +113,11 @@ export class CvmTileService {
 
     switch (variant) {
       case 'approved': {
-        filters.push({ score: { $gte: -100 } });
+        filters.push({ score: { $gte: -5 } });
         break;
       }
       case 'trusted': {
-        filters.push({ score: { $gt: 100 } });
+        filters.push({ score: { $gte: 5 } });
         break;
       }
       case 'all':
