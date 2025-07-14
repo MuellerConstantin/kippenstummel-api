@@ -69,7 +69,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
     await Promise.allSettled(operations);
 
     // Recompute tiles outside of event lifecycle to allow batch processing
-    await this.tileComputationQueue.add('all', {
+    await this.tileComputationQueue.add('rAll', {
       positions: [
         ...command.cvms.map((cvm) => ({
           longitude: cvm.longitude,
@@ -78,7 +78,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
       ],
     });
 
-    await this.tileComputationQueue.add('trusted', {
+    await this.tileComputationQueue.add('r5p', {
       positions: [
         ...command.cvms.map((cvm) => ({
           longitude: cvm.longitude,
@@ -87,7 +87,16 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
       ],
     });
 
-    await this.tileComputationQueue.add('approved', {
+    await this.tileComputationQueue.add('rN5p', {
+      positions: [
+        ...command.cvms.map((cvm) => ({
+          longitude: cvm.longitude,
+          latitude: cvm.latitude,
+        })),
+      ],
+    });
+
+    await this.tileComputationQueue.add('rN8p', {
       positions: [
         ...command.cvms.map((cvm) => ({
           longitude: cvm.longitude,

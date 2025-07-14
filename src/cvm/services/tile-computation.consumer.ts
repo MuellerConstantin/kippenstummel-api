@@ -16,8 +16,8 @@ export class TileComputationConsumer extends WorkerHost {
 
   async process(job: Job<any, any, string>): Promise<any> {
     switch (job.name) {
-      case 'all': {
-        return this.recomputeAll(
+      case 'rAll': {
+        return this.recomputeRAll(
           job as Job<
             { positions: { longitude: number; latitude: number }[] },
             void,
@@ -25,8 +25,8 @@ export class TileComputationConsumer extends WorkerHost {
           >,
         );
       }
-      case 'trusted': {
-        return this.recomputeTrusted(
+      case 'r5p': {
+        return this.recomputeR5p(
           job as Job<
             { positions: { longitude: number; latitude: number }[] },
             void,
@@ -34,8 +34,17 @@ export class TileComputationConsumer extends WorkerHost {
           >,
         );
       }
-      case 'approved': {
-        return this.recomputeApproved(
+      case 'rN5p': {
+        return this.recomputeRN5p(
+          job as Job<
+            { positions: { longitude: number; latitude: number }[] },
+            void,
+            string
+          >,
+        );
+      }
+      case 'rN8p': {
+        return this.recomputeRN8p(
           job as Job<
             { positions: { longitude: number; latitude: number }[] },
             void,
@@ -46,7 +55,7 @@ export class TileComputationConsumer extends WorkerHost {
     }
   }
 
-  async recomputeAll(
+  async recomputeRAll(
     job: Job<
       { positions: { longitude: number; latitude: number }[] },
       void,
@@ -54,38 +63,20 @@ export class TileComputationConsumer extends WorkerHost {
     >,
   ): Promise<void> {
     this.logger.debug(
-      `Updating tiles for variant 'all'...`,
+      `Updating tiles for variant 'rAll'...`,
       'TileComputationConsumer',
     );
-    await job.log(`Updating tiles for variant 'all'...`);
-
-    await this.cvmTileService.updateTilesByPositions(job.data.positions, 'all');
-
-    await job.log(`Updated tiles for variant 'all'`);
-  }
-
-  async recomputeTrusted(
-    job: Job<
-      { positions: { longitude: number; latitude: number }[] },
-      void,
-      string
-    >,
-  ): Promise<void> {
-    this.logger.debug(
-      `Updating tiles for variant 'trusted'...`,
-      'TileComputationConsumer',
-    );
-    await job.log(`Updating tiles for variant 'trusted'...`);
+    await job.log(`Updating tiles for variant 'rAll'...`);
 
     await this.cvmTileService.updateTilesByPositions(
       job.data.positions,
-      'trusted',
+      'rAll',
     );
 
-    await job.log(`Updated tiles for variant 'trusted'`);
+    await job.log(`Updated tiles for variant 'rAll'`);
   }
 
-  async recomputeApproved(
+  async recomputeR5p(
     job: Job<
       { positions: { longitude: number; latitude: number }[] },
       void,
@@ -93,17 +84,56 @@ export class TileComputationConsumer extends WorkerHost {
     >,
   ): Promise<void> {
     this.logger.debug(
-      `Updating tiles for variant 'approved'...`,
+      `Updating tiles for variant 'r5p'...`,
       'TileComputationConsumer',
     );
-    await job.log(`Updating tiles for variant 'approved'...`);
+    await job.log(`Updating tiles for variant 'r5p'...`);
+
+    await this.cvmTileService.updateTilesByPositions(job.data.positions, 'r5p');
+
+    await job.log(`Updated tiles for variant 'r5p'`);
+  }
+
+  async recomputeRN5p(
+    job: Job<
+      { positions: { longitude: number; latitude: number }[] },
+      void,
+      string
+    >,
+  ): Promise<void> {
+    this.logger.debug(
+      `Updating tiles for variant 'rN5p'...`,
+      'TileComputationConsumer',
+    );
+    await job.log(`Updating tiles for variant 'rN5p'...`);
 
     await this.cvmTileService.updateTilesByPositions(
       job.data.positions,
-      'approved',
+      'rN5p',
     );
 
-    await job.log(`Updated tiles for variant 'approved'`);
+    await job.log(`Updated tiles for variant 'rN5p'`);
+  }
+
+  async recomputeRN8p(
+    job: Job<
+      { positions: { longitude: number; latitude: number }[] },
+      void,
+      string
+    >,
+  ): Promise<void> {
+    this.logger.debug(
+      `Updating tiles for variant 'rN8p'...`,
+      'TileComputationConsumer',
+    );
+    await job.log(`Updating tiles for variant 'rN8p'...`);
+
+    await this.cvmTileService.updateTilesByPositions(
+      job.data.positions,
+      'rN8p',
+    );
+
+    await job.log(`Updated tiles for variant 'rN8p'`);
   }
 
   @OnWorkerEvent('active')

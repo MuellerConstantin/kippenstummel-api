@@ -29,7 +29,7 @@ export class CvmRepositionedEventSubscriber implements IEventSubscriber {
      * theory, the location could be moved to a new tile.
      */
 
-    await this.tileComputationQueue.add('all', {
+    await this.tileComputationQueue.add('rAll', {
       positions: [
         {
           longitude: oldPosition.longitude,
@@ -42,7 +42,7 @@ export class CvmRepositionedEventSubscriber implements IEventSubscriber {
       ],
     });
 
-    await this.tileComputationQueue.add('trusted', {
+    await this.tileComputationQueue.add('r5p', {
       positions: [
         {
           longitude: oldPosition.longitude,
@@ -55,7 +55,20 @@ export class CvmRepositionedEventSubscriber implements IEventSubscriber {
       ],
     });
 
-    await this.tileComputationQueue.add('approved', {
+    await this.tileComputationQueue.add('rN5p', {
+      positions: [
+        {
+          longitude: oldPosition.longitude,
+          latitude: oldPosition.latitude,
+        },
+        {
+          longitude: newPosition.longitude,
+          latitude: newPosition.latitude,
+        },
+      ],
+    });
+
+    await this.tileComputationQueue.add('rN8p', {
       positions: [
         {
           longitude: oldPosition.longitude,

@@ -33,7 +33,7 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
       tokenizedIdentity,
     )) as string | null;
 
-    await this.tileComputationQueue.add('all', {
+    await this.tileComputationQueue.add('rAll', {
       positions: [
         {
           longitude: position.longitude,
@@ -42,7 +42,7 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
       ],
     });
 
-    await this.tileComputationQueue.add('trusted', {
+    await this.tileComputationQueue.add('r5p', {
       positions: [
         {
           longitude: position.longitude,
@@ -51,7 +51,16 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
       ],
     });
 
-    await this.tileComputationQueue.add('approved', {
+    await this.tileComputationQueue.add('rN5p', {
+      positions: [
+        {
+          longitude: position.longitude,
+          latitude: position.latitude,
+        },
+      ],
+    });
+
+    await this.tileComputationQueue.add('rN8p', {
       positions: [
         {
           longitude: position.longitude,

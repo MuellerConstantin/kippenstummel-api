@@ -47,8 +47,8 @@ export class CvmTile {
   @Prop()
   z: number;
 
-  @Prop({ default: 'all', enum: ['all', 'trusted', 'approved'] })
-  variant: 'all' | 'trusted' | 'approved';
+  @Prop({ default: 'rAll', enum: ['rAll', 'r5p', 'rN5p', 'rN8p'] })
+  variant: 'rAll' | 'r5p' | 'rN5p' | 'rN8p';
 
   @Prop({ type: [CvmTileClusterSchema] })
   clusters: CvmTileCluster[];

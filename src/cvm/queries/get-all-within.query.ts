@@ -16,7 +16,7 @@ export class GetAllWithinQuery implements IQuery {
     public readonly bottomLeft: { longitude: number; latitude: number },
     public readonly topRight: { longitude: number; latitude: number },
     public readonly zoom: number,
-    public readonly variant: 'all' | 'trusted' | 'approved' = 'all',
+    public readonly variant: 'rAll' | 'r5p' | 'rN5p' | 'rN8p' = 'rAll',
     public readonly fetcherIdentity?: string,
   ) {}
 }
