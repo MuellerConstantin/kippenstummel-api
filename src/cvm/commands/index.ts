@@ -37,3 +37,8 @@ export {
   RestoreCvmCommandHandler,
   RestoreCvmCommand,
 } from './restore-cvm.command';
+
+export {
+  CleanupCvmsCommandHandler,
+  CleanupCvmsCommand,
+} from './cleanup-cvms.command';

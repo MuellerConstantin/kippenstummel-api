@@ -25,6 +25,7 @@ import {
   ReportCvmCommandHandler,
   RemoveCvmCommandHandler,
   RestoreCvmCommandHandler,
+  CleanupCvmsCommandHandler,
 } from './commands';
 import {
   CvmTileService,
@@ -35,7 +36,6 @@ import {
   CvmDownvotedEventSubscriber,
   IdentRemovedEventSubscriber,
   CvmRepositionedEventSubscriber,
-  CvmRemovedEventSubscriber,
   CvmRestoredEventSubscriber,
   CvmManagementConsumer,
 } from './services';
@@ -72,6 +72,7 @@ import { CvmController } from './controllers';
     ReportCvmCommandHandler,
     RemoveCvmCommandHandler,
     RestoreCvmCommandHandler,
+    CleanupCvmsCommandHandler,
     GetAllQueryHandler,
     GetByIdQueryHandler,
     GetAllWithinQueryHandler,
@@ -86,7 +87,6 @@ import { CvmController } from './controllers';
     IdentRemovedEventSubscriber,
     RepositionCvmCommandHandler,
     CvmRepositionedEventSubscriber,
-    CvmRemovedEventSubscriber,
     CvmRestoredEventSubscriber,
   ],
 })

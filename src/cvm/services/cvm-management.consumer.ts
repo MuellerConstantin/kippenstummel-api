@@ -2,18 +2,15 @@ import { Logger } from '@nestjs/common';
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { JobService } from 'src/common/services';
-import { InjectModel } from '@nestjs/mongoose';
-import { Cvm, CvmEventStoreRepository } from '../repositories';
-import { Model } from 'mongoose';
 import { constants } from 'src/lib';
-import { CvmId } from '../models';
+import { CommandBus } from '@ocoda/event-sourcing';
+import { CleanupCvmsCommand } from '../commands';
 
 @Processor('cvm-management')
 export class CvmManagementConsumer extends WorkerHost {
   constructor(
+    private readonly commandBus: CommandBus,
     private readonly jobService: JobService,
-    @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
-    private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     private readonly logger: Logger,
   ) {
     super();
@@ -42,38 +39,10 @@ export class CvmManagementConsumer extends WorkerHost {
         constants.CVM_SCORE_BELOW_DELETE_THRESHOLD_PERIOD * 24 * 60 * 60 * 1000,
     );
 
-    const cvms = await this.cvmModel.aggregate<{ aggregateId: string }>([
-      {
-        $match: {
-          markedForDeletion: true,
-          markedForDeletionAt: { $lt: cutoff },
-        },
-      },
-      {
-        $project: {
-          aggregateId: 1,
-        },
-      },
-    ]);
+    const command = new CleanupCvmsCommand(cutoff);
+    await this.commandBus.execute<CleanupCvmsCommand>(command);
 
-    const operations = cvms.map(async (cvm) => {
-      const aggregate = await this.cvmEventStoreRepository.load(
-        CvmId.from(cvm.aggregateId),
-      );
-
-      if (aggregate) {
-        aggregate.remove();
-        await this.cvmEventStoreRepository.save(aggregate);
-      }
-    });
-
-    await Promise.allSettled(operations);
-
-    await job.log(`Cleanup finished, removed ${cvms.length} CVMs`);
-    this.logger.log(
-      `Cleanup finished, removed ${cvms.length} CVMs`,
-      'CvmManagementConsumer',
-    );
+    await job.log('Cleanup finished');
   }
 
   @OnWorkerEvent('active')
