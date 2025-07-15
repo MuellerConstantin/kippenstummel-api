@@ -32,6 +32,12 @@ export class Cvm {
   imported: boolean;
 
   @Prop()
+  markedForDeletion: boolean;
+
+  @Prop()
+  markedForDeletionAt?: Date;
+
+  @Prop()
   registeredBy?: string;
 
   createdAt?: Date;

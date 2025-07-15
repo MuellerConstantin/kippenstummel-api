@@ -222,6 +222,8 @@ export class CvmEventStoreRepository {
             },
             score: aggregate.score,
             imported: aggregate.imported,
+            markedForDeletion: aggregate.markedForDeletion,
+            markedForDeletionAt: aggregate.markedForDeletionAt,
           },
           $setOnInsert: {
             aggregateId: aggregate.id.value,

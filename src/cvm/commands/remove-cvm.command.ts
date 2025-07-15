@@ -3,13 +3,8 @@ import {
   type ICommand,
   type ICommandHandler,
 } from '@ocoda/event-sourcing';
-import { Queue } from 'bullmq';
-import { InjectQueue } from '@nestjs/bullmq';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { CvmId } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
-import { Cvm } from '../repositories/schemas';
 import { NotFoundError } from 'src/common/models';
 
 export class RemoveCvmCommand implements ICommand {
@@ -20,8 +15,6 @@ export class RemoveCvmCommand implements ICommand {
 export class RemoveCvmCommandHandler implements ICommandHandler {
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
-    @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
-    @InjectQueue('tile-computation') private tileComputationQueue: Queue,
   ) {}
 
   async execute(command: RemoveCvmCommand): Promise<void> {

@@ -15,6 +15,8 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
     imported,
     recentReports,
     removed,
+    markedForDeletion,
+    markedForDeletionAt,
   }: CvmAggregate): ISnapshot<CvmAggregate> {
     return {
       id: id.value,
@@ -24,6 +26,8 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
       imported,
       recentReports,
       removed,
+      markedForDeletion,
+      markedForDeletionAt,
     };
   }
 
@@ -35,6 +39,8 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
     imported,
     recentReports,
     removed,
+    markedForDeletion,
+    markedForDeletionAt,
   }: ISnapshot<CvmAggregate>): CvmAggregate {
     const aggregate = new CvmAggregate();
 
@@ -45,6 +51,8 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
     aggregate.imported = imported as boolean;
     aggregate.recentReports = recentReports as [];
     aggregate.removed = removed as boolean;
+    aggregate.markedForDeletion = markedForDeletion as boolean;
+    aggregate.markedForDeletionAt = markedForDeletionAt as Date | undefined;
 
     return aggregate;
   }
