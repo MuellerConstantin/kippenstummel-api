@@ -151,6 +151,11 @@ const SAME_CVM_RADIUS = 50;
  */
 const NEARBY_CVM_RADIUS = 0.5;
 
+/**
+ * The number of days a CVM with a negative score must remain below the threshold to be deleted.
+ */
+const CVM_SCORE_BELOW_DELETE_THRESHOLD_PERIOD = 7;
+
 export {
   DEFAULT_CVM_VOTE_IMPACT,
   MIN_CVM_SCORE,
@@ -164,6 +169,7 @@ export {
   NEARBY_REPOSITION_RADIUS,
   CVM_REPORT_DELAY,
   RECENTLY_REPORTED_PERIOD,
+  CVM_SCORE_BELOW_DELETE_THRESHOLD_PERIOD,
   getRegistrationCooldownByCredibility,
   getRegistrationLimitByCredibility,
   getRepositionCooldownByCredibility,

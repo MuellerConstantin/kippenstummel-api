@@ -37,6 +37,7 @@ import {
   CvmRepositionedEventSubscriber,
   CvmRemovedEventSubscriber,
   CvmRestoredEventSubscriber,
+  CvmManagementConsumer,
 } from './services';
 import {
   GetAllQueryHandler,
@@ -77,6 +78,7 @@ import { CvmController } from './controllers';
     GetTotalRegistrationStatsQueryHandler,
     GetTotalVotesStatsQueryHandler,
     TileComputationConsumer,
+    CvmManagementConsumer,
     CvmRegisteredEventSubscriber,
     CvmUpvotedEventSubscriber,
     CvmDownvotedEventSubscriber,

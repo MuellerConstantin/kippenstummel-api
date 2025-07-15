@@ -14,6 +14,8 @@ export class JobService implements OnModuleInit {
     @InjectModel(JobModel.name) private readonly jobModel: Model<JobModel>,
     @InjectQueue('job-management')
     private jobManagementQueue: Queue,
+    @InjectQueue('cvm-management')
+    private cvmManagementQueue: Queue,
     @InjectQueue('credibility-computation')
     private credibilityComputationQueue: Queue,
     @InjectQueue('tile-computation') private tileComputationQueue: Queue,
@@ -26,11 +28,17 @@ export class JobService implements OnModuleInit {
     );
     this.jobQueues.set('tile-computation', this.tileComputationQueue);
     this.jobQueues.set('cvm-import', this.cvmImportQueue);
+    this.jobQueues.set('cvm-management', this.cvmManagementQueue);
   }
 
   async onModuleInit() {
     await this.jobManagementQueue.upsertJobScheduler('cleanup', {
       pattern: '0 0 1,15 * *', // At 12:00 AM, on day 1 and 15 of the month
+      immediately: true,
+    });
+
+    await this.cvmManagementQueue.upsertJobScheduler('cleanup', {
+      pattern: '0 0 * * 1', // Every Monday at 00:00 AM
       immediately: true,
     });
   }

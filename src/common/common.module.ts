@@ -93,6 +93,9 @@ import { Domain2ApplicationEventPublisher } from './events';
     BullModule.registerQueue({
       name: 'job-management',
     }),
+    BullModule.registerQueue({
+      name: 'cvm-management',
+    }),
     JwtModule.registerAsync({
       global: true,
       imports: [ConfigModule],
