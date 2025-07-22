@@ -56,6 +56,14 @@ export class IdentService {
         secret: this.configService.get<string>('IDENT_SECRET'),
       });
 
+      const result = await this.identModel.exists({
+        identity: payload.identity,
+      });
+
+      if (!result) {
+        throw new UnknownIdentityError();
+      }
+
       return payload.identity;
     } catch {
       throw new InvalidIdentTokenError();

@@ -1,6 +1,10 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { IdentService } from '../services';
 import { Request } from 'express';
+import {
+  InvalidIdentTokenError,
+  UnknownIdentityError,
+} from 'src/common/models';
 
 @Injectable()
 export class AnonymousGuard implements CanActivate {
@@ -14,9 +18,19 @@ export class AnonymousGuard implements CanActivate {
       return true;
     }
 
-    const identity = await this.identService.verifyIdentToken(identToken);
+    try {
+      const identity = await this.identService.verifyIdentToken(identToken);
+      request['identity'] = identity;
+    } catch (err) {
+      if (
+        err instanceof UnknownIdentityError ||
+        err instanceof InvalidIdentTokenError
+      ) {
+        return true;
+      }
 
-    request['identity'] = identity;
+      throw err;
+    }
 
     return true;
   }
