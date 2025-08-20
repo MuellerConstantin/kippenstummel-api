@@ -1,16 +1,16 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { JwtGuard } from 'src/common/controllers';
 import { GetAllJobQueryDto, JobPageDto } from './dtos';
-import { JobService } from 'src/common/services';
+import { JobHistoryService } from 'src/common/services';
 import { Page } from 'src/common/models';
-import { Job } from 'src/common/repositories';
+import { JobRun } from 'src/common/repositories';
 
 @Controller({ path: '/kmc/jobs', version: '1' })
 @UseGuards(JwtGuard)
 export class JobController {
-  constructor(private readonly jobService: JobService) {}
+  constructor(private readonly jobHistoryService: JobHistoryService) {}
 
-  @Get()
+  @Get('/runs')
   async getAll(@Query() queryParams: GetAllJobQueryDto): Promise<JobPageDto> {
     const { page, perPage, distinct } = queryParams;
 
@@ -19,12 +19,12 @@ export class JobController {
       perPage: Number(perPage) || 25,
     };
 
-    let result: Page<Job>;
+    let result: Page<JobRun>;
 
     if (distinct) {
-      result = await this.jobService.getJobsDistinct(pageable);
+      result = await this.jobHistoryService.getJobRunsDistinct(pageable);
     } else {
-      result = await this.jobService.getJobs(pageable);
+      result = await this.jobHistoryService.getJobRuns(pageable);
     }
 
     return {

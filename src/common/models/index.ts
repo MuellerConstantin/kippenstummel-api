@@ -1,7 +1,7 @@
 export { Pageable } from './pageable.model';
 export { Page, PageInfo } from './page.model';
 export { JobTotalStats } from './job-stats.model';
-export { Job } from './job.model';
+export { JobRun } from './job-run.model';
 export {
   ApiError,
   ApiErrorCode,

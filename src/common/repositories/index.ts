@@ -1,1 +1,1 @@
-export { JobSchema, Job, PiiTokenSchema, PiiToken } from './schemas';
+export { JobRunSchema, JobRun, PiiTokenSchema, PiiToken } from './schemas';

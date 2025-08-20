@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
-export type JobDocument = HydratedDocument<Job>;
+export type JobDocument = HydratedDocument<JobRun>;
 
-@Schema({ collection: 'jobs', timestamps: true })
-export class Job {
+@Schema({ collection: 'job-runs', timestamps: true })
+export class JobRun {
   @Prop({ required: true })
   jobId: string;
 
@@ -45,6 +45,6 @@ export class Job {
   updatedAt?: Date;
 }
 
-export const JobSchema = SchemaFactory.createForClass(Job);
+export const JobRunSchema = SchemaFactory.createForClass(JobRun);
 
-JobSchema.index({ queue: 1, name: 1, createdAt: -1 });
+JobRunSchema.index({ queue: 1, name: 1, createdAt: -1 });

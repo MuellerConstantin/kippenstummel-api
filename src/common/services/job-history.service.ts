@@ -1,17 +1,18 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Job as JobModel } from '../repositories';
+import { JobRun as JobRunModel } from '../repositories';
 import { Job as BullMqJob, Queue } from 'bullmq';
-import { Job, JobTotalStats, Page, Pageable } from '../models';
+import { JobRun, JobTotalStats, Page, Pageable } from '../models';
 import { InjectQueue } from '@nestjs/bullmq';
 
 @Injectable()
-export class JobService implements OnModuleInit {
+export class JobHistoryService implements OnModuleInit {
   private jobQueues: Map<string, Queue> = new Map();
 
   constructor(
-    @InjectModel(JobModel.name) private readonly jobModel: Model<JobModel>,
+    @InjectModel(JobRunModel.name)
+    private readonly jobRunModel: Model<JobRunModel>,
     @InjectQueue('job-management')
     private jobManagementQueue: Queue,
     @InjectQueue('cvm-management')
@@ -43,7 +44,7 @@ export class JobService implements OnModuleInit {
     });
   }
 
-  async upsertJobLog({
+  async upsertJobRunLog({
     job,
     status,
     result,
@@ -57,7 +58,7 @@ export class JobService implements OnModuleInit {
     const queue = this.jobQueues.get(job.queueName);
     const logs = await queue?.getJobLogs(job.id!);
 
-    await this.jobModel.updateOne(
+    await this.jobRunModel.updateOne(
       { jobId: job.id, queue: job.queueName },
       {
         $set: {
@@ -82,20 +83,20 @@ export class JobService implements OnModuleInit {
     );
   }
 
-  async deleteAllFinishedJobsOlderThan(days: number) {
+  async deleteAllFinishedJobRunsOlderThan(days: number) {
     const cutOffDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    await this.jobModel.deleteMany({
+    await this.jobRunModel.deleteMany({
       finishedOn: { $lt: cutOffDate },
     });
   }
 
-  async getJobs(pageable: Pageable): Promise<Page<Job>> {
+  async getJobRuns(pageable: Pageable): Promise<Page<JobRun>> {
     const skip = pageable.page * pageable.perPage;
 
-    const totalElements = await this.jobModel.countDocuments();
+    const totalElements = await this.jobRunModel.countDocuments();
 
-    const content = await this.jobModel
+    const content = await this.jobRunModel
       .find()
       .skip(skip)
       .sort({ createdAt: -1 })
@@ -129,13 +130,13 @@ export class JobService implements OnModuleInit {
     };
   }
 
-  async getJobsDistinct(pageable: Pageable): Promise<Page<Job>> {
+  async getJobRunsDistinct(pageable: Pageable): Promise<Page<JobRun>> {
     const skip = pageable.page * pageable.perPage;
     const limit = pageable.perPage;
 
-    const aggregation = await this.jobModel.aggregate<{
+    const aggregation = await this.jobRunModel.aggregate<{
       _id: string;
-      job: Job;
+      job: JobRun;
     }>([
       { $sort: { createdAt: -1 } },
       {
@@ -149,7 +150,7 @@ export class JobService implements OnModuleInit {
       { $limit: limit },
     ]);
 
-    const totalElementsAggregation = await this.jobModel.aggregate<{
+    const totalElementsAggregation = await this.jobRunModel.aggregate<{
       _id: string;
       total: number;
     }>([
@@ -172,17 +173,17 @@ export class JobService implements OnModuleInit {
   }
 
   async getTotalStats(lastNDays: number): Promise<JobTotalStats> {
-    const totalElements = await this.jobModel.countDocuments();
-    const runHistory = await this.getRunJobsPerDay(lastNDays);
+    const totalElements = await this.jobRunModel.countDocuments();
+    const runHistory = await this.getRunJobRunsPerDay(lastNDays);
     const jobTypes = await this.getDifferentJobTypes(lastNDays);
-    const jobStatusCounts = await this.getJobCountsByStatus(lastNDays);
+    const jobStatusCounts = await this.getJobRunCountsByStatus(lastNDays);
 
     const totalRunLast7Days =
       lastNDays >= 7
         ? runHistory.slice(-7).reduce((acc, item) => {
             return acc + item.count;
           }, 0)
-        : (await this.getRunJobsPerDay(7)).reduce((acc, item) => {
+        : (await this.getRunJobRunsPerDay(7)).reduce((acc, item) => {
             return acc + item.count;
           }, 0);
 
@@ -195,12 +196,12 @@ export class JobService implements OnModuleInit {
     };
   }
 
-  private async getRunJobsPerDay(lastNDays: number) {
+  private async getRunJobRunsPerDay(lastNDays: number) {
     const now = new Date();
     const startDate = new Date();
     startDate.setDate(now.getDate() - lastNDays + 1);
 
-    const queryResult = await this.jobModel
+    const queryResult = await this.jobRunModel
       .aggregate<{
         _id: string;
         count: number;
@@ -242,7 +243,7 @@ export class JobService implements OnModuleInit {
     const sinceDate = new Date();
     sinceDate.setDate(sinceDate.getDate() - lastNDays);
 
-    const result = await this.jobModel
+    const result = await this.jobRunModel
       .aggregate<{ _id: string; jobType: string }>([
         {
           $match: {
@@ -271,13 +272,13 @@ export class JobService implements OnModuleInit {
     return result.map((item) => item.jobType);
   }
 
-  async getJobCountsByStatus(
+  async getJobRunCountsByStatus(
     lastNDays: number,
   ): Promise<Record<'running' | 'completed' | 'failed', number>> {
     const sinceDate = new Date();
     sinceDate.setDate(sinceDate.getDate() - lastNDays);
 
-    const result = await this.jobModel
+    const result = await this.jobRunModel
       .aggregate<{ _id: string; count: number }>([
         {
           $match: {

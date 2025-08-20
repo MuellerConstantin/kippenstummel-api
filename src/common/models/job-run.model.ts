@@ -1,4 +1,4 @@
-export interface Job {
+export interface JobRun {
   jobId: string;
   queue: string;
   name: string;

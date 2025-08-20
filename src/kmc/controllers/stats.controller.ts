@@ -11,7 +11,7 @@ import {
   CvmTotalRegistrationStatsProjection,
 } from 'src/cvm/models';
 import { IdentService } from 'src/ident/services';
-import { JobService } from 'src/common/services';
+import { JobHistoryService } from 'src/common/services';
 
 @Controller({ path: '/kmc/stats', version: '1' })
 @UseGuards(JwtGuard)
@@ -20,7 +20,7 @@ export class StatsController {
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
     private readonly identService: IdentService,
-    private readonly jobService: JobService,
+    private readonly jobHistoryService: JobHistoryService,
   ) {}
 
   @Get()
@@ -44,7 +44,7 @@ export class StatsController {
       queryParams.lastNDays,
     );
 
-    const jobResult = await this.jobService.getTotalStats(
+    const jobResult = await this.jobHistoryService.getTotalStats(
       queryParams.lastNDays,
     );
 

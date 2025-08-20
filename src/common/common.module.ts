@@ -24,9 +24,9 @@ import {
 import { InvalidPayloadError } from './models/error';
 import * as CvmModuleEvents from '../cvm/events';
 import { ValidationError } from 'class-validator';
-import { Job, JobSchema, PiiToken, PiiTokenSchema } from './repositories';
+import { JobRun, JobRunSchema, PiiToken, PiiTokenSchema } from './repositories';
 import {
-  JobService,
+  JobHistoryService,
   PiiService,
   JobManagementConsumer,
   IdentRemovedEventSubscriber,
@@ -125,7 +125,7 @@ import { Domain2ApplicationEventPublisher } from './events';
       inject: [ConfigService],
     }),
     PassportModule,
-    MongooseModule.forFeature([{ name: Job.name, schema: JobSchema }]),
+    MongooseModule.forFeature([{ name: JobRun.name, schema: JobRunSchema }]),
     MongooseModule.forFeature([
       { name: PiiToken.name, schema: PiiTokenSchema },
     ]),
@@ -193,7 +193,7 @@ import { Domain2ApplicationEventPublisher } from './events';
         },
       }),
     },
-    JobService,
+    JobHistoryService,
     PiiService,
     JobManagementConsumer,
     Domain2ApplicationEventPublisher,
@@ -205,7 +205,7 @@ import { Domain2ApplicationEventPublisher } from './events';
     Logger,
     EventSourcingModule,
     CacheModule,
-    JobService,
+    JobHistoryService,
     PiiService,
   ],
 })
