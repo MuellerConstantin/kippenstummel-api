@@ -52,7 +52,36 @@ export class TileComputationConsumer extends WorkerHost {
           >,
         );
       }
+      case 'rAll+r5p+rN5p+rN8p': {
+        return this.recomputeAllVariants(
+          job as Job<
+            { positions: { longitude: number; latitude: number }[] },
+            void,
+            string
+          >,
+        );
+      }
     }
+  }
+
+  async recomputeAllVariants(
+    job: Job<
+      { positions: { longitude: number; latitude: number }[] },
+      void,
+      string
+    >,
+  ): Promise<void> {
+    this.logger.debug(
+      `Updating tiles for alls variants...`,
+      'TileComputationConsumer',
+    );
+    await job.log(`Updating tiles for all variants...`);
+
+    await this.cvmTileService.updateTilesByPositionsForAllVariants(
+      job.data.positions,
+    );
+
+    await job.log(`Updated tiles for all variants`);
   }
 
   async recomputeRAll(

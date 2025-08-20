@@ -68,41 +68,27 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
 
     await Promise.allSettled(operations);
 
-    // Recompute tiles outside of event lifecycle to allow batch processing
-    await this.tileComputationQueue.add('rAll', {
-      positions: [
-        ...command.cvms.map((cvm) => ({
-          longitude: cvm.longitude,
-          latitude: cvm.latitude,
-        })),
-      ],
-    });
+    /*
+     * Recompute tiles outside of event lifecycle to allow batch processing. Batch processing is
+     * needed to avoid both too many individual jobs and one job that's too large. A job that's
+     * too large will cause the NodeJS event queue to crash.
+     */
 
-    await this.tileComputationQueue.add('r5p', {
-      positions: [
-        ...command.cvms.map((cvm) => ({
-          longitude: cvm.longitude,
-          latitude: cvm.latitude,
-        })),
-      ],
-    });
+    const chunkArray = <T>(arr: T[], size: number): T[][] =>
+      arr.reduce<T[][]>((acc, _, i) => {
+        if (i % size === 0) acc.push(arr.slice(i, i + size));
+        return acc;
+      }, []);
 
-    await this.tileComputationQueue.add('rN5p', {
-      positions: [
-        ...command.cvms.map((cvm) => ({
-          longitude: cvm.longitude,
-          latitude: cvm.latitude,
-        })),
-      ],
-    });
+    const batches = chunkArray(command.cvms, 1000);
 
-    await this.tileComputationQueue.add('rN8p', {
-      positions: [
-        ...command.cvms.map((cvm) => ({
+    for (const batch of batches) {
+      await this.tileComputationQueue.add('rAll+r5p+rN5p+rN8p', {
+        positions: batch.map((cvm) => ({
           longitude: cvm.longitude,
           latitude: cvm.latitude,
         })),
-      ],
-    });
+      });
+    }
   }
 }

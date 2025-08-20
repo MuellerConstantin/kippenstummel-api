@@ -58,3 +58,5 @@ export class CvmTile {
 }
 
 export const CvmTileSchema = SchemaFactory.createForClass(CvmTile);
+
+CvmTileSchema.index({ x: 1, y: 1, z: 1, variant: 1 }, { unique: true });
