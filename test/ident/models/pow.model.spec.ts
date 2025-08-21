@@ -1,4 +1,4 @@
-import { MalformedPoWStampError } from 'src/common/models';
+import { MalformedPoWStampError } from 'src/lib/models';
 import { PoWStamp } from 'src/core/ident/models';
 
 describe('PoWStamp', () => {

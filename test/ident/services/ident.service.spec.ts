@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { getModelToken } from '@nestjs/mongoose';
@@ -10,27 +11,31 @@ const identities = new Map<string, Ident>();
 identities.set('4c12ee89-4672-44dd-a23c-29c1ace369b2', {
   identity: '4c12ee89-4672-44dd-a23c-29c1ace369b2',
   secret: '0xCAFEBABE',
-  issuedAt: new Date(),
-  credibility: 60,
-  behaviour: {
-    lastInteractionAt: undefined,
-    averageInteractionInterval: 61231,
-    lastInteractionPosition: {
-      type: 'Point',
-      coordinates: [48.09900075726553, 11.602646642911846],
-    },
-    unrealisticMovementCount: 0,
-    voting: {
-      totalCount: 44,
-      upvoteCount: 30,
-      downvoteCount: 13,
-      lastVotedAt: undefined,
-      averageVotingInterval: 0,
-    },
-    registration: {
-      totalCount: 0,
-      lastRegistrationAt: undefined,
-      averageRegistrationInterval: 0,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  credibility: {
+    identity: '4c12ee89-4672-44dd-a23c-29c1ace369b2',
+    rating: 50,
+    behaviour: {
+      lastInteractionAt: undefined,
+      averageInteractionInterval: 61231,
+      lastInteractionPosition: {
+        type: 'Point',
+        coordinates: [48.09900075726553, 11.602646642911846],
+      },
+      unrealisticMovementCount: 0,
+      voting: {
+        totalCount: 44,
+        upvoteCount: 30,
+        downvoteCount: 13,
+        lastVotedAt: undefined,
+        averageVotingInterval: 0,
+      },
+      registration: {
+        totalCount: 0,
+        lastRegistrationAt: undefined,
+        averageRegistrationInterval: 0,
+      },
     },
   },
 });
@@ -40,6 +45,7 @@ describe('IdentService', () => {
 
   beforeAll(async () => {
     app = await Test.createTestingModule({
+      imports: [EventEmitterModule.forRoot()],
       controllers: [],
       providers: [
         IdentService,
@@ -57,9 +63,24 @@ describe('IdentService', () => {
         {
           provide: getModelToken('Ident'),
           useValue: {
-            findOne: (data: { identity: string }) =>
-              Promise.resolve(identities.get(data.identity)),
+            findOne: jest
+              .fn()
+              .mockImplementation((data: { identity: string }) => ({
+                populate: jest
+                  .fn()
+                  .mockResolvedValue(identities.get(data.identity)),
+              })),
             create: jest.fn(),
+          },
+        },
+        {
+          provide: getModelToken('Credibility'),
+          useValue: {
+            create: () =>
+              Promise.resolve(
+                identities.get('4c12ee89-4672-44dd-a23c-29c1ace369b2')!
+                  .credibility,
+              ),
           },
         },
         {
