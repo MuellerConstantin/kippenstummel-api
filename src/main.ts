@@ -8,7 +8,7 @@ import {
   ApiExceptionFilter,
   DefaultExceptionFilter,
   HttpExceptionFilter,
-} from './common/controllers';
+} from './presentation/common/controllers';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {

@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { getModelToken } from '@nestjs/mongoose';
-import { IdentService } from 'src/ident/services';
-import { Ident } from 'src/ident/repositories';
+import { IdentService } from 'src/core/ident/services';
+import { Ident } from 'src/core/ident/repositories';
 
 const identities = new Map<string, Ident>();
 

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { CaptchaService } from 'src/ident/services';
+import { CaptchaService } from 'src/core/ident/services';
 
 const inMemoryCache = new Map<string, string>();
 

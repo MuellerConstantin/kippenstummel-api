@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import { CommonModule } from './common/common.module';
-import { CvmModule } from './cvm/cvm.module';
-import { IdentModule } from './ident/ident.module';
-import { KmcModule } from './kmc/kmc.module';
+import { CommonPresentationModule } from './presentation/common/common.presentation.module';
+import { CvmPresentationModule } from './presentation/cvm/cvm.presentation.module';
+import { KmcPresentationModule } from './presentation/kmc/kmc.presentation.module';
+import { IdentPresentationModule } from './presentation/ident/ident.presentation.module';
 
 @Module({
   imports: [
@@ -41,10 +41,10 @@ import { KmcModule } from './kmc/kmc.module';
         abortEarly: true,
       },
     }),
-    CommonModule,
-    CvmModule,
-    IdentModule,
-    KmcModule,
+    CommonPresentationModule,
+    CvmPresentationModule,
+    KmcPresentationModule,
+    IdentPresentationModule,
   ],
   controllers: [],
   providers: [],
