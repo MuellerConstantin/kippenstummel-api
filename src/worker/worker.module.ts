@@ -1,0 +1,52 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import * as Joi from 'joi';
+import { CvmCoreModule } from 'src/core/cvm/cvm.core.module';
+import { SchedulingInfrastructureModule } from 'src/infrastructure/scheduling/scheduling.infrastructure.module';
+import { CvmImportConsumer, TileComputationConsumer } from './services';
+import { LoggingInfrastructureModule } from 'src/infrastructure/logging/logging.infrastructure.module';
+import { EventingInfrastructureModule } from 'src/infrastructure/eventing/eventing.infrastructure.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [
+        `.env.${process.env.NODE_ENV}.local`,
+        `.env.${process.env.NODE_ENV}`,
+        '.env.local',
+        '.env',
+        `${process.env.CONFIG_DIR || './config'}/.env.${process.env.NODE_ENV}.local`,
+        `${process.env.CONFIG_DIR || './config'}/.env.${process.env.NODE_ENV}`,
+        `${process.env.CONFIG_DIR || './config'}/.env.local`,
+        `${process.env.CONFIG_DIR || './config'}/.env`,
+      ],
+      validationSchema: Joi.object({
+        NODE_ENV: Joi.string()
+          .valid('development', 'production', 'test', 'staging')
+          .required(),
+        PORT: Joi.number().default(8080),
+        MONGO_URI: Joi.string().uri().required(),
+        REDIS_URI: Joi.string().uri().required(),
+        JWT_SECRET: Joi.string().required(),
+        POW_DIFFICULTY: Joi.number().default(20),
+        POW_EXPIRES_IN: Joi.number().default(60 * 5),
+        IDENT_SECRET: Joi.string().required(),
+        IDENT_EXPIRES_IN: Joi.number().default(60 * 60 * 24 * 7),
+        CAPTCHA_EXPIRES_IN: Joi.number().default(60 * 5),
+        TRANSFER_EXPIRES_IN: Joi.number().default(60 * 5),
+        TMP_DIR: Joi.string().required(),
+      }),
+      validationOptions: {
+        allowUnknown: true,
+        abortEarly: true,
+      },
+    }),
+    SchedulingInfrastructureModule,
+    LoggingInfrastructureModule,
+    EventingInfrastructureModule,
+    CvmCoreModule,
+  ],
+  providers: [TileComputationConsumer, CvmImportConsumer],
+})
+export class WorkerModule {}

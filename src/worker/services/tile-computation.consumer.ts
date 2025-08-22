@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
-import { CvmTileService } from './tile.service';
+import { CvmTileService } from 'src/core/cvm/services';
 import { JobHistoryService } from 'src/infrastructure/scheduling/services';
 
 @Processor('tile-computation')

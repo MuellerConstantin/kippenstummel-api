@@ -27,8 +27,6 @@ import {
 } from './commands';
 import {
   CvmTileService,
-  TileComputationConsumer,
-  CvmImportConsumer,
   CvmRegisteredEventSubscriber,
   CvmUpvotedEventSubscriber,
   CvmDownvotedEventSubscriber,
@@ -85,16 +83,15 @@ import { EventingInfrastructureModule } from 'src/infrastructure/eventing/eventi
     GetAllWithinQueryHandler,
     GetTotalRegistrationStatsQueryHandler,
     GetTotalVotesStatsQueryHandler,
-    TileComputationConsumer,
     CvmManagementConsumer,
     CvmRegisteredEventSubscriber,
     CvmUpvotedEventSubscriber,
     CvmDownvotedEventSubscriber,
-    CvmImportConsumer,
     IdentRemovedEventSubscriber,
     RepositionCvmCommandHandler,
     CvmRepositionedEventSubscriber,
     CvmRestoredEventSubscriber,
   ],
+  exports: [CvmTileService],
 })
 export class CvmCoreModule {}

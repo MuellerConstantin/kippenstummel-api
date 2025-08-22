@@ -4,7 +4,7 @@ import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { CommandBus } from '@ocoda/event-sourcing';
 import { JobHistoryService } from 'src/infrastructure/scheduling/services';
-import { ImportCvmsCommand } from '../commands';
+import { ImportCvmsCommand } from 'src/core/cvm/commands';
 
 @Processor('cvm-import')
 export class CvmImportConsumer extends WorkerHost {
