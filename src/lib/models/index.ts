@@ -19,4 +19,5 @@ export {
   AlterationConflictError,
   ThrottledError,
   AccessDeniedError,
+  InconsistentReadModelError,
 } from './error';

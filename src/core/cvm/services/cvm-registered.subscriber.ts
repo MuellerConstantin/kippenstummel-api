@@ -7,10 +7,14 @@ import {
 } from '@ocoda/event-sourcing';
 import { CvmRegisteredEvent } from '../events';
 import { PiiService } from 'src/infrastructure/pii/services';
+import { InjectModel } from '@nestjs/mongoose';
+import { Cvm } from '../repositories';
+import { Model } from 'mongoose';
 
 @EventSubscriber(CvmRegisteredEvent)
 export class CvmRegisteredEventSubscriber implements IEventSubscriber {
   constructor(
+    @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     @InjectQueue('tile-computation') private tileComputationQueue: Queue,
     @InjectQueue('credibility-computation')
     private credibilityComputationQueue: Queue,
@@ -33,34 +37,21 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
       tokenizedIdentity,
     )) as string | null;
 
-    await this.tileComputationQueue.add('rAll', {
-      positions: [
-        {
-          longitude: position.longitude,
-          latitude: position.latitude,
-        },
-      ],
+    // Update read model
+    await this.cvmModel.create({
+      aggregateId: envelope.payload.cvmId as string,
+      position: {
+        type: 'Point',
+        coordinates: [position.longitude, position.latitude],
+      },
+      score: 0,
+      imported: false,
+      markedForDeletion: false,
+      markedForDeletionAt: null,
+      registeredBy: tokenizedIdentity,
     });
 
-    await this.tileComputationQueue.add('r5p', {
-      positions: [
-        {
-          longitude: position.longitude,
-          latitude: position.latitude,
-        },
-      ],
-    });
-
-    await this.tileComputationQueue.add('rN5p', {
-      positions: [
-        {
-          longitude: position.longitude,
-          latitude: position.latitude,
-        },
-      ],
-    });
-
-    await this.tileComputationQueue.add('rN8p', {
+    await this.tileComputationQueue.add('rAll+r5p+rN5p+rN8p', {
       positions: [
         {
           longitude: position.longitude,

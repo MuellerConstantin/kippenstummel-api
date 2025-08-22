@@ -7,14 +7,16 @@ import {
 } from '@ocoda/event-sourcing';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Cvm } from '../repositories/schemas';
+import { Cvm, Vote } from '../repositories/schemas';
 import { CvmUpvotedEvent } from '../events';
 import { PiiService } from 'src/infrastructure/pii/services';
+import { InconsistentReadModelError } from 'src/lib/models';
 
 @EventSubscriber(CvmUpvotedEvent)
 export class CvmUpvotedEventSubscriber implements IEventSubscriber {
   constructor(
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
+    @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
     @InjectQueue('credibility-computation')
     private credibilityComputationQueue: Queue,
     private readonly piiService: PiiService,
@@ -33,11 +35,27 @@ export class CvmUpvotedEventSubscriber implements IEventSubscriber {
       tokenizedIdentity,
     )) as string | null;
 
-    const result = await this.cvmModel.findOne({ aggregateId: cvmId }).exec();
+    // Update read model
+    const result = await this.cvmModel
+      .findOneAndUpdate(
+        { aggregateId: cvmId },
+        {
+          $inc: { score: envelope.payload.impact },
+        },
+        { new: true },
+      )
+      .exec();
 
     if (!result) {
-      return;
+      throw new InconsistentReadModelError();
     }
+
+    await this.voteModel.create({
+      identity: untokenizedIdentity,
+      cvm: result._id,
+      impact: envelope.payload.impact as number,
+      type: 'upvote',
+    });
 
     const position = {
       longitude: result.position.coordinates[0],

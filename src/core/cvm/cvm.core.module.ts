@@ -34,6 +34,9 @@ import {
   CvmRepositionedEventSubscriber,
   CvmRestoredEventSubscriber,
   CvmManagementConsumer,
+  CvmRemovedEventSubscriber,
+  CvmReportedEventSubscriber,
+  CvmImportedEventSubscriber,
 } from './services';
 import {
   GetAllQueryHandler,
@@ -91,6 +94,9 @@ import { EventingInfrastructureModule } from 'src/infrastructure/eventing/eventi
     RepositionCvmCommandHandler,
     CvmRepositionedEventSubscriber,
     CvmRestoredEventSubscriber,
+    CvmRemovedEventSubscriber,
+    CvmReportedEventSubscriber,
+    CvmImportedEventSubscriber,
   ],
   exports: [CvmTileService],
 })

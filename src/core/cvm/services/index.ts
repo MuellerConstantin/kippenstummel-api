@@ -6,3 +6,6 @@ export { IdentRemovedEventSubscriber } from './ident-removed.subscriber';
 export { CvmRepositionedEventSubscriber } from './cvm-repositioned.subscriber';
 export { CvmRestoredEventSubscriber } from './cvm-restored.subscriber';
 export { CvmManagementConsumer } from './cvm-management.consumer';
+export { CvmRemovedEventSubscriber } from './cvm-removed.subscriber';
+export { CvmReportedEventSubscriber } from './cvm-reported.subscriber';
+export { CvmImportedEventSubscriber } from './cvm-imported.subscriber';

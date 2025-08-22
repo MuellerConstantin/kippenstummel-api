@@ -16,6 +16,7 @@ export enum ApiErrorCode {
   UNSUPPORTED_FILTER_FIELD_ERROR = 'UNSUPPORTED_FILTER_FIELD_ERROR',
   ALTERATION_CONFLICT_ERROR = 'ALTERATION_CONFLICT_ERROR',
   THROTTLED_ERROR = 'THROTTLED_ERROR',
+  INCONSISTENT_READ_MODEL_ERROR = 'INCONSISTENT_READ_MODEL_ERROR',
 }
 
 export const ApiErrorMessages: Record<ApiErrorCode, string> = {
@@ -36,6 +37,7 @@ export const ApiErrorMessages: Record<ApiErrorCode, string> = {
   [ApiErrorCode.UNSUPPORTED_FILTER_FIELD_ERROR]: 'Unsupported filter field',
   [ApiErrorCode.ALTERATION_CONFLICT_ERROR]: 'Alteration conflict',
   [ApiErrorCode.THROTTLED_ERROR]: 'The action was throttled',
+  [ApiErrorCode.INCONSISTENT_READ_MODEL_ERROR]: 'Inconsistent read model',
 };
 
 export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
@@ -56,6 +58,7 @@ export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
   [ApiErrorCode.UNSUPPORTED_FILTER_FIELD_ERROR]: 400,
   [ApiErrorCode.ALTERATION_CONFLICT_ERROR]: 409,
   [ApiErrorCode.THROTTLED_ERROR]: 429,
+  [ApiErrorCode.INCONSISTENT_READ_MODEL_ERROR]: 500,
 };
 
 export abstract class ApiError extends Error {
@@ -199,5 +202,11 @@ export class AlterationConflictError extends ApiError {
 export class ThrottledError extends ApiError {
   constructor(cause?: Error) {
     super(ApiErrorCode.THROTTLED_ERROR, undefined, cause);
+  }
+}
+
+export class InconsistentReadModelError extends ApiError {
+  constructor(cause?: Error) {
+    super(ApiErrorCode.INCONSISTENT_READ_MODEL_ERROR, undefined, cause);
   }
 }

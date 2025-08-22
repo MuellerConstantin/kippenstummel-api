@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { EventStore, EventStream, IEvent } from '@ocoda/event-sourcing';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import {
   CvmAggregate,
   CvmDownvotedEvent,
@@ -11,7 +9,6 @@ import {
   CvmRepositionedEvent,
   CvmUpvotedEvent,
 } from '../models';
-import { Cvm, Repositioning, Vote, Report } from './schemas';
 import { CvmSnapshotRepository } from './cvm.snapshot-repository';
 import { PiiService } from 'src/infrastructure/pii/services';
 import { deepCopy } from 'src/lib';
@@ -21,11 +18,6 @@ export class CvmEventStoreRepository {
   constructor(
     private readonly eventStore: EventStore,
     private readonly cvmSnapshotRepository: CvmSnapshotRepository,
-    @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
-    @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
-    @InjectModel(Repositioning.name)
-    private readonly repositioningModel: Model<Repositioning>,
-    @InjectModel(Report.name) private readonly reportModel: Model<Report>,
     private readonly piiService: PiiService,
   ) {}
 
@@ -190,94 +182,6 @@ export class CvmEventStoreRepository {
         return event;
       }),
     );
-
-    // Update read model
-
-    if (aggregate.removed) {
-      const documentId = (
-        await this.cvmModel.findOne({
-          aggregateId: aggregate.id.value,
-        })
-      )?._id;
-
-      await this.voteModel.deleteMany({ cvm: documentId });
-
-      await this.reportModel.deleteMany({ cvm: documentId });
-
-      await this.repositioningModel.deleteMany({ cvm: documentId });
-
-      await this.cvmModel.deleteOne({ aggregateId: aggregate.id.value });
-    } else {
-      const registeredBy =
-        events.find((event) => event instanceof CvmRegisteredEvent)
-          ?.creatorIdentity || undefined;
-
-      const result = await this.cvmModel.findOneAndUpdate(
-        { aggregateId: aggregate.id.value },
-        {
-          $set: {
-            position: {
-              type: 'Point',
-              coordinates: [aggregate.longitude, aggregate.latitude],
-            },
-            score: aggregate.score,
-            imported: aggregate.imported,
-            markedForDeletion: aggregate.markedForDeletion,
-            markedForDeletionAt: aggregate.markedForDeletionAt,
-          },
-          $setOnInsert: {
-            aggregateId: aggregate.id.value,
-            registeredBy,
-          },
-        },
-        {
-          upsert: true,
-          new: true,
-        },
-      );
-
-      for (const event of events) {
-        if (event instanceof CvmUpvotedEvent) {
-          await this.voteModel.create({
-            identity: event.voterIdentity,
-            cvm: result._id,
-            impact: event.impact,
-            type: 'upvote',
-          });
-        } else if (event instanceof CvmDownvotedEvent) {
-          await this.voteModel.create({
-            identity: event.voterIdentity,
-            cvm: result._id,
-            impact: event.impact,
-            type: 'downvote',
-          });
-        } else if (event instanceof CvmRepositionedEvent) {
-          await this.repositioningModel.create({
-            identity: event.editorIdentity,
-            cvm: result._id,
-            position: {
-              type: 'Point',
-              coordinates: [
-                event.repositionedPosition.longitude,
-                event.repositionedPosition.latitude,
-              ],
-            },
-          });
-        } else if (event instanceof CvmReportedEvent) {
-          await this.reportModel.create({
-            identity: event.reporterIdentity,
-            cvm: result._id,
-            type: event.type,
-          });
-        }
-      }
-    }
-
-    /*
-     * Updating the write model is done after updating the read model. The reason is that
-     * updating the write model publishes all changed events immidiately and hence notifys
-     * subscribers which rely on a consistent read model.
-     */
 
     await this.eventStore.appendEvents(
       stream,
