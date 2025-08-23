@@ -42,10 +42,22 @@ export class CvmRepositionedEventSubscriber implements IEventSubscriber {
       tokenizedIdentity,
     )) as string | null;
 
+    // Update read model
     const result = await this.cvmModel
-      .findOne({
-        aggregateId: envelope.payload.cvmId as string,
-      })
+      .findOneAndUpdate(
+        {
+          aggregateId: envelope.payload.cvmId as string,
+        },
+        {
+          $set: {
+            position: {
+              type: 'Point',
+              coordinates: [newPosition.longitude, newPosition.latitude],
+            },
+          },
+        },
+        { new: true },
+      )
       .exec();
 
     if (!result) {
