@@ -40,9 +40,6 @@ logic is therefore divided into modules.
 
 As the figure shows, the application is divided into the following modules:
 
-- **Common**: Common modules that are used across the application. It contains
-  utility functions and classes, shared types and also application-wide needed
-  services and repositories.
 - **Ident**: Module that handles anonymous user authentication. It issues
   anonymous identities, the related access tokens and provides the necessary
   utilities to assess a user identity's credibility. The module is classically
