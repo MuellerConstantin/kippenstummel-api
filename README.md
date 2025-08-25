@@ -4,6 +4,9 @@
 
 ![](https://img.shields.io/badge/Node.js-20-green?logo=node.js)
 ![](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs)
+![](https://img.shields.io/badge/Database-MongoDB-darkgreen?logo=mongodb)
+![](https://img.shields.io/badge/Database-Redis-red?logo=redis)
+![](https://img.shields.io/badge/Language-TypeScript-blue?logo=typescript)
 
 ![Banner](./docs/images/banner.svg)
 
