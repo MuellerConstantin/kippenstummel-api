@@ -218,27 +218,10 @@ export class CvmTileService {
       },
     }));
 
-    const clustersIndexes = new Supercluster<
-      { cvm: Cvm } & GeoJSON.GeoJsonProperties,
-      { cvm: Cvm } & GeoJSON.GeoJsonProperties
-    >({
-      log: false,
-      radius: CvmTileService.getRadiusForZoom(tile.z),
-      minZoom: 0,
-      maxZoom: 17,
-    });
-
-    clustersIndexes.load(geoJson);
-
     const westLon = boundingBox.bottomLeft.longitude;
     const southLat = boundingBox.bottomLeft.latitude;
     const eastLon = boundingBox.topRight.longitude;
     const northLat = boundingBox.topRight.latitude;
-
-    const result = clustersIndexes.getClusters(
-      [westLon, southLat, eastLon, northLat],
-      tile.z,
-    );
 
     const variants: {
       name: 'rAll' | 'r5p' | 'r0P' | 'rN8p';
@@ -251,17 +234,34 @@ export class CvmTileService {
     ];
 
     for (const variant of variants) {
-      const filteredClusters = result.filter((cluster) => {
-        if (variant.filter === undefined) return true; // rAll
-        const score = cluster.properties.cvm?.score ?? 0;
+      const filteredGeoJson = geoJson.filter((f) => {
+        if (variant.filter === undefined) return true;
+        const score = f.properties.cvm.score ?? 0;
         return score >= variant.filter;
       });
+
+      const clustersIndexes = new Supercluster<
+        { cvm: Cvm } & GeoJSON.GeoJsonProperties,
+        { cvm: Cvm } & GeoJSON.GeoJsonProperties
+      >({
+        log: false,
+        radius: CvmTileService.getRadiusForZoom(tile.z),
+        minZoom: 0,
+        maxZoom: 17,
+      });
+
+      clustersIndexes.load(filteredGeoJson);
+
+      const result = clustersIndexes.getClusters(
+        [westLon, southLat, eastLon, northLat],
+        tile.z,
+      );
 
       await this.cvmTileModel.updateOne(
         { x: tile.x, y: tile.y, z: tile.z, variant: variant.name },
         {
           $set: {
-            clusters: filteredClusters.map((cluster) => ({
+            clusters: result.map((cluster) => ({
               position: {
                 type: 'Point',
                 coordinates: [
