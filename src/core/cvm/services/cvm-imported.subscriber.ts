@@ -25,7 +25,7 @@ export class CvmImportedEventSubscriber implements IEventSubscriber {
         type: 'Point',
         coordinates: [position.longitude, position.latitude],
       },
-      score: 0,
+      score: (envelope.payload.initialScore as number) || 0,
       imported: true,
       markedForDeletion: false,
       markedForDeletionAt: null,

@@ -34,8 +34,8 @@ export class TileComputationConsumer extends WorkerHost {
           >,
         );
       }
-      case 'rN5p': {
-        return this.recomputeRN5p(
+      case 'r0P': {
+        return this.recomputer0P(
           job as Job<
             { positions: { longitude: number; latitude: number }[] },
             void,
@@ -52,7 +52,7 @@ export class TileComputationConsumer extends WorkerHost {
           >,
         );
       }
-      case 'rAll+r5p+rN5p+rN8p': {
+      case 'rAll+r5p+r0P+rN8p': {
         return this.recomputeAllVariants(
           job as Job<
             { positions: { longitude: number; latitude: number }[] },
@@ -123,7 +123,7 @@ export class TileComputationConsumer extends WorkerHost {
     await job.log(`Updated tiles for variant 'r5p'`);
   }
 
-  async recomputeRN5p(
+  async recomputer0P(
     job: Job<
       { positions: { longitude: number; latitude: number }[] },
       void,
@@ -131,17 +131,14 @@ export class TileComputationConsumer extends WorkerHost {
     >,
   ): Promise<void> {
     this.logger.debug(
-      `Updating tiles for variant 'rN5p'...`,
+      `Updating tiles for variant 'r0P'...`,
       'TileComputationConsumer',
     );
-    await job.log(`Updating tiles for variant 'rN5p'...`);
+    await job.log(`Updating tiles for variant 'r0P'...`);
 
-    await this.cvmTileService.updateTilesByPositions(
-      job.data.positions,
-      'rN5p',
-    );
+    await this.cvmTileService.updateTilesByPositions(job.data.positions, 'r0P');
 
-    await job.log(`Updated tiles for variant 'rN5p'`);
+    await job.log(`Updated tiles for variant 'r0P'`);
   }
 
   async recomputeRN8p(

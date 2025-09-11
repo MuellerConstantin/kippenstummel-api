@@ -51,7 +51,7 @@ export class RemoveCvmCommandHandler implements ICommandHandler {
       ],
     });
 
-    await this.tileComputationQueue.add('rN5p', {
+    await this.tileComputationQueue.add('r0P', {
       positions: [
         {
           longitude: aggregate.longitude,

@@ -25,8 +25,8 @@ export class GetAllCvmWithinQueryDto {
 
   @IsString()
   @IsOptional()
-  @IsEnum(['rAll', 'r5p', 'rN5p', 'rN8p'])
-  public variant?: 'rAll' | 'r5p' | 'rN5p' | 'rN8p';
+  @IsEnum(['rAll', 'r5p', 'r0P', 'rN8p'])
+  public variant?: 'rAll' | 'r5p' | 'r0P' | 'rN8p';
 
   get bottomLeftCoordinates(): [number, number] {
     const [latitude, longitude] = this.bottomLeft.split(',').map(Number);

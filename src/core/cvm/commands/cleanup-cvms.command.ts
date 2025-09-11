@@ -68,7 +68,7 @@ export class CleanupCvmsCommandHandler implements ICommandHandler {
       ],
     });
 
-    await this.tileComputationQueue.add('rN5p', {
+    await this.tileComputationQueue.add('r0P', {
       positions: [
         ...cvms.map((cvm) => ({
           longitude: cvm.position.coordinates[0],

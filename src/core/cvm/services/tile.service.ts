@@ -89,7 +89,7 @@ export class CvmTileService {
 
   async updateTile(
     tile: { x: number; y: number; z: number },
-    variant: 'rAll' | 'r5p' | 'rN5p' | 'rN8p' = 'rAll',
+    variant: 'rAll' | 'r5p' | 'r0P' | 'rN8p' = 'rAll',
   ) {
     const Supercluster = (await import('supercluster')).default;
 
@@ -116,8 +116,8 @@ export class CvmTileService {
         filters.push({ score: { $gte: 5 } });
         break;
       }
-      case 'rN5p': {
-        filters.push({ score: { $gte: -5 } });
+      case 'r0P': {
+        filters.push({ score: { $gte: 0 } });
         break;
       }
       case 'rN8p': {
@@ -241,18 +241,18 @@ export class CvmTileService {
     );
 
     const variants: {
-      name: 'rAll' | 'r5p' | 'rN5p' | 'rN8p';
+      name: 'rAll' | 'r5p' | 'r0P' | 'rN8p';
       filter?: number;
     }[] = [
       { name: 'rAll' },
       { name: 'r5p', filter: 5 },
-      { name: 'rN5p', filter: -5 },
+      { name: 'r0P', filter: 0 },
       { name: 'rN8p', filter: -8 },
     ];
 
     for (const variant of variants) {
       const filteredClusters = result.filter((cluster) => {
-        if (!variant.filter) return true; // rAll
+        if (variant.filter === undefined) return true; // rAll
         const score = cluster.properties.cvm?.score ?? 0;
         return score >= variant.filter;
       });
@@ -283,7 +283,7 @@ export class CvmTileService {
 
   async updateTilesByPositions(
     positions: { longitude: number; latitude: number }[],
-    variant: 'rAll' | 'r5p' | 'rN5p' | 'rN8p' = 'rAll',
+    variant: 'rAll' | 'r5p' | 'r0P' | 'rN8p' = 'rAll',
   ) {
     // Supported zoom levels
     const zoomLevels = [
