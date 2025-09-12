@@ -7,14 +7,18 @@ import {
   IsString,
   Max,
   Min,
+  Validate,
 } from 'class-validator';
 import { constants } from 'src/lib';
+import { IsBBoxValidConstraint } from 'src/presentation/common/controllers/dtos/validation/is-bbox-valid';
 
 export class GetAllCvmWithinQueryDto {
   @IsLatLong()
+  @Validate(IsBBoxValidConstraint)
   public bottomLeft: string;
 
   @IsLatLong()
+  @Validate(IsBBoxValidConstraint)
   public topRight: string;
 
   @IsNumber()
