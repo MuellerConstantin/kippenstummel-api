@@ -37,6 +37,7 @@ import {
   CvmRemovedEventSubscriber,
   CvmReportedEventSubscriber,
   CvmImportedEventSubscriber,
+  CvmSynchronizedEventSubscriber,
 } from './services';
 import {
   GetAllQueryHandler,
@@ -97,6 +98,7 @@ import { EventingInfrastructureModule } from 'src/infrastructure/eventing/eventi
     CvmRemovedEventSubscriber,
     CvmReportedEventSubscriber,
     CvmImportedEventSubscriber,
+    CvmSynchronizedEventSubscriber,
   ],
   exports: [CvmTileService],
 })
