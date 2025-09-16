@@ -87,10 +87,7 @@ export class CvmTileService {
     return { bottomLeft, topRight };
   }
 
-  async updateTile(
-    tile: { x: number; y: number; z: number },
-    variant: 'rAll' | 'r5p' | 'r0P' | 'rN8p' = 'rAll',
-  ) {
+  async updateTile(tile: { x: number; y: number; z: number }) {
     const Supercluster = (await import('supercluster')).default;
 
     const boundingBox = CvmTileService.getTileBoundingBox(tile);
@@ -110,25 +107,6 @@ export class CvmTileService {
         },
       },
     ];
-
-    switch (variant) {
-      case 'r5p': {
-        filters.push({ score: { $gte: 5 } });
-        break;
-      }
-      case 'r0P': {
-        filters.push({ score: { $gte: 0 } });
-        break;
-      }
-      case 'rN8p': {
-        filters.push({ score: { $gte: -8 } });
-        break;
-      }
-      case 'rAll':
-      default: {
-        break;
-      }
-    }
 
     const content = await this.cvmModel.find({ $and: filters });
 
@@ -166,7 +144,7 @@ export class CvmTileService {
     );
 
     await this.cvmTileModel.updateOne(
-      { x: tile.x, y: tile.y, z: tile.z, variant },
+      { x: tile.x, y: tile.y, z: tile.z },
       {
         $set: {
           clusters: result.map((cluster) => {
@@ -190,100 +168,8 @@ export class CvmTileService {
     );
   }
 
-  async updateTileForAllVariants(tile: { x: number; y: number; z: number }) {
-    const Supercluster = (await import('supercluster')).default;
-
-    const boundingBox = CvmTileService.getTileBoundingBox(tile);
-
-    const content = await this.cvmModel.find({
-      position: {
-        $geoWithin: {
-          $box: [
-            [boundingBox.bottomLeft.longitude, boundingBox.bottomLeft.latitude],
-            [boundingBox.topRight.longitude, boundingBox.topRight.latitude],
-          ],
-        },
-      },
-    });
-
-    const geoJson: PointFeature<{ cvm: Cvm }>[] = content.map((cvm) => ({
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: [cvm.position.coordinates[0], cvm.position.coordinates[1]],
-      },
-      properties: {
-        cvm,
-        score: cvm.score,
-      },
-    }));
-
-    const westLon = boundingBox.bottomLeft.longitude;
-    const southLat = boundingBox.bottomLeft.latitude;
-    const eastLon = boundingBox.topRight.longitude;
-    const northLat = boundingBox.topRight.latitude;
-
-    const variants: {
-      name: 'rAll' | 'r5p' | 'r0P' | 'rN8p';
-      filter?: number;
-    }[] = [
-      { name: 'rAll' },
-      { name: 'r5p', filter: 5 },
-      { name: 'r0P', filter: 0 },
-      { name: 'rN8p', filter: -8 },
-    ];
-
-    for (const variant of variants) {
-      const filteredGeoJson = geoJson.filter((f) => {
-        if (variant.filter === undefined) return true;
-        const score = f.properties.cvm.score ?? 0;
-        return score >= variant.filter;
-      });
-
-      const clustersIndexes = new Supercluster<
-        { cvm: Cvm } & GeoJSON.GeoJsonProperties,
-        { cvm: Cvm } & GeoJSON.GeoJsonProperties
-      >({
-        log: false,
-        radius: CvmTileService.getRadiusForZoom(tile.z),
-        minZoom: 0,
-        maxZoom: constants.MAX_TILE_ZOOM - 1,
-      });
-
-      clustersIndexes.load(filteredGeoJson);
-
-      const result = clustersIndexes.getClusters(
-        [westLon, southLat, eastLon, northLat],
-        tile.z,
-      );
-
-      await this.cvmTileModel.updateOne(
-        { x: tile.x, y: tile.y, z: tile.z, variant: variant.name },
-        {
-          $set: {
-            clusters: result.map((cluster) => ({
-              position: {
-                type: 'Point',
-                coordinates: [
-                  cluster.geometry.coordinates[0],
-                  cluster.geometry.coordinates[1],
-                ],
-              },
-              cvm: cluster.properties.cluster ? null : cluster.properties.cvm,
-              count: cluster.properties.cluster
-                ? (cluster.properties.point_count as number)
-                : null,
-            })),
-          },
-        },
-        { upsert: true },
-      );
-    }
-  }
-
   async updateTilesByPositions(
     positions: { longitude: number; latitude: number }[],
-    variant: 'rAll' | 'r5p' | 'r0P' | 'rN8p' = 'rAll',
   ) {
     // Supported zoom levels
     const zoomLevels = [
@@ -310,41 +196,7 @@ export class CvmTileService {
       ).values(),
     );
 
-    await Promise.all(
-      uniqueTiles.map((tile) => this.updateTile(tile, variant)),
-    );
-  }
-
-  async updateTilesByPositionsForAllVariants(
-    positions: { longitude: number; latitude: number }[],
-  ) {
-    const zoomLevels = [
-      ...Array(constants.MAX_TILE_ZOOM - constants.MIN_TILE_ZOOM + 1).keys(),
-    ].map((n) => n + constants.MIN_TILE_ZOOM);
-
-    const tiles = zoomLevels
-      .map((zoom) =>
-        positions
-          .map((position) =>
-            CvmTileService.latLonToTile(
-              position.latitude,
-              position.longitude,
-              zoom,
-            ),
-          )
-          .flat(1),
-      )
-      .flat(1);
-
-    const uniqueTiles = Array.from(
-      new Map(
-        tiles.map((tile) => [`${tile.z}_${tile.x}_${tile.y}`, tile]),
-      ).values(),
-    );
-
-    await Promise.all(
-      uniqueTiles.map((tile) => this.updateTileForAllVariants(tile)),
-    );
+    await Promise.all(uniqueTiles.map((tile) => this.updateTile(tile)));
   }
 
   static getRadiusForZoom(zoom: number): number {

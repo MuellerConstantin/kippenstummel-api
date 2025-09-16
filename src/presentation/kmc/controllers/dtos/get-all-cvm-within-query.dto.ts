@@ -1,16 +1,16 @@
 import { Transform } from 'class-transformer';
 import {
-  IsEnum,
   IsLatLong,
   IsNumber,
   IsOptional,
-  IsString,
   Max,
   Min,
   Validate,
 } from 'class-validator';
 import { constants } from 'src/lib';
 import { IsBBoxValidConstraint } from 'src/presentation/common/controllers/dtos/validation/is-bbox-valid';
+import { RsqlToMongoQueryResult } from 'src/presentation/common/controllers/filter';
+import { RsqlToMongoCvmTransformer } from 'src/presentation/cvm/controllers';
 
 export class GetAllCvmWithinQueryDto {
   @IsLatLong()
@@ -27,10 +27,15 @@ export class GetAllCvmWithinQueryDto {
   @Transform(({ value }) => Number(value))
   public zoom: number;
 
-  @IsString()
   @IsOptional()
-  @IsEnum(['rAll', 'r5p', 'r0P', 'rN8p'])
-  public variant?: 'rAll' | 'r5p' | 'r0P' | 'rN8p';
+  @Transform(({ value }) => {
+    if (!value) {
+      return;
+    }
+
+    return new RsqlToMongoCvmTransformer().transform(value as string);
+  })
+  public filter?: RsqlToMongoQueryResult;
 
   get bottomLeftCoordinates(): [number, number] {
     const [latitude, longitude] = this.bottomLeft.split(',').map(Number);

@@ -79,7 +79,7 @@ export class CvmRepositionedEventSubscriber implements IEventSubscriber {
      * theory, the location could be moved to a new tile.
      */
 
-    await this.tileComputationQueue.add('rAll+r5p+r0P+rN8p', {
+    await this.tileComputationQueue.add('precompute', {
       positions: [
         {
           longitude: oldPosition.longitude,

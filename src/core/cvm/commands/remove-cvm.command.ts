@@ -33,34 +33,7 @@ export class RemoveCvmCommandHandler implements ICommandHandler {
     await this.cvmEventStoreRepository.save(aggregate);
 
     // Recompute tiles outside of event lifecycle to allow batch processing
-    await this.tileComputationQueue.add('rAll', {
-      positions: [
-        {
-          longitude: aggregate.longitude,
-          latitude: aggregate.latitude,
-        },
-      ],
-    });
-
-    await this.tileComputationQueue.add('r5p', {
-      positions: [
-        {
-          longitude: aggregate.longitude,
-          latitude: aggregate.latitude,
-        },
-      ],
-    });
-
-    await this.tileComputationQueue.add('r0P', {
-      positions: [
-        {
-          longitude: aggregate.longitude,
-          latitude: aggregate.latitude,
-        },
-      ],
-    });
-
-    await this.tileComputationQueue.add('rN8p', {
+    await this.tileComputationQueue.add('precompute', {
       positions: [
         {
           longitude: aggregate.longitude,

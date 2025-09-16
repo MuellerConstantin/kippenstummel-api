@@ -50,34 +50,7 @@ export class CleanupCvmsCommandHandler implements ICommandHandler {
     await Promise.allSettled(operations);
 
     // Recompute tiles outside of event lifecycle to allow batch processing
-    await this.tileComputationQueue.add('rAll', {
-      positions: [
-        ...cvms.map((cvm) => ({
-          longitude: cvm.position.coordinates[0],
-          latitude: cvm.position.coordinates[1],
-        })),
-      ],
-    });
-
-    await this.tileComputationQueue.add('r5p', {
-      positions: [
-        ...cvms.map((cvm) => ({
-          longitude: cvm.position.coordinates[0],
-          latitude: cvm.position.coordinates[1],
-        })),
-      ],
-    });
-
-    await this.tileComputationQueue.add('r0P', {
-      positions: [
-        ...cvms.map((cvm) => ({
-          longitude: cvm.position.coordinates[0],
-          latitude: cvm.position.coordinates[1],
-        })),
-      ],
-    });
-
-    await this.tileComputationQueue.add('rN8p', {
+    await this.tileComputationQueue.add('precompute', {
       positions: [
         ...cvms.map((cvm) => ({
           longitude: cvm.position.coordinates[0],

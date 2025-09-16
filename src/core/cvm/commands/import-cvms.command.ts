@@ -83,7 +83,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
     const batches = chunkArray(command.cvms, 1000);
 
     for (const batch of batches) {
-      await this.tileComputationQueue.add('rAll+r5p+r0P+rN8p', {
+      await this.tileComputationQueue.add('precompute', {
         positions: batch.map((cvm) => ({
           longitude: cvm.longitude,
           latitude: cvm.latitude,

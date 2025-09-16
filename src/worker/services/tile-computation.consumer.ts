@@ -16,44 +16,8 @@ export class TileComputationConsumer extends WorkerHost {
 
   async process(job: Job<any, any, string>): Promise<any> {
     switch (job.name) {
-      case 'rAll': {
-        return this.recomputeRAll(
-          job as Job<
-            { positions: { longitude: number; latitude: number }[] },
-            void,
-            string
-          >,
-        );
-      }
-      case 'r5p': {
-        return this.recomputeR5p(
-          job as Job<
-            { positions: { longitude: number; latitude: number }[] },
-            void,
-            string
-          >,
-        );
-      }
-      case 'r0P': {
-        return this.recomputer0P(
-          job as Job<
-            { positions: { longitude: number; latitude: number }[] },
-            void,
-            string
-          >,
-        );
-      }
-      case 'rN8p': {
-        return this.recomputeRN8p(
-          job as Job<
-            { positions: { longitude: number; latitude: number }[] },
-            void,
-            string
-          >,
-        );
-      }
-      case 'rAll+r5p+r0P+rN8p': {
-        return this.recomputeAllVariants(
+      case 'precompute': {
+        return this.precompute(
           job as Job<
             { positions: { longitude: number; latitude: number }[] },
             void,
@@ -64,102 +28,19 @@ export class TileComputationConsumer extends WorkerHost {
     }
   }
 
-  async recomputeAllVariants(
+  async precompute(
     job: Job<
       { positions: { longitude: number; latitude: number }[] },
       void,
       string
     >,
   ): Promise<void> {
-    this.logger.debug(
-      `Updating tiles for alls variants...`,
-      'TileComputationConsumer',
-    );
-    await job.log(`Updating tiles for all variants...`);
+    this.logger.debug('Precomputing tiles...', 'TileComputationConsumer');
+    await job.log('Precomputing tiles...');
 
-    await this.cvmTileService.updateTilesByPositionsForAllVariants(
-      job.data.positions,
-    );
+    await this.cvmTileService.updateTilesByPositions(job.data.positions);
 
-    await job.log(`Updated tiles for all variants`);
-  }
-
-  async recomputeRAll(
-    job: Job<
-      { positions: { longitude: number; latitude: number }[] },
-      void,
-      string
-    >,
-  ): Promise<void> {
-    this.logger.debug(
-      `Updating tiles for variant 'rAll'...`,
-      'TileComputationConsumer',
-    );
-    await job.log(`Updating tiles for variant 'rAll'...`);
-
-    await this.cvmTileService.updateTilesByPositions(
-      job.data.positions,
-      'rAll',
-    );
-
-    await job.log(`Updated tiles for variant 'rAll'`);
-  }
-
-  async recomputeR5p(
-    job: Job<
-      { positions: { longitude: number; latitude: number }[] },
-      void,
-      string
-    >,
-  ): Promise<void> {
-    this.logger.debug(
-      `Updating tiles for variant 'r5p'...`,
-      'TileComputationConsumer',
-    );
-    await job.log(`Updating tiles for variant 'r5p'...`);
-
-    await this.cvmTileService.updateTilesByPositions(job.data.positions, 'r5p');
-
-    await job.log(`Updated tiles for variant 'r5p'`);
-  }
-
-  async recomputer0P(
-    job: Job<
-      { positions: { longitude: number; latitude: number }[] },
-      void,
-      string
-    >,
-  ): Promise<void> {
-    this.logger.debug(
-      `Updating tiles for variant 'r0P'...`,
-      'TileComputationConsumer',
-    );
-    await job.log(`Updating tiles for variant 'r0P'...`);
-
-    await this.cvmTileService.updateTilesByPositions(job.data.positions, 'r0P');
-
-    await job.log(`Updated tiles for variant 'r0P'`);
-  }
-
-  async recomputeRN8p(
-    job: Job<
-      { positions: { longitude: number; latitude: number }[] },
-      void,
-      string
-    >,
-  ): Promise<void> {
-    this.logger.debug(
-      `Updating tiles for variant 'rN8p'...`,
-      'TileComputationConsumer',
-    );
-    await job.log(`Updating tiles for variant 'rN8p'...`);
-
-    await this.cvmTileService.updateTilesByPositions(
-      job.data.positions,
-      'rN8p',
-    );
-
-    await job.log(`Updated tiles for variant 'rN8p'`);
+    await job.log('Tile precomputation finished');
   }
 
   @OnWorkerEvent('active')

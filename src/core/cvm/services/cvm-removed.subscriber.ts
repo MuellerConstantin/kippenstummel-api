@@ -43,7 +43,7 @@ export class CvmRemovedEventSubscriber implements IEventSubscriber {
       aggregateId: envelope.payload.cvmId as string,
     });
 
-    await this.tileComputationQueue.add('rAll+r5p+r0P+rN8p', {
+    await this.tileComputationQueue.add('precompute', {
       positions: [
         {
           longitude: position.longitude,

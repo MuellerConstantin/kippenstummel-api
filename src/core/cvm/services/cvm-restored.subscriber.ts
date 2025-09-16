@@ -37,7 +37,7 @@ export class CvmRestoredEventSubscriber implements IEventSubscriber {
       registeredBy: null,
     });
 
-    await this.tileComputationQueue.add('rAll+r5p+r0P+rN8p', {
+    await this.tileComputationQueue.add('precompute', {
       positions: [
         {
           longitude: position.longitude,

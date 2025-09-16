@@ -1,8 +1,9 @@
 const MIN_CVM_SCORE = -10;
 const MAX_CVM_SCORE = 10;
 const DEFAULT_CVM_VOTE_IMPACT = 1;
-const MIN_TILE_ZOOM = 12;
+const MIN_TILE_ZOOM = 8;
 const MAX_TILE_ZOOM = 18;
+const DYNAMIC_CLUSTERING_ZOOM_LIMIT = 12;
 
 /**
  * Rules for the registration cooldown period in minutes based on credibility.
@@ -162,6 +163,7 @@ export {
   MAX_CVM_SCORE,
   MIN_TILE_ZOOM,
   MAX_TILE_ZOOM,
+  DYNAMIC_CLUSTERING_ZOOM_LIMIT,
   SAME_CVM_RADIUS,
   NEARBY_CVM_RADIUS,
   CVM_VOTE_DELAY,

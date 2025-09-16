@@ -60,7 +60,7 @@ export class CvmController {
       bottomLeft,
       topRight,
       queryParams.zoom,
-      queryParams.variant,
+      queryParams.filter,
     );
     const result = await this.queryBus.execute<
       GetAllWithinQuery,
