@@ -156,7 +156,7 @@ export class CvmImportConsumer extends WorkerHost {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch OSM data');
+        throw new Error('Failed to fetch OSM data', { cause: response });
       }
 
       const data = (await response.json()) as {
