@@ -39,6 +39,13 @@ export class GetAllWithinQueryHandler
   public async execute(
     query: GetAllWithinQuery,
   ): Promise<(CvmProjection | CvmClusterProjection)[]> {
+    /*
+     * Depending on the kind of query, use either precomputed data or dynamic computed data. By default,
+     * the precomputed cluster data is returned to improve performance. Only if necessary, i.e. if custom
+     * filters are set and the zoom level exceeds a certain threshold (zoomed in), the clusters are
+     * computed on-the-fly to match the query.
+     */
+
     if (query.filter && query.zoom >= constants.DYNAMIC_CLUSTERING_ZOOM_LIMIT) {
       return this.useDynamicComputedData(query);
     } else {
@@ -46,6 +53,15 @@ export class GetAllWithinQueryHandler
     }
   }
 
+  /**
+   * Use precomputed clusters when zoomed out (lower zoom levels) or no filters are applied
+   * to improve performance. These clusters are precomputed asynchronously and persisted in the
+   * database by the {@link CvmTileService}.
+   *
+   * @param query The query
+   * @returns The precomputed clusters
+   * @see {@link CvmTileService}
+   */
   private async usePrecomputedData(
     query: GetAllWithinQuery,
   ): Promise<(CvmProjection | CvmClusterProjection)[]> {
@@ -70,6 +86,8 @@ export class GetAllWithinQueryHandler
       .flatMap((item) => item.clusters)
       .filter((item) => item.cvm !== null)
       .map((item) => (item.cvm as CvmDocument)._id);
+
+    // Enrich single data points with additional metadata
 
     const reportCounts = await this.getRecentReportCounts(cvmIds);
     const votedStatus = query.fetcherIdentity
@@ -109,6 +127,13 @@ export class GetAllWithinQueryHandler
       });
   }
 
+  /**
+   * Use dynamic computed data when zoomed in (higher zoom levels) and filters are applied.
+   * This allows more complex queries and user defined filters.
+   *
+   * @param query The query
+   * @returns The dynamic computed data
+   */
   private async useDynamicComputedData(
     query: GetAllWithinQuery,
   ): Promise<(CvmProjection | CvmClusterProjection)[]> {

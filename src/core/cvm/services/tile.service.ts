@@ -5,6 +5,10 @@ import type { PointFeature } from 'supercluster';
 import { Cvm, CvmTile } from '../repositories/schemas';
 import { constants } from 'src/lib';
 
+/**
+ * The CVM tile service, used for precomputing CVM clusters tile-wise. The precomputed
+ * clusters are persisted and used for faster queries for lower zoom levels.
+ */
 @Injectable()
 export class CvmTileService {
   constructor(
@@ -147,6 +151,14 @@ export class CvmTileService {
       { x: tile.x, y: tile.y, z: tile.z },
       {
         $set: {
+          /*
+           * For smaller zoom levels (<DYNAMIC_CLUSTERING_ZOOM_LIMIT), single points are not
+           * allowed. The reason for this is that filters only take effect above this limit
+           * and at lower zoom levels no individual points should be displayed which could
+           * disappear when zooming in with the filter set. Hence, any single points remaining
+           * after clustering are converted into artificial single-node clusters for these zoom
+           * levels.
+           */
           clusters: result.map((cluster) => {
             return {
               position: {
@@ -156,10 +168,16 @@ export class CvmTileService {
                   cluster.geometry.coordinates[1],
                 ],
               },
-              cvm: cluster.properties.cluster ? null : cluster.properties.cvm,
-              count: cluster.properties.cluster
-                ? (cluster.properties.point_count as number)
-                : null,
+              cvm:
+                cluster.properties.cluster ||
+                tile.z < constants.DYNAMIC_CLUSTERING_ZOOM_LIMIT
+                  ? null
+                  : cluster.properties.cvm,
+              count:
+                cluster.properties.cluster ||
+                tile.z < constants.DYNAMIC_CLUSTERING_ZOOM_LIMIT
+                  ? (cluster.properties.point_count as number) || 1
+                  : null,
             };
           }),
         },
