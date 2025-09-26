@@ -1,0 +1,1145 @@
+openapi: 3.0.3
+info:
+  title: Kippenstummel - KMC API
+  version: v1
+  description: |
+    Kippenstummel is a service that allows smokers to quickly and easily find nearby
+    cigarette vending machines. Users can report, rate, and retrieve the locations of
+    cigarette vending machines. This is the documentation of Kippenstummel's KMC API, a
+    RESTful interface.
+
+    # General
+
+    The web interface is a administrative interface (Kippenstummel Management Console)
+    with limited access. It is a HTTP-based RESTful interface. The concepts discussed
+    in this section apply to the entire interface. This interface is not intended for
+    public use.
+
+    ## HTTP Verbs
+
+    The API generally uses HTTP verbs to control the various operations. Depending on the
+    verb, a specific operation is assumed. The following table clearly clarifies their
+    use and meaning within the API.
+
+    | Verb         | Description                                                       |
+    |--------------|-------------------------------------------------------------------|
+    | HEAD         | Used for retrieving metadata of resources.                        |
+    | GET          | Used for retrieving resources.                                    |
+    | POST         | Used for creating resources.                                      |
+    | PATCH        | Used for updating resources partially.                            |
+    | PUT          | Used for replacing resources.                                     |
+    | DELETE       | Used for deleting resources.                                      |
+
+    ## Content Negotiation
+
+    Unless otherwise specified, this API always expects and sends resources as
+    `application/json`. Content negotiation, hence requesting resources in alternative
+    representations, is not supported.
+
+    ## Timestamps
+
+    Timestamps are returned in [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html)
+    format: `YYYY-MM-DDTHH:mm:ss.sss`. The time stamp is always specified in zulu time
+    (UTC). A corresponding time zone indication is attached.
+
+    ## Pagination
+
+    Some of the queries read from a larger subset of the data. In these cases,
+    pagination is used to avoid performance problems. In general, the pagination
+    behaviour is controlled by the query parameters `page`, the page index, and
+    `perPage`, the page size. Please note that not all endpoints/resources support
+    pagination.
+
+    ```
+    ?page=0&perPage=30
+    ```
+
+    >[!note]
+    >The offset numbering is zero-based. Omitting the offset parameter sets the
+    >requested page to zero by default and returns the first X elements of a
+    >collection. Requests that return multiple items will be paginated to 25
+    >items by default.
+
+    ## Filtering
+
+    Some endpoints support filtering of the results. To filter the results, the RSQL
+    query language is used in combination with the HTTP query parameter `filter`.
+
+    ```
+    ?filter="score>=5"
+    ```
+
+    >[!note]
+    >When filtering a collection, not all fields of a Data Transfer Object (DTO)
+    >necessarily have to be supported. In individual cases, only a subset of the
+    >available fields may be supported. This also applies to the available operators,
+    >some might not be supported for certain properties.
+
+    ## Error Handling
+
+    All endpoints of the API return a well-defined error response in case of an
+    error. This error response contains among others the `code` field which
+    indicates the exact type of the error, in case the HTTP status code does not
+    provide enough information. The following error codes are used combined with
+    the HTTP status code:
+
+    | Error Code                       | Status Code | Description                   |
+    |----------------------------------|-------------|-------------------------------|
+    | `INTERNAL_ERROR`                 | 500         | Internal error occured        |
+    | `NOT_FOUND_ERROR`                | 404         | Resource not found            |
+    | `INVALID_PAYLOAD_ERROR`          | 422         | Payload validation failed     |
+    | `MALFORMED_POW_STAMP_ERROR`      | 403         | Malformed PoW stamp           |
+    | `INVALID_POW_STAMP_ERROR`        | 403         | Invalid PoW stamp             |
+    | `MALFORMED_CAPTCHA_STAMP_ERROR`  | 403         | Malformed Captcha stamp       |
+    | `INVALID_CAPTCHA_STAMP_ERROR`    | 403         | Invalid Captcha stamp         |
+    | `ACCESS_DENIED_ERROR`            | 403         | Access denied                 |
+    | `INVALID_IDENT_TOKEN_ERROR`      | 401         | Invalid ident token           |
+    | `UNAUTHENTICATED_ERROR`          | 401         | Unauthenticated request       |
+    | `OUT_OF_REACH_ERROR`             | 403         | Out of reach                  |
+    | `UNKNOWN_IDENTITY_ERROR`         | 401         | Unknown identity              |
+    | `INVALID_IMPORT_FILE_ERROR`      | 400         | Invalid import file           |
+    | `INVALID_FILTER_QUERY_ERROR`     | 400         | Invalid filter query          |
+    | `UNSUPPORTED_FILTER_FIELD_ERROR` | 400         | Unsupported filter field      |
+    | `ALTERATION_CONFLICT_ERROR`      | 409         | Alteration conflict           |
+    | `THROTTLED_ERROR`                | 429         | The action was throttled      |
+    | `INCONSISTENT_READ_MODEL_ERROR`  | 500         | Inconsistent read model       |
+
+    ### Error Details
+
+    For some errors, additional details are provided in the `details` field. The following
+    error types have additional details:
+
+    - `INVALID_PAYLOAD_ERROR`
+    - `UNSUPPORTED_FILTER_FIELD_ERROR`
+
+    ## Authentication
+
+    Almost all endpoints of the API require authentication. Authentication
+    is achieved by a stateless token based authentication mechanism that is using
+    the *HTTP Bearer Authentication* scheme most of the time.
+
+    ```
+    Authorization: Bearer <ACCESS TOKEN>
+    ```
+
+    A JWT access token is generated in exchange for user credentials. These
+    credentials are obviously not the anonymous identities used for the public
+    part of the service, but rather separate administrator access. Therefore, an
+    administrator account is required to create an access token and use this API.
+  license:
+    name: GNU Affero General Public License v3.0
+    url: https://www.gnu.org/licenses/agpl-3.0.en.html
+  contact:
+    name: Constantin Müller
+    url: https://www.mueller-constantin.de
+    email: info@mueller-constantin.de
+servers:
+  - url: http://localhost:8080/api/v1/kmc
+    description: Development Server
+tags:
+  - name: Cvm
+    description: Collection of all cigarette vending machines and their locations.
+  - name: Ident
+    description: Controls user identities and authentication.
+  - name: Jobs
+    description: Collection of all scheduled jobs and their management.
+  - name: Stats
+    description: Collection of all statistics and insights.
+paths:
+  /cvms/within:
+    get:
+      tags:
+        - Cvm
+      summary: Returns all CVMs within a viewport.
+      description: >
+        This query returns all CVMs within a given viewport. For performance reasons,
+        the results are returned clustered.
+      parameters:
+        - name: bottomLeft
+          in: query
+          required: true
+          schema:
+            type: string
+            format: geo-coordinate
+        - name: topRight
+          in: query
+          required: true
+          schema:
+            type: string
+            format: geo-coordinate
+        - name: zoom
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 8
+            maximum: 18
+            example: 12
+        - name: filter
+          in: query
+          schema:
+            type: string
+            format: rsql
+      responses:
+        '200':
+          description: Successfully fetched the available CVMs.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: '#/components/schemas/CvmDto'
+                    - $ref: '#/components/schemas/CvmClusterDto'
+              example:
+                - cluster: true
+                  longitude: 8.643423914909363
+                  latitude: 48.96735746543166
+                  count: 4
+                - id: '8efba6ad-08ef-4f0b-b207-f5767ddd3072'
+                  longitude: 8.6402179
+                  latitude: 48.8068875
+                  score: 7
+                  recentlyReported:
+                    missing: 0
+                    spam: 1
+                    inactive: 0
+                    inaccessible: 0
+                  imported: true
+                  createdAt: 2025-09-16T15:03:20.567Z
+                  updatedAt: 2025-09-16T15:03:20.567Z
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/429'
+  /cvms:
+    get:
+      tags:
+        - Cvm
+      summary: Returns all CVMs (paginated).
+      description: >
+        This query returns all cigarette vending machines in a paginated format.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            example: 0
+        - name: perPage
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            example: 25
+        - name: filter
+          in: query
+          schema:
+            type: string
+            format: rsql
+      responses:
+        '200':
+          description: Successfully fetched the paginated CVMs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CvmPageDto'
+              example:
+                content:
+                  - id: '8efba6ad-08ef-4f0b-b207-f5767ddd3072'
+                    longitude: 8.6402179
+                    latitude: 48.8068875
+                    score: 7
+                    recentlyReported:
+                      missing: 0
+                      spam: 1
+                      inactive: 0
+                      inaccessible: 0
+                    imported: false
+                    createdAt: 2025-09-16T15:03:20.567Z
+                    updatedAt: 2025-09-16T15:03:20.567Z
+                info:
+                  page: 0
+                  perPage: 25
+                  totalElements: 1
+                  totalPages: 1
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/429'
+  /cvms/{cvmId}:
+    get:
+      tags:
+        - Cvm
+      summary: Returns a specific CVM.
+      description: This query returns a specific CVM.
+      parameters:
+        - name: cvmId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successfully fetched the CVM.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CvmDto'
+              example:
+                id: '8efba6ad-08ef-4f0b-b207-f5767ddd3072'
+                longitude: 8.6402179
+                latitude: 48.8068875
+                score: 7
+                recentlyReported:
+                  missing: 0
+                  spam: 1
+                  inactive: 0
+                  inaccessible: 0
+                imported: false
+                createdAt: 2025-09-16T15:03:20.567Z
+                updatedAt: 2025-09-16T15:03:20.567Z
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/429'
+    delete:
+      tags:
+        - Cvm
+      summary: Deletes a specific CVM.
+      description: Deletes the cigarette vending machine with the given ID.
+      parameters:
+        - name: cvmId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Successfully deleted the CVM.
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/429'
+  /cvms/import/manual:
+    post:
+      tags:
+        - Cvm
+      summary: Imports CVMs manually.
+      description: Imports a list of cigarette vending machines from JSON input.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportManualDto'
+            example:
+              cvms:
+                - longitude: 8.6402179
+                  latitude: 48.8068875
+                  score: 5
+                - longitude: 8.6410001
+                  latitude: 48.8075001
+                  score: -2
+      responses:
+        '204':
+          description: Successfully queued manual import.
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/429'
+        '422':
+          $ref: '#/components/responses/422'
+  /cvms/import/file:
+    post:
+      tags:
+        - Cvm
+      summary: Imports CVMs from a JSON file.
+      description: Uploads a JSON file containing cigarette vending machines for import.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+            example:
+              file: (binary json file)
+      responses:
+        '204':
+          description: Successfully queued file import.
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/429'
+        '422':
+          $ref: '#/components/responses/422'
+  /cvms/import/osm:
+    post:
+      tags:
+        - Cvm
+      summary: Imports CVMs from OpenStreetMap.
+      description: Triggers an import of cigarette vending machines from OSM for a specific region.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImportOsmDto'
+            example:
+              region: 'Stuttgart'
+      responses:
+        '204':
+          description: Successfully queued OSM import.
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/429'
+        '422':
+          $ref: '#/components/responses/422'
+  /ident:
+    get:
+      tags:
+        - Ident
+      summary: Returns all identities (paginated).
+      description: >
+        This query returns all user identities in a paginated format.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            example: 0
+        - name: perPage
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            example: 25
+        - name: filter
+          in: query
+          schema:
+            type: string
+            format: rsql
+      responses:
+        '200':
+          description: Successfully fetched the paginated identities.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentPageDto'
+              example:
+                content:
+                  - identity: 69fcc159-c25f-4c2a-8df8-3a492cfe007c
+                    credibility: 75
+                    createdAt: 2025-09-16T15:03:20.567Z
+                    updatedAt: 2025-09-18T11:21:00.123Z
+                info:
+                  page: 0
+                  perPage: 25
+                  totalElements: 1
+                  totalPages: 1
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/429'
+  /ident/{id}:
+    get:
+      tags:
+        - Ident
+      summary: Returns a specific identity.
+      description: This query returns a specific identity.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully fetched the identity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentInfoDto'
+              example:
+                identity: 69fcc159-c25f-4c2a-8df8-3a492cfe007c
+                credibility: 75
+                createdAt: 2025-09-16T15:03:20.567Z
+                updatedAt: 2025-09-18T11:21:00.123Z
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/429'
+    delete:
+      tags:
+        - Ident
+      summary: Deletes a specific identity.
+      description: Deletes the user identity with the given ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Successfully deleted the identity.
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/429'
+  /jobs/runs:
+    get:
+      tags:
+        - Jobs
+      summary: Returns all job runs (paginated).
+      description: >
+        This query returns the execution history of scheduled jobs in a paginated format.
+        Optionally, distinct job runs can be retrieved.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            example: 0
+        - name: perPage
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            example: 25
+        - name: distinct
+          in: query
+          schema:
+            type: boolean
+            example: false
+      responses:
+        '200':
+          description: Successfully fetched the paginated job runs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobPageDto'
+              example:
+                content:
+                  - jobId: 150
+                    name: 'osm'
+                    queue: 'cvm-import'
+                    data:
+                      region: 'Karlsruhe, Baden-Württemberg'
+                    status: 'completed'
+                    result:
+                      imported: 120
+                    failedReason: null
+                    attemptsMade: 1
+                    timestamp: 2025-09-16T12:00:00.000Z
+                    finishedOn: 2025-09-16T12:05:00.000Z
+                    logs:
+                      - 'Started job at 12:00'
+                      - 'Finished successfully'
+                    createdAt: 2025-09-16T11:59:59.000Z
+                    updatedAt: 2025-09-16T12:05:01.000Z
+                info:
+                  page: 0
+                  perPage: 25
+                  totalElements: 1
+                  totalPages: 1
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/429'
+  /stats:
+    get:
+      tags:
+        - Stats
+      summary: Returns total statistics.
+      description: >
+        This query returns statistics and insights about cigarette vending machines, votes,
+        identities, and jobs. The query can be limited to the last N days.
+      parameters:
+        - name: lastNDays
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 365
+            default: 14
+            example: 30
+      responses:
+        '200':
+          description: Successfully fetched the statistics.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TotalStatsDto'
+              example:
+                cvms:
+                  total: 200
+                  averageScore: 5.3
+                  imports:
+                    total: 80
+                    totalLast7Days: 10
+                    history:
+                      - date: '2025-09-10'
+                        count: 3
+                      - date: '2025-09-11'
+                        count: 2
+                  registrations:
+                    total: 120
+                    totalLast7Days: 8
+                    history:
+                      - date: '2025-09-12'
+                        count: 4
+                votes:
+                  total: 400
+                  upvotes:
+                    total: 300
+                    totalLast7Days: 20
+                    history:
+                      - date: '2025-09-13'
+                        count: 5
+                  downvotes:
+                    total: 100
+                    totalLast7Days: 8
+                    history:
+                      - date: '2025-09-13'
+                        count: 3
+                idents:
+                  total: 50
+                  averageCredibility: 7.2
+                  totalNewLast7Days: 5
+                  newHistory:
+                    - date: '2025-09-14'
+                      count: 2
+                jobs:
+                  total: 30
+                  differentTypes: 5
+                  statusCounts:
+                    running: 2
+                    completed: 25
+                    failed: 3
+                  totalRunLast7Days: 10
+                  runHistory:
+                    - date: '2025-09-15'
+                      count: 4
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '422':
+          $ref: '#/components/responses/422'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/429'
+components:
+  schemas:
+    ErrorDto:
+      type: object
+      properties:
+        code:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        message:
+          type: string
+        path:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required:
+        - code
+        - message
+        - timestamp
+        - path
+    CvmDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        latitude:
+          type: number
+          format: geo-coordinate
+        longitude:
+          type: number
+          format: geo-coordinate
+        score:
+          type: number
+          minimum: -10
+          maximum: 10
+        recentlyReported:
+          type: object
+          properties:
+            missing:
+              type: number
+              minimum: 0
+            spam:
+              type: number
+              minimum: 0
+            inactive:
+              type: number
+              minimum: 0
+            inaccessible:
+              type: number
+              minimum: 0
+          required:
+            - missing
+            - spam
+            - inactive
+            - inaccessible
+        imported:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - latitude
+        - longitude
+        - score
+        - recentlyReported
+        - createdAt
+        - updatedAt
+    CvmClusterDto:
+      type: object
+      properties:
+        cluster:
+          type: boolean
+        latitude:
+          type: number
+          format: geo-coordinate
+        longitude:
+          type: number
+          format: geo-coordinate
+        count:
+          type: number
+          minimum: 0
+      required:
+        - cluster
+        - latitude
+        - longitude
+        - count
+    CvmPageDto:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/CvmDto'
+        info:
+          type: object
+          properties:
+            page:
+              type: integer
+            perPage:
+              type: integer
+            totalElements:
+              type: integer
+            totalPages:
+              type: integer
+          required:
+            - page
+            - perPage
+            - totalElements
+            - totalPages
+      required:
+        - content
+        - info
+    ImportManualCvmDto:
+      type: object
+      properties:
+        longitude:
+          type: number
+          format: geo-coordinate
+        latitude:
+          type: number
+          format: geo-coordinate
+        score:
+          type: number
+          minimum: -10
+          maximum: 10
+      required:
+        - longitude
+        - latitude
+    ImportManualDto:
+      type: object
+      properties:
+        cvms:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportManualCvmDto'
+      required:
+        - cvms
+    ImportOsmDto:
+      type: object
+      properties:
+        region:
+          type: string
+      required:
+        - region
+    IdentInfoDto:
+      type: object
+      properties:
+        identity:
+          type: string
+        credibility:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - identity
+        - credibility
+    IdentPageDto:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdentInfoDto'
+        info:
+          type: object
+          properties:
+            page:
+              type: integer
+            perPage:
+              type: integer
+            totalElements:
+              type: integer
+            totalPages:
+              type: integer
+          required:
+            - page
+            - perPage
+            - totalElements
+            - totalPages
+      required:
+        - content
+        - info
+    JobDto:
+      type: object
+      properties:
+        jobId:
+          type: integer
+        queue:
+          type: string
+        name:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+        result:
+          type: object
+          additionalProperties: true
+        failedReason:
+          type: string
+          nullable: true
+        attemptsMade:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+        finishedOn:
+          type: string
+          format: date-time
+        logs:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - jobId
+        - queue
+        - name
+        - data
+        - status
+        - attemptsMade
+    JobPageDto:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/JobDto'
+        info:
+          type: object
+          properties:
+            page:
+              type: integer
+            perPage:
+              type: integer
+            totalElements:
+              type: integer
+            totalPages:
+              type: integer
+          required:
+            - page
+            - perPage
+            - totalElements
+            - totalPages
+      required:
+        - content
+        - info
+    TotalStatsDto:
+      type: object
+      properties:
+        cvms:
+          type: object
+          properties:
+            total:
+              type: integer
+            averageScore:
+              type: number
+            imports:
+              type: object
+              properties:
+                total:
+                  type: integer
+                totalLast7Days:
+                  type: integer
+                history:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                      count:
+                        type: integer
+            registrations:
+              type: object
+              properties:
+                total:
+                  type: integer
+                totalLast7Days:
+                  type: integer
+                history:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                      count:
+                        type: integer
+        votes:
+          type: object
+          properties:
+            total:
+              type: integer
+            upvotes:
+              type: object
+              properties:
+                total:
+                  type: integer
+                totalLast7Days:
+                  type: integer
+                history:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                      count:
+                        type: integer
+            downvotes:
+              type: object
+              properties:
+                total:
+                  type: integer
+                totalLast7Days:
+                  type: integer
+                history:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                      count:
+                        type: integer
+        idents:
+          type: object
+          properties:
+            total:
+              type: integer
+            averageCredibility:
+              type: number
+            totalNewLast7Days:
+              type: integer
+            newHistory:
+              type: array
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                  count:
+                    type: integer
+        jobs:
+          type: object
+          properties:
+            total:
+              type: integer
+            differentTypes:
+              type: integer
+            statusCounts:
+              type: object
+              properties:
+                running:
+                  type: integer
+                completed:
+                  type: integer
+                failed:
+                  type: integer
+            totalRunLast7Days:
+              type: integer
+            runHistory:
+              type: array
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                  count:
+                    type: integer
+      required:
+        - cvms
+        - votes
+        - idents
+        - jobs
+  responses:
+    '500':
+      description: An internal error has occurred on the server side.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    '400':
+      description: The request was incorrectly configured.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    '401':
+      description: Authentication failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    '422':
+      description: The request payload validation failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    '404':
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    '429':
+      description: Too many requests.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    '403':
+      description: Forbidden.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: jwt
+security:
+  - jwt: []

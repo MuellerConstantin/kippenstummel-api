@@ -30,6 +30,7 @@ COPY --from=builder /usr/local/src/kippenstummel/api/package-lock.json ./package
 RUN npm ci --only=production
 
 COPY --from=builder /usr/local/src/kippenstummel/api/dist ./dist
+COPY public ./public
 
 EXPOSE 8080
 

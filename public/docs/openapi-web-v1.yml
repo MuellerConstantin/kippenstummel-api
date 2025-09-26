@@ -1,0 +1,938 @@
+openapi: 3.0.3
+info:
+  title: Kippenstummel - Web API
+  version: v1
+  description: |
+    Kippenstummel is a service that allows smokers to quickly and easily find nearby
+    cigarette vending machines. Users can report, rate, and retrieve the locations of
+    cigarette vending machines. This is the documentation of Kippenstummel's Web API, a
+    RESTful interface.
+
+    # General
+
+    The web interface is an open-access, HTTP-based RESTful interface. The concepts
+    discussed in this section apply to the entire interface. Although the interface is
+    publicly accessible, separate regulations apply, particularly to its use by third
+    parties. Therefore, please familiarize yourself with the terms of use and legal
+    requirements before using the interface.
+
+    ## HTTP Verbs
+
+    The API generally uses HTTP verbs to control the various operations. Depending on the
+    verb, a specific operation is assumed. The following table clearly clarifies their
+    use and meaning within the API.
+
+    | Verb         | Description                                                       |
+    |--------------|-------------------------------------------------------------------|
+    | HEAD         | Used for retrieving metadata of resources.                        |
+    | GET          | Used for retrieving resources.                                    |
+    | POST         | Used for creating resources.                                      |
+    | PATCH        | Used for updating resources partially.                            |
+    | PUT          | Used for replacing resources.                                     |
+    | DELETE       | Used for deleting resources.                                      |
+
+    ## Content Negotiation
+
+    Unless otherwise specified, this API always expects and sends resources as
+    `application/json`. Content negotiation, hence requesting resources in alternative
+    representations, is not supported.
+
+    ## Timestamps
+
+    Timestamps are returned in [ISO 8601](https://www.iso.org/iso-8601-date-and-time-format.html)
+    format: `YYYY-MM-DDTHH:mm:ss.sss`. The time stamp is always specified in zulu time
+    (UTC). A corresponding time zone indication is attached.
+
+    ## Pagination
+
+    Some of the queries read from a larger subset of the data. In these cases,
+    pagination is used to avoid performance problems. In general, the pagination
+    behaviour is controlled by the query parameters `page`, the page index, and
+    `perPage`, the page size. Please note that not all endpoints/resources support
+    pagination.
+
+    ```
+    ?page=0&perPage=30
+    ```
+
+    >[!note]
+    >The offset numbering is zero-based. Omitting the offset parameter sets the
+    >requested page to zero by default and returns the first X elements of a
+    >collection. Requests that return multiple items will be paginated to 25
+    >items by default.
+
+    ## Filtering
+
+    Some endpoints support filtering of the results. To filter the results, the RSQL
+    query language is used in combination with the HTTP query parameter `filter`.
+
+    ```
+    ?filter="score>=5"
+    ```
+
+    >[!note]
+    >When filtering a collection, not all fields of a Data Transfer Object (DTO)
+    >necessarily have to be supported. In individual cases, only a subset of the
+    >available fields may be supported. This also applies to the available operators,
+    >some might not be supported for certain properties.
+
+    ## Error Handling
+
+    All endpoints of the API return a well-defined error response in case of an
+    error. This error response contains among others the `code` field which
+    indicates the exact type of the error, in case the HTTP status code does not
+    provide enough information. The following error codes are used combined with
+    the HTTP status code:
+
+    | Error Code                       | Status Code | Description                   |
+    |----------------------------------|-------------|-------------------------------|
+    | `INTERNAL_ERROR`                 | 500         | Internal error occured        |
+    | `NOT_FOUND_ERROR`                | 404         | Resource not found            |
+    | `INVALID_PAYLOAD_ERROR`          | 422         | Payload validation failed     |
+    | `MALFORMED_POW_STAMP_ERROR`      | 403         | Malformed PoW stamp           |
+    | `INVALID_POW_STAMP_ERROR`        | 403         | Invalid PoW stamp             |
+    | `MALFORMED_CAPTCHA_STAMP_ERROR`  | 403         | Malformed Captcha stamp       |
+    | `INVALID_CAPTCHA_STAMP_ERROR`    | 403         | Invalid Captcha stamp         |
+    | `ACCESS_DENIED_ERROR`            | 403         | Access denied                 |
+    | `INVALID_IDENT_TOKEN_ERROR`      | 401         | Invalid ident token           |
+    | `UNAUTHENTICATED_ERROR`          | 401         | Unauthenticated request       |
+    | `OUT_OF_REACH_ERROR`             | 403         | Out of reach                  |
+    | `UNKNOWN_IDENTITY_ERROR`         | 401         | Unknown identity              |
+    | `INVALID_IMPORT_FILE_ERROR`      | 400         | Invalid import file           |
+    | `INVALID_FILTER_QUERY_ERROR`     | 400         | Invalid filter query          |
+    | `UNSUPPORTED_FILTER_FIELD_ERROR` | 400         | Unsupported filter field      |
+    | `ALTERATION_CONFLICT_ERROR`      | 409         | Alteration conflict           |
+    | `THROTTLED_ERROR`                | 429         | The action was throttled      |
+    | `INCONSISTENT_READ_MODEL_ERROR`  | 500         | Inconsistent read model       |
+
+    ### Error Details
+
+    For some errors, additional details are provided in the `details` field. The following
+    error types have additional details:
+
+    - `INVALID_PAYLOAD_ERROR`
+    - `UNSUPPORTED_FILTER_FIELD_ERROR`
+
+    ## Authentication
+
+    The platform does not require user account registration. Accordingly, there is no
+    authentication in the traditional sense. However, in certain cases, such as submitting
+    or changing locations, or rating, authentication in the technical sense is required.
+
+    Instead of registering with their personal information, the user is issued an anonymous
+    identity consisting of an identifier and a secret. All user interactions are linked to
+    this anonymous identity, and the user can also authenticate themselves to the system
+    using these anonymous credentials.
+
+    ```
+    Identity: 69fcc159-c25f-4c2a-8df8-3a492cfe007c
+    Secret: d63a47e5b5c2a5477c384a7e007aa4a276e28e1e2f33ea027eb66e16acb3bfbe49694e44259bde20da74ae4e82138d1bcfd8771d7b96220bbebfc5d59b8fb79a
+    ```
+
+    After receiving the anonymous credentials, the authentication flow essentially follows
+    the classic procedure. In exchange for a valid anonymous identity, which requires the
+    submission of the identifier and secret, the user is issued a JWT access token. This
+    token is used for all subsequent authentication requests. For this purpose, the *HTTP
+    Bearer Authentication* schema and the `Authorization` header are used.
+
+    ```
+    Authorization: Bearer <ACCESS TOKEN>
+    ```
+
+    ## Challenge-Response Mechanisms
+
+    This platform uses a number of challenge-response mechanisms to prevent abuse and
+    ensure the security of the system. The following mechanisms are used:
+
+    - Proof-of-Work (PoW)
+    - Captcha
+
+    ### Proof-of-Work (PoW)
+
+    PoW is a computational challenge-response mechanism that requires the client to solve a
+    mathematical problem in order to prove that they are not a robot. The difficulty of the
+    problem is set by the server and is determined by the number of leading zeros in the
+    hash of the challenge itself. The server will provide the challenge in the following
+    format:
+
+    ```
+    <difficulty>:<expiresAt>:<algorithm>:<nonce>[:<counter>]
+    ```
+
+    The client's task is to find a value (often called a counter or solution) which, when
+    appended to the challenge and hashed with the specified algorithm (e.g. SHA-256), produces
+    a hash with the required number of leading zeros defined by the `difficulty`.
+
+    ### Captcha
+
+    Captcha is a visual challenge-response mechanism that requires the user to solve a
+    simple visual challenge. The server will generate a short alphanumeric string and
+    embedd it into an image. The user is then presented with the image and asked to
+    enter the string into a text field.
+  license:
+    name: GNU Affero General Public License v3.0
+    url: https://www.gnu.org/licenses/agpl-3.0.en.html
+  contact:
+    name: Constantin Müller
+    url: https://www.mueller-constantin.de
+    email: info@mueller-constantin.de
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development Server
+  - url: https://api.kippenstummel.de/api/v1
+    description: Production Server
+tags:
+  - name: Cvm
+    description: Collection of all cigarette vending machines and their locations.
+  - name: Ident
+    description: Controls user identities and authentication.
+paths:
+  /ident:
+    get:
+      tags:
+        - Ident
+      summary: Issues a new anonymous identity.
+      description: >
+        Issues a new anonymous identity consisting of an identifier and a secret.  
+        To prevent abuse, a captcha must also be solved, and the client must provide
+        proof of work. Both solutions must be provided via headers.
+      security: []
+      parameters:
+        - name: X-PoW
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Proof-of-Work stamp (`<difficulty>:<expiresAt>:<algorithm>:<nonce>[:<counter>]`).
+        - name: X-Captcha
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Captcha stamp (`<id>:<text>`).
+      responses:
+        '200':
+          description: Successfully issued a new identity.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentSecretDto'
+              example:
+                identity: 69fcc159-c25f-4c2a-8df8-3a492cfe007c
+                secret: d63a47e5b5c2a5477c384a7e007aa4a276e28e1e2f33ea027eb66e16acb3bfbe49694e44259bde20da74ae4e82138d1bcfd8771d7b96220bbebfc5d59b8fb79a
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+    post:
+      tags:
+        - Ident
+      summary: Exchanges identity credentials for an access token.
+      description: >
+        Exchanges the anonymous identity (identifier + secret) for a JWT access token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentityDto'
+            example:
+              identity: 69fcc159-c25f-4c2a-8df8-3a492cfe007c
+              secret: d63a47e5b5c2a5477c384a7e007aa4a276e28e1e2f33ea027eb66e16acb3bfbe49694e44259bde20da74ae4e82138d1bcfd8771d7b96220bbebfc5d59b8fb79a
+      responses:
+        '200':
+          description: Successfully generated an access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentTokenDto'
+              example:
+                identity: 69fcc159-c25f-4c2a-8df8-3a492cfe007c
+                token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '422':
+          $ref: '#/components/responses/422'
+  /ident/transfer:
+    post:
+      tags:
+        - Ident
+      summary: Requests a transfer token.
+      description: >
+        Requests a transfer token for securely transferring an identity to another device.  
+        Requires authentication with an existing access token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EncryptedIdentityDto'
+            example:
+              identity: 69fcc159-c25f-4c2a-8df8-3a492cfe007c
+              encryptedSecret: someEncryptedSecretValue
+      responses:
+        '200':
+          description: Successfully generated a transfer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferTokenDto'
+              example:
+                identity: 69fcc159-c25f-4c2a-8df8-3a492cfe007c
+                token: 3c9ff59c-9fcb-4a1e-b68b-df17a64e0f9a
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '422':
+          $ref: '#/components/responses/422'
+        '401':
+          $ref: '#/components/responses/401'
+  /ident/transfer/{token}:
+    get:
+      tags:
+        - Ident
+      summary: Verifies a transfer token.
+      description: >
+        Verifies a transfer token and returns the encrypted secret for the identity.
+      security: []
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successfully verified the transfer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncryptedIdentSecretDto'
+              example:
+                identity: 69fcc159-c25f-4c2a-8df8-3a492cfe007c
+                encryptedSecret: someEncryptedSecretValue
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+  /pow:
+    get:
+      tags:
+        - Ident
+      summary: Issues a PoW challenge.
+      description: >
+        Issues a new Proof-of-Work challenge. The challenge is returned in the
+        `X-PoW` response header.
+      security: []
+      responses:
+        '200':
+          description: Successfully issued a PoW challenge.
+          headers:
+            X-PoW:
+              description: Proof-of-Work challenge stamp (`<difficulty>:<expiresAt>:<algorithm>:<nonce>[:<counter>]`).
+              schema:
+                type: string
+        '500':
+          $ref: '#/components/responses/500'
+  /captcha:
+    get:
+      tags:
+        - Ident
+      summary: Issues a captcha challenge.
+      description: >
+        Issues a new captcha challenge. The captcha (image) is returned as a base64-encoded
+        data URI.
+      security: []
+      responses:
+        '200':
+          description: Successfully issued a captcha challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptchaDto'
+              example:
+                id: b4c9f1e2-0c9d-4f71-9f71-123456789abc
+                content: data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...
+        '500':
+          $ref: '#/components/responses/500'
+  /cvms:
+    get:
+      tags:
+        - Cvm
+      summary: Returns all CVMs within a viewport.
+      security: []
+      description: >
+        This query returns all CVMs within a given viewport. For performance reasons,
+        the results are returned clustered.
+      parameters:
+        - name: bottomLeft
+          in: query
+          required: true
+          schema:
+            type: string
+            format: geo-coordinate
+        - name: topRight
+          in: query
+          required: true
+          schema:
+            type: string
+            format: geo-coordinate
+        - name: zoom
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 8
+            maximum: 18
+            example: 12
+        - name: filter
+          in: query
+          schema:
+            type: string
+            format: rsql
+      responses:
+        '200':
+          description: Successfully fetched the available CVMs.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: '#/components/schemas/CvmDto'
+                    - $ref: '#/components/schemas/CvmClusterDto'
+              example:
+                - cluster: true
+                  longitude: 8.643423914909363
+                  latitude: 48.96735746543166
+                  count: 4
+                - id: '8efba6ad-08ef-4f0b-b207-f5767ddd3072'
+                  longitude: 8.6402179
+                  latitude: 48.8068875
+                  score: 7
+                  recentlyReported:
+                    missing: 0
+                    spam: 1
+                    inactive: 0
+                    inaccessible: 0
+                  createdAt: 2025-09-16T15:03:20.567Z
+                  updatedAt: 2025-09-16T15:03:20.567Z
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+    post:
+      tags:
+        - Cvm
+      summary: Registers a new CVM.
+      description: Registers a new cigarette vending machine at the given coordinates.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterCvmDto'
+            example:
+              longitude: 8.6402179
+              latitude: 48.8068875
+      responses:
+        '204':
+          description: Successfully registered the CVM.
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '422':
+          $ref: '#/components/responses/422'
+        '401':
+          $ref: '#/components/responses/401'
+        '429':
+          $ref: '#/components/responses/429'
+  /cvms/{cvmId}:
+    get:
+      tags:
+        - Cvm
+      summary: Returns a specific CVM.
+      security: []
+      parameters:
+        - name: cvmId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successfully fetched the CVM.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CvmDto'
+              example:
+                id: '8efba6ad-08ef-4f0b-b207-f5767ddd3072'
+                longitude: 8.6402179
+                latitude: 48.8068875
+                score: 7
+                recentlyReported:
+                  missing: 0
+                  spam: 1
+                  inactive: 0
+                  inaccessible: 0
+                createdAt: 2025-09-16T15:03:20.567Z
+                updatedAt: 2025-09-16T15:03:20.567Z
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+    patch:
+      tags:
+        - Cvm
+      summary: Repositions an existing CVM.
+      parameters:
+        - name: cvmId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepositionCvmDto'
+            example:
+              repositionedLongitude: 8.6410001
+              repositionedLatitude: 48.8075001
+              editorLongitude: 8.6402179
+              editorLatitude: 48.8068875
+      responses:
+        '204':
+          description: Successfully repositioned the CVM.
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '422':
+          $ref: '#/components/responses/422'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+  /cvms/{cvmId}/downvote:
+    post:
+      tags:
+        - Cvm
+      summary: Downvotes a CVM.
+      parameters:
+        - name: cvmId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DownvoteCvmDto'
+            example:
+              longitude: 8.6402179
+              latitude: 48.8068875
+      responses:
+        '204':
+          description: Successfully downvoted the CVM.
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '422':
+          $ref: '#/components/responses/422'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+  /cvms/{cvmId}/upvote:
+    post:
+      tags:
+        - Cvm
+      summary: Upvotes a CVM.
+      parameters:
+        - name: cvmId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpvoteCvmDto'
+            example:
+              longitude: 8.6402179
+              latitude: 48.8068875
+      responses:
+        '204':
+          description: Successfully upvoted the CVM.
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '422':
+          $ref: '#/components/responses/422'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+  /cvms/{cvmId}/report:
+    post:
+      tags:
+        - Cvm
+      summary: Reports a CVM.
+      description: Reports a cigarette vending machine for being missing, spam, inactive, or inaccessible.
+      parameters:
+        - name: cvmId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportCvmDto'
+            example:
+              longitude: 8.6402179
+              latitude: 48.8068875
+              type: spam
+      responses:
+        '204':
+          description: Successfully reported the CVM.
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '422':
+          $ref: '#/components/responses/422'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+        '429':
+          $ref: '#/components/responses/429'
+components:
+  schemas:
+    ErrorDto:
+      type: object
+      properties:
+        code:
+          type: string
+          description: The type of error.
+        timestamp:
+          type: string
+          format: date-time
+          description: The time the error occurred.
+        message:
+          type: string
+          description: Human-readable description of the error.
+        path:
+          type: string
+          description: The endpoint path on which the error occurred.
+        details:
+          description: Further information on the error or its cause.
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      required:
+        - code
+        - message
+        - timestamp
+        - path
+    CvmDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        latitude:
+          type: number
+          format: geo-coordinate
+        longitude:
+          type: number
+          format: geo-coordinate
+        score:
+          type: number
+          minimum: -10
+          maximum: 10
+        recentlyReported:
+          type: object
+          properties:
+            missing:
+              type: number
+              minimum: 0
+            spam:
+              type: number
+              minimum: 0
+            inactive:
+              type: number
+              minimum: 0
+            inaccessible:
+              type: number
+              minimum: 0
+          required:
+            - missing
+            - spam
+            - inactive
+            - inaccessible
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - latitude
+        - longitude
+        - score
+        - recentlyReported
+        - createdAt
+        - updatedAt
+    CvmClusterDto:
+      type: object
+      properties:
+        cluster:
+          type: boolean
+        latitude:
+          type: number
+          format: geo-coordinate
+        longitude:
+          type: number
+          format: geo-coordinate
+        count:
+          type: number
+          minimum: 0
+      required:
+        - cluster
+        - latitude
+        - longitude
+        - count
+    RegisterCvmDto:
+      type: object
+      properties:
+        longitude:
+          type: number
+          format: geo-coordinate
+        latitude:
+          type: number
+          format: geo-coordinate
+      required:
+        - longitude
+        - latitude
+    RepositionCvmDto:
+      type: object
+      properties:
+        repositionedLongitude:
+          type: number
+          format: geo-coordinate
+        repositionedLatitude:
+          type: number
+          format: geo-coordinate
+        editorLongitude:
+          type: number
+          format: geo-coordinate
+        editorLatitude:
+          type: number
+          format: geo-coordinate
+      required:
+        - repositionedLongitude
+        - repositionedLatitude
+        - editorLongitude
+        - editorLatitude
+    UpvoteCvmDto:
+      type: object
+      properties:
+        longitude:
+          type: number
+          format: geo-coordinate
+        latitude:
+          type: number
+          format: geo-coordinate
+      required:
+        - longitude
+        - latitude
+    DownvoteCvmDto:
+      type: object
+      properties:
+        longitude:
+          type: number
+          format: geo-coordinate
+        latitude:
+          type: number
+          format: geo-coordinate
+      required:
+        - longitude
+        - latitude
+    ReportCvmDto:
+      type: object
+      properties:
+        longitude:
+          type: number
+          format: geo-coordinate
+        latitude:
+          type: number
+          format: geo-coordinate
+        type:
+          type: string
+          enum: [missing, spam, inactive, inaccessible]
+      required:
+        - longitude
+        - latitude
+        - type
+    IdentSecretDto:
+      type: object
+      properties:
+        identity:
+          type: string
+          format: uuid
+        secret:
+          type: string
+      required:
+        - identity
+        - secret
+    IdentityDto:
+      type: object
+      properties:
+        identity:
+          type: string
+          format: uuid
+        secret:
+          type: string
+      required:
+        - identity
+        - secret
+    IdentTokenDto:
+      type: object
+      properties:
+        identity:
+          type: string
+          format: uuid
+        token:
+          type: string
+      required:
+        - identity
+        - token
+    EncryptedIdentityDto:
+      type: object
+      properties:
+        identity:
+          type: string
+          format: uuid
+        encryptedSecret:
+          type: string
+      required:
+        - identity
+        - encryptedSecret
+    EncryptedIdentSecretDto:
+      type: object
+      properties:
+        identity:
+          type: string
+          format: uuid
+        encryptedSecret:
+          type: string
+      required:
+        - identity
+        - encryptedSecret
+    TransferTokenDto:
+      type: object
+      properties:
+        identity:
+          type: string
+          format: uuid
+        token:
+          type: string
+      required:
+        - identity
+        - token
+    CaptchaDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          type: string
+          description: Base64 encoded data URI containing the captcha image.
+      required:
+        - id
+        - content
+  responses:
+    '500':
+      description: An internal error has occurred on the server side.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    '400':
+      description: The request was incorrectly configured.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    '401':
+      description: Authentication failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    '422':
+      description: The request payload validation failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    '404':
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    '429':
+      description: Too many requests.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    '403':
+      description: Forbidden.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: jwt
+security:
+  - jwt: []

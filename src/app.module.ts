@@ -1,5 +1,7 @@
+import * as path from 'path';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import * as Joi from 'joi';
 import { CommonPresentationModule } from './presentation/common/common.presentation.module';
 import { CvmPresentationModule } from './presentation/cvm/cvm.presentation.module';
@@ -39,6 +41,13 @@ import { IdentPresentationModule } from './presentation/ident/ident.presentation
       validationOptions: {
         allowUnknown: true,
         abortEarly: true,
+      },
+    }),
+    ServeStaticModule.forRoot({
+      serveRoot: '/static',
+      rootPath: path.join(__dirname, '..', 'public'),
+      serveStaticOptions: {
+        index: false,
       },
     }),
     CommonPresentationModule,

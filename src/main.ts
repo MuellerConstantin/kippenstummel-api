@@ -40,6 +40,8 @@ async function bootstrap() {
     }),
   });
 
+  const { apiReference } = await import('@scalar/nestjs-api-reference');
+
   const logger = new Logger('Bootstrap');
   const configService = app.get<ConfigService>(ConfigService);
   const defaultExceptionFilter = app.get<DefaultExceptionFilter>(
@@ -59,6 +61,28 @@ async function bootstrap() {
   app.enableVersioning({
     type: VersioningType.URI,
   });
+  app.use(
+    '/docs/v1/web',
+    apiReference({
+      url: '/static/docs/openapi-web-v1.yml',
+      favicon: '/static/favicon.svg',
+      metaData: {
+        title: 'Kippenstummel - KMC API Documentation',
+      },
+      hiddenClients: true,
+    }),
+  );
+  app.use(
+    '/docs/v1/kmc',
+    apiReference({
+      url: '/static/docs/openapi-kmc-v1.yml',
+      favicon: '/static/favicon.svg',
+      metaData: {
+        title: 'Kippenstummel - Web API Documentation',
+      },
+      hiddenClients: true,
+    }),
+  );
 
   await app.listen(configService.get('PORT') ?? 8080);
 
