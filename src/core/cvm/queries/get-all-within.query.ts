@@ -185,7 +185,7 @@ export class GetAllWithinQueryHandler
         { cvm: Cvm } & GeoJSON.GeoJsonProperties
       >({
         log: false,
-        radius: GetAllWithinQueryHandler.getRadiusForZoom(query.zoom),
+        radius: 150,
         minZoom: 0,
         maxZoom: constants.MAX_TILE_ZOOM - 1,
       });
@@ -279,7 +279,7 @@ export class GetAllWithinQueryHandler
         { cvm: Cvm } & GeoJSON.GeoJsonProperties
       >({
         log: false,
-        radius: GetAllWithinQueryHandler.getRadiusForZoom(query.zoom),
+        radius: 150,
         minZoom: 0,
         maxZoom: constants.MAX_TILE_ZOOM - 1,
       });
@@ -420,11 +420,5 @@ export class GetAllWithinQueryHandler
     }
 
     return result;
-  }
-
-  static getRadiusForZoom(zoom: number): number {
-    const raw = 500 - 25 * zoom;
-    const minRadius = 50;
-    return Math.max(raw, minRadius);
   }
 }
