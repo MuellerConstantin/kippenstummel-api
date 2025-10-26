@@ -509,6 +509,7 @@ paths:
               example:
                 identity: 69fcc159-c25f-4c2a-8df8-3a492cfe007c
                 credibility: 75
+                karma: 120
                 createdAt: 2025-09-16T15:03:20.567Z
                 updatedAt: 2025-09-18T11:21:00.123Z
         '500':
@@ -854,6 +855,8 @@ components:
           type: string
         credibility:
           type: number
+        karma:
+          type: number
         createdAt:
           type: string
           format: date-time
@@ -863,6 +866,7 @@ components:
       required:
         - identity
         - credibility
+        - karma
     IdentPageDto:
       type: object
       properties:
