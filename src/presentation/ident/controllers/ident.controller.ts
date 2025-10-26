@@ -13,6 +13,7 @@ import {
 } from './dtos';
 import { IdentGuard } from './ident.guard';
 import { Identity } from './ident.decorator';
+import { IdentInfoDto } from 'src/presentation/kmc/controllers/dtos';
 
 @Controller({ path: 'ident', version: '1' })
 export class IdentController {
@@ -33,6 +34,12 @@ export class IdentController {
       body.identity,
       body.secret,
     );
+  }
+
+  @UseGuards(IdentGuard)
+  @Get('/me')
+  async getMe(@Identity() identity: string): Promise<IdentInfoDto> {
+    return await this.identService.getIdentity(identity);
   }
 
   @UseGuards(IdentGuard)
