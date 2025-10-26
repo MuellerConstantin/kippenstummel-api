@@ -9,12 +9,16 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { PiiService } from 'src/infrastructure/pii/services';
 import { InconsistentReadModelError } from 'src/lib/models';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @EventSubscriber(CvmReportedEvent)
 export class CvmReportedEventSubscriber implements IEventSubscriber {
   constructor(
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     @InjectModel(Report.name) private readonly reportModel: Model<Report>,
+    @InjectQueue('karma-computation')
+    private karmaComputationQueue: Queue,
     private readonly piiService: PiiService,
   ) {}
 
@@ -46,5 +50,25 @@ export class CvmReportedEventSubscriber implements IEventSubscriber {
       cvm: result._id,
       type: envelope.payload.type as string,
     });
+
+    await this.karmaComputationQueue.add('recompute', {
+      targetIdentity: untokenizedIdentity,
+      cvmId: envelope.payload.cvmId as string,
+      action: 'downvote_cast',
+    });
+
+    if (result.registeredBy) {
+      const untokenizedRegisteredBy = (await this.piiService.untokenizePii(
+        result.registeredBy,
+      )) as string | null;
+
+      if (untokenizedRegisteredBy) {
+        await this.karmaComputationQueue.add('recompute', {
+          targetIdentity: untokenizedRegisteredBy,
+          cvmId: envelope.payload.cvmId as string,
+          action: 'downvote_received',
+        });
+      }
+    }
   }
 }

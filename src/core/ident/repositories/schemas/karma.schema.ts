@@ -13,6 +13,8 @@ export class KarmaEvent {
       'downvote_received',
       'upvote_cast',
       'downvote_cast',
+      'report_cast',
+      'report_received',
     ],
     required: true,
   })
@@ -21,7 +23,9 @@ export class KarmaEvent {
     | 'upvote_received'
     | 'downvote_received'
     | 'upvote_cast'
-    | 'downvote_cast';
+    | 'downvote_cast'
+    | 'report_cast'
+    | 'report_received';
 
   @Prop({ required: true })
   delta: number;

@@ -18,7 +18,9 @@ export class KarmaService {
       | 'upvote_received'
       | 'downvote_received'
       | 'upvote_cast'
-      | 'downvote_cast',
+      | 'downvote_cast'
+      | 'report_cast'
+      | 'report_received',
   ) {
     const delta = KarmaService.getDeltaForAction(action);
 
@@ -45,7 +47,9 @@ export class KarmaService {
       | 'upvote_received'
       | 'downvote_received'
       | 'upvote_cast'
-      | 'downvote_cast',
+      | 'downvote_cast'
+      | 'report_cast'
+      | 'report_received',
   ): number {
     switch (action) {
       case 'registration':
@@ -58,6 +62,10 @@ export class KarmaService {
         return 1;
       case 'downvote_cast':
         return -1;
+      case 'report_cast':
+        return -1;
+      case 'report_received':
+        return -10;
       default:
         return 0;
     }
