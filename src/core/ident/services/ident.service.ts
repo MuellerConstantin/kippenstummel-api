@@ -11,7 +11,7 @@ import {
   UnknownIdentityError,
 } from 'src/lib/models';
 import { InjectModel } from '@nestjs/mongoose';
-import { Credibility, Ident } from '../repositories';
+import { Credibility, Ident, Karma } from '../repositories';
 import { Model, PipelineStage } from 'mongoose';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { IdentCreatedEvent, IdentRemovedEvent } from '../events';
@@ -26,6 +26,8 @@ export class IdentService {
     @InjectModel(Ident.name) private readonly identModel: Model<Ident>,
     @InjectModel(Credibility.name)
     private readonly credibilityModel: Model<Credibility>,
+    @InjectModel(Karma.name)
+    private readonly karmaModel: Model<Karma>,
     private eventEmitter: EventEmitter2,
   ) {}
 
@@ -81,10 +83,16 @@ export class IdentService {
       rating: 50,
     });
 
+    const karma = await this.karmaModel.create({
+      identity,
+      amount: 100,
+    });
+
     await this.identModel.create({
       identity,
       secret: hashedSecret,
       credibility: credibility._id,
+      karma: karma._id,
     });
 
     this.eventEmitter.emit('ident-created', new IdentCreatedEvent(identity));
@@ -105,7 +113,8 @@ export class IdentService {
   async getIdentity(identity: string): Promise<IdentInfo> {
     const result = await this.identModel
       .findOne({ identity })
-      .populate('credibility');
+      .populate('credibility')
+      .populate('karma');
 
     if (!result) {
       throw new UnknownIdentityError();
@@ -114,6 +123,7 @@ export class IdentService {
     return {
       identity: result.identity,
       credibility: result.credibility.rating,
+      karma: result.karma.amount,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
     };
@@ -161,7 +171,22 @@ export class IdentService {
             as: 'credibility_fallback',
           },
         },
+        /*
+         * In any case, we always need a karma lookup to correctly set
+         * the rating in the ident model. To avoid collisions between the lookups,
+         * in case the dynamic RSQL filter should already initiate a lookup; the
+         * lookup is intentionally renamed here.
+         */
+        {
+          $lookup: {
+            from: 'karmas',
+            localField: 'karma',
+            foreignField: '_id',
+            as: 'karma_fallback',
+          },
+        },
         { $unwind: '$credibility_fallback' },
+        { $unwind: '$karma_fallback' },
         ...(dataPipeline as PipelineStage[]),
       ]);
 
@@ -172,6 +197,8 @@ export class IdentService {
           updatedAt: ident.updatedAt,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           credibility: (ident as any).credibility_fallback.rating,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          karma: (ident as any).karma_fallback.amount,
         })),
         info: {
           page,
@@ -188,6 +215,7 @@ export class IdentService {
       const content = await this.identModel
         .find(filterObj)
         .populate('credibility')
+        .populate('karma')
         .skip(skip)
         .limit(pageable.perPage);
 
@@ -199,6 +227,7 @@ export class IdentService {
           createdAt: ident.createdAt,
           updatedAt: ident.updatedAt,
           credibility: ident.credibility.rating,
+          karma: ident.karma.amount,
         })),
         info: {
           page: pageable.page,

@@ -25,6 +25,9 @@ import { LoggingInfrastructureModule } from '../logging/logging.infrastructure.m
       name: 'credibility-computation',
     }),
     BullModule.registerQueue({
+      name: 'karma-computation',
+    }),
+    BullModule.registerQueue({
       name: 'cvm-import',
     }),
     BullModule.registerQueue({

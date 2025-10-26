@@ -1,1 +1,8 @@
-export { Ident, IdentSchema, Credibility, CredibilitySchema } from './schemas';
+export {
+  Ident,
+  IdentSchema,
+  Credibility,
+  CredibilitySchema,
+  Karma,
+  KarmaSchema,
+} from './schemas';

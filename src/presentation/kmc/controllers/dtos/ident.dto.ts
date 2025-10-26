@@ -3,4 +3,5 @@ export interface IdentInfoDto {
   createdAt?: Date;
   updatedAt?: Date;
   credibility: number;
+  karma: number;
 }

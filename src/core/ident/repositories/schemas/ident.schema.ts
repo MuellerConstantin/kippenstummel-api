@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import * as mongoose from 'mongoose';
 import { Credibility } from './credibility.schema';
+import { Karma } from './karma.schema';
 
 export type IdentDocument = HydratedDocument<Ident>;
 
@@ -15,6 +16,9 @@ export class Ident {
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Credibility' })
   credibility: Credibility;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Karma' })
+  karma: Karma;
 
   createdAt?: Date;
   updatedAt?: Date;

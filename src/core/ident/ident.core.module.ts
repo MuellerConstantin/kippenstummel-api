@@ -6,6 +6,8 @@ import {
   CredibilityService,
   IdentTransferService,
   CredibilityComputationConsumer,
+  KarmaService,
+  KarmaComputationConsumer,
 } from './services';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
@@ -13,6 +15,8 @@ import {
   CredibilitySchema,
   Ident,
   IdentSchema,
+  Karma,
+  KarmaSchema,
 } from './repositories';
 import { DatasourceInfrastructureModule } from 'src/infrastructure/datasource/datasource.infrastructure.module';
 import { SchedulingInfrastructureModule } from 'src/infrastructure/scheduling/scheduling.infrastructure.module';
@@ -31,6 +35,7 @@ import { EventingInfrastructureModule } from 'src/infrastructure/eventing/eventi
     MongooseModule.forFeature([
       { name: Credibility.name, schema: CredibilitySchema },
     ]),
+    MongooseModule.forFeature([{ name: Karma.name, schema: KarmaSchema }]),
   ],
   controllers: [],
   providers: [
@@ -40,6 +45,8 @@ import { EventingInfrastructureModule } from 'src/infrastructure/eventing/eventi
     CredibilityService,
     IdentTransferService,
     CredibilityComputationConsumer,
+    KarmaService,
+    KarmaComputationConsumer,
   ],
   exports: [
     PoWService,
@@ -47,6 +54,7 @@ import { EventingInfrastructureModule } from 'src/infrastructure/eventing/eventi
     CaptchaService,
     CredibilityService,
     IdentTransferService,
+    KarmaService,
   ],
 })
 export class IdentCoreModule {}

@@ -18,6 +18,8 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
     @InjectQueue('tile-computation') private tileComputationQueue: Queue,
     @InjectQueue('credibility-computation')
     private credibilityComputationQueue: Queue,
+    @InjectQueue('karma-computation')
+    private karmaComputationQueue: Queue,
     private readonly piiService: PiiService,
   ) {}
 
@@ -67,6 +69,12 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
           longitude: position.longitude,
           latitude: position.latitude,
         },
+        action: 'registration',
+      });
+
+      await this.karmaComputationQueue.add('recompute', {
+        targetIdentity: untokenizedIdentity,
+        cvmId: envelope.payload.cvmId as string,
         action: 'registration',
       });
     }

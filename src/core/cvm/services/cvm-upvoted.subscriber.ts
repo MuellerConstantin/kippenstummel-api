@@ -19,6 +19,8 @@ export class CvmUpvotedEventSubscriber implements IEventSubscriber {
     @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
     @InjectQueue('credibility-computation')
     private credibilityComputationQueue: Queue,
+    @InjectQueue('karma-computation')
+    private karmaComputationQueue: Queue,
     private readonly piiService: PiiService,
   ) {}
 
@@ -71,6 +73,26 @@ export class CvmUpvotedEventSubscriber implements IEventSubscriber {
         },
         action: 'upvote',
       });
+
+      await this.karmaComputationQueue.add('recompute', {
+        targetIdentity: untokenizedIdentity,
+        cvmId,
+        action: 'upvote_cast',
+      });
+
+      if (result.registeredBy) {
+        const untokenizedRegisteredBy = (await this.piiService.untokenizePii(
+          result.registeredBy,
+        )) as string | null;
+
+        if (untokenizedRegisteredBy) {
+          await this.karmaComputationQueue.add('recompute', {
+            targetIdentity: untokenizedRegisteredBy,
+            cvmId,
+            action: 'upvote_received',
+          });
+        }
+      }
     }
   }
 }
