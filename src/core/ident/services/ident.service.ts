@@ -102,6 +102,8 @@ export class IdentService {
 
   async unregisterIdentity(identity: string): Promise<void> {
     await this.identModel.deleteOne({ identity });
+    await this.credibilityModel.deleteOne({ identity });
+    await this.karmaModel.deleteOne({ identity });
 
     this.eventEmitter.emit('ident-removed', new IdentRemovedEvent(identity));
   }
