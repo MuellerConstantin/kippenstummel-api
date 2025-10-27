@@ -3,6 +3,7 @@ import {
   PoWController,
   IdentController,
   CaptchaController,
+  KarmaController,
   PoWGuard,
   IdentGuard,
   AnonymousGuard,
@@ -12,7 +13,12 @@ import { IdentCoreModule } from '../../core/ident/ident.core.module';
 
 @Module({
   imports: [IdentCoreModule],
-  controllers: [PoWController, IdentController, CaptchaController],
+  controllers: [
+    PoWController,
+    IdentController,
+    CaptchaController,
+    KarmaController,
+  ],
   providers: [PoWGuard, IdentGuard, AnonymousGuard, CaptchaGuard],
   exports: [
     IdentCoreModule,
