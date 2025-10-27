@@ -9,6 +9,11 @@ export class RsqlToMongoIdentTransformer extends RsqlToMongoTransformer {
         localField: 'credibility',
         foreignField: '_id',
       },
+      {
+        collection: 'karmas',
+        localField: 'karma',
+        foreignField: '_id',
+      },
     ]);
   }
 
@@ -25,6 +30,10 @@ export class RsqlToMongoIdentTransformer extends RsqlToMongoTransformer {
     }
 
     if (field === 'credibility' && operator !== '=like=') {
+      return true;
+    }
+
+    if (field === 'karma' && operator !== '=like=') {
       return true;
     }
 
@@ -56,6 +65,11 @@ export class RsqlToMongoIdentTransformer extends RsqlToMongoTransformer {
 
     if (selector === 'credibility') {
       selector = 'credibility.rating';
+      value = Number(value);
+    }
+
+    if (selector === 'karma') {
+      selector = 'karma.amount';
       value = Number(value);
     }
 
