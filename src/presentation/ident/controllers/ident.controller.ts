@@ -10,10 +10,10 @@ import {
   IdentTokenDto,
   TransferIdentityParamsDto,
   TransferTokenDto,
+  IdentInfoDto,
 } from './dtos';
 import { IdentGuard } from './ident.guard';
 import { Identity } from './ident.decorator';
-import { IdentInfoDto } from 'src/presentation/kmc/controllers/dtos';
 
 @Controller({ path: 'ident', version: '1' })
 export class IdentController {
