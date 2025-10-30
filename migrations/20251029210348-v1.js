@@ -23,7 +23,7 @@ module.exports = {
       const karmaDocs = idents.map((identity) => ({
         insertOne: {
           document: {
-            identity: identity._id.toString(),
+            identity: identity.identity.toString(),
             amount: 100,
             history: [],
             createdAt: new Date(),
