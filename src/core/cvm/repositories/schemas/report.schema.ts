@@ -21,3 +21,5 @@ export class Report {
 }
 
 export const ReportSchema = SchemaFactory.createForClass(Report);
+
+ReportSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 30 });

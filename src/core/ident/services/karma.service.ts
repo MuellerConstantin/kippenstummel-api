@@ -107,7 +107,7 @@ export class KarmaService {
       case 'report_cast':
         return -1;
       case 'report_received':
-        return -10;
+        return 0;
       default:
         return 0;
     }
