@@ -150,7 +150,7 @@ const SAME_CVM_RADIUS = 50;
 /**
  * The radius in kilometers where a CVM is considered "nearby" to an user.
  */
-const NEARBY_CVM_RADIUS = 0.5;
+const NEARBY_CVM_RADIUS = 0.05;
 
 /**
  * The number of days a CVM with a negative score must remain below the threshold to be deleted.
