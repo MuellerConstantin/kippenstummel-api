@@ -15,6 +15,7 @@ export interface EncryptedIdentSecret {
 
 export interface IdentInfo {
   identity: string;
+  displayName?: string;
   credibility: number;
   karma: number;
   createdAt?: Date;

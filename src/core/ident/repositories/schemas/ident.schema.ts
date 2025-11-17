@@ -14,6 +14,12 @@ export class Ident {
   @Prop()
   secret: string;
 
+  @Prop({ required: false })
+  username?: string;
+
+  @Prop({ required: false })
+  suffix?: string;
+
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Credibility' })
   credibility: Credibility;
 
@@ -26,4 +32,5 @@ export class Ident {
 
 export const IdentSchema = SchemaFactory.createForClass(Ident);
 
-IdentSchema.index({ identity: 1 });
+IdentSchema.index({ identity: 1 }, { unique: true });
+IdentSchema.index({ username: 1, suffix: 1 }, { unique: true, sparse: true });

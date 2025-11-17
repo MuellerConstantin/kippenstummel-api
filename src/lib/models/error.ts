@@ -17,6 +17,7 @@ export enum ApiErrorCode {
   ALTERATION_CONFLICT_ERROR = 'ALTERATION_CONFLICT_ERROR',
   THROTTLED_ERROR = 'THROTTLED_ERROR',
   INCONSISTENT_READ_MODEL_ERROR = 'INCONSISTENT_READ_MODEL_ERROR',
+  USERNAME_ALREADY_EXISTS_ERROR = 'USERNAME_ALREADY_EXISTS_ERROR',
 }
 
 export const ApiErrorMessages: Record<ApiErrorCode, string> = {
@@ -38,6 +39,7 @@ export const ApiErrorMessages: Record<ApiErrorCode, string> = {
   [ApiErrorCode.ALTERATION_CONFLICT_ERROR]: 'Alteration conflict',
   [ApiErrorCode.THROTTLED_ERROR]: 'The action was throttled',
   [ApiErrorCode.INCONSISTENT_READ_MODEL_ERROR]: 'Inconsistent read model',
+  [ApiErrorCode.USERNAME_ALREADY_EXISTS_ERROR]: 'Username already exists',
 };
 
 export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
@@ -59,6 +61,7 @@ export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
   [ApiErrorCode.ALTERATION_CONFLICT_ERROR]: 409,
   [ApiErrorCode.THROTTLED_ERROR]: 429,
   [ApiErrorCode.INCONSISTENT_READ_MODEL_ERROR]: 500,
+  [ApiErrorCode.USERNAME_ALREADY_EXISTS_ERROR]: 409,
 };
 
 export abstract class ApiError extends Error {
@@ -208,5 +211,11 @@ export class ThrottledError extends ApiError {
 export class InconsistentReadModelError extends ApiError {
   constructor(cause?: Error) {
     super(ApiErrorCode.INCONSISTENT_READ_MODEL_ERROR, undefined, cause);
+  }
+}
+
+export class UsernameAlreadyExistsError extends ApiError {
+  constructor(cause?: Error) {
+    super(ApiErrorCode.USERNAME_ALREADY_EXISTS_ERROR, undefined, cause);
   }
 }

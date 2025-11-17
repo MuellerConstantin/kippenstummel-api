@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { IdentService, IdentTransferService } from 'src/core/ident/services';
 import { PoWGuard } from './pow.guard';
 import { CaptchaGuard } from './captcha.guard';
@@ -11,6 +19,7 @@ import {
   TransferIdentityParamsDto,
   TransferTokenDto,
   IdentInfoDto,
+  IdentUpdateDto,
 } from './dtos';
 import { IdentGuard } from './ident.guard';
 import { Identity } from './ident.decorator';
@@ -40,6 +49,15 @@ export class IdentController {
   @Get('/me')
   async getMe(@Identity() identity: string): Promise<IdentInfoDto> {
     return await this.identService.getIdentity(identity);
+  }
+
+  @UseGuards(IdentGuard)
+  @Patch('/me')
+  async updateMe(
+    @Identity() identity: string,
+    @Body() body: IdentUpdateDto,
+  ): Promise<void> {
+    return await this.identService.updateIdentity(identity, body);
   }
 
   @UseGuards(IdentGuard)

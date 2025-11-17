@@ -1,5 +1,6 @@
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -9,6 +10,7 @@ import {
   Page,
   Pageable,
   UnknownIdentityError,
+  UsernameAlreadyExistsError,
 } from 'src/lib/models';
 import { InjectModel } from '@nestjs/mongoose';
 import { Credibility, Ident, Karma } from '../repositories';
@@ -108,6 +110,78 @@ export class IdentService {
     this.eventEmitter.emit('ident-removed', new IdentRemovedEvent(identity));
   }
 
+  async updateIdentity(
+    identity: string,
+    updates: { username?: string | null },
+  ): Promise<void> {
+    if (Object.keys(updates).length === 0) {
+      return;
+    }
+
+    const user = await this.identModel.findOne({ identity });
+
+    if (!user) {
+      throw new UnknownIdentityError();
+    }
+
+    const newUsername = updates.username;
+
+    if (newUsername === null) {
+      await this.identModel.updateOne(
+        { identity },
+        { $set: { username: null } },
+      );
+      return;
+    }
+
+    let suffix = user.suffix;
+
+    // Suffix does not exist -> Username has never been set
+    if (!suffix) {
+      while (true) {
+        suffix = this.generateSuffix();
+
+        try {
+          await this.identModel.updateOne(
+            { identity },
+            { $set: { username: newUsername, suffix } },
+          );
+          break;
+        } catch (error) {
+          if (error instanceof mongoose.mongo.MongoServerError) {
+            if (error.code === 11000) {
+              // Combination username+suffix exists already -> Try new suffix
+              continue;
+            }
+          }
+
+          throw error;
+        }
+      }
+
+      return;
+    }
+
+    // Suffix exists -> Username was already set
+    try {
+      await this.identModel.updateOne(
+        { identity },
+        { $set: { username: newUsername } },
+      );
+    } catch (error) {
+      if (error instanceof mongoose.mongo.MongoServerError) {
+        if (error.code === 11000) {
+          throw new UsernameAlreadyExistsError();
+        }
+      }
+      throw error;
+    }
+  }
+
+  private generateSuffix(): string {
+    return Math.floor(1000 + Math.random() * 9000).toString();
+  }
+
   async existsIdentity(identity: string): Promise<boolean> {
     return (await this.identModel.countDocuments({ identity })) > 0;
   }
@@ -125,6 +199,10 @@ export class IdentService {
     return {
       identity: result.identity,
       credibility: result.credibility.rating,
+      displayName:
+        result.username && result.suffix
+          ? `${result.username}#${result.suffix}`
+          : undefined,
       karma: result.karma.amount,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
@@ -195,6 +273,10 @@ export class IdentService {
       return {
         content: results.map((ident) => ({
           identity: ident.identity,
+          displayName:
+            ident.username && ident.suffix
+              ? `${ident.username}#${ident.suffix}`
+              : '',
           createdAt: ident.createdAt,
           updatedAt: ident.updatedAt,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access

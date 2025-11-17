@@ -20,4 +20,5 @@ export {
   ThrottledError,
   AccessDeniedError,
   InconsistentReadModelError,
+  UsernameAlreadyExistsError,
 } from './error';
