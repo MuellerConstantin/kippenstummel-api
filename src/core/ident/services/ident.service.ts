@@ -276,7 +276,7 @@ export class IdentService {
           displayName:
             ident.username && ident.suffix
               ? `${ident.username}#${ident.suffix}`
-              : '',
+              : undefined,
           createdAt: ident.createdAt,
           updatedAt: ident.updatedAt,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
@@ -308,6 +308,10 @@ export class IdentService {
       return {
         content: content.map((ident) => ({
           identity: ident.identity,
+          displayName:
+            ident.username && ident.suffix
+              ? `${ident.username}#${ident.suffix}`
+              : undefined,
           createdAt: ident.createdAt,
           updatedAt: ident.updatedAt,
           credibility: ident.credibility.rating,
