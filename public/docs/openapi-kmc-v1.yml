@@ -853,6 +853,8 @@ components:
       properties:
         identity:
           type: string
+        displayName:
+          type: string
         credibility:
           type: number
         karma:

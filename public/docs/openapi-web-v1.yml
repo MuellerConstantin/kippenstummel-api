@@ -273,9 +273,34 @@ paths:
               example:
                 identity: 69fcc159-c25f-4c2a-8df8-3a492cfe007c
                 credibility: 75
+                displayName: Maxi123#4731
                 karma: 120
                 createdAt: 2025-09-16T15:03:20.567Z
                 updatedAt: 2025-09-18T11:21:00.123Z
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+    patch:
+      tags:
+        - Ident
+      summary: Updates the current identity.
+      description: >
+        Updates the current identity.  
+        Requires authentication with an existing access token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentUpdateDto'
+            example:
+              username: Maxi123
+      responses:
+        '204':
+          description: Successfully updated the current identity.
         '500':
           $ref: '#/components/responses/500'
         '400':
@@ -861,6 +886,8 @@ components:
       properties:
         identity:
           type: string
+        displayName:
+          type: string
         credibility:
           type: number
         karma:
@@ -875,6 +902,11 @@ components:
         - identity
         - credibility
         - karma
+    IdentUpdateDto:
+      type: object
+      properties:
+        username:
+          type: string
     IdentTokenDto:
       type: object
       properties:
