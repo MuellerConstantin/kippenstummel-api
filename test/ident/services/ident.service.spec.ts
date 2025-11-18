@@ -13,6 +13,11 @@ identities.set('4c12ee89-4672-44dd-a23c-29c1ace369b2', {
   secret: '0xCAFEBABE',
   createdAt: new Date(),
   updatedAt: new Date(),
+  karma: {
+    identity: '4c12ee89-4672-44dd-a23c-29c1ace369b2',
+    amount: 100,
+    history: [],
+  },
   credibility: {
     identity: '4c12ee89-4672-44dd-a23c-29c1ace369b2',
     rating: 50,
@@ -66,9 +71,11 @@ describe('IdentService', () => {
             findOne: jest
               .fn()
               .mockImplementation((data: { identity: string }) => ({
-                populate: jest
-                  .fn()
-                  .mockResolvedValue(identities.get(data.identity)),
+                populate: jest.fn(() => ({
+                  populate: jest
+                    .fn()
+                    .mockResolvedValue(identities.get(data.identity)),
+                })),
               })),
             create: jest.fn(),
           },
@@ -80,6 +87,15 @@ describe('IdentService', () => {
               Promise.resolve(
                 identities.get('4c12ee89-4672-44dd-a23c-29c1ace369b2')!
                   .credibility,
+              ),
+          },
+        },
+        {
+          provide: getModelToken('Karma'),
+          useValue: {
+            create: () =>
+              Promise.resolve(
+                identities.get('4c12ee89-4672-44dd-a23c-29c1ace369b2')!.karma,
               ),
           },
         },
