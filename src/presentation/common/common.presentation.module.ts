@@ -11,7 +11,7 @@ import {
 import { InvalidPayloadError } from 'src/lib/models/error';
 import { ValidationError } from 'class-validator';
 import { MulterModule } from '@nestjs/platform-express';
-import multer from 'multer';
+import * as multer from 'multer';
 import { SecurityInfrastructureModule } from 'src/infrastructure/security/security.infrastructure.module';
 
 @Module({
