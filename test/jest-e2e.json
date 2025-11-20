@@ -13,5 +13,7 @@
   },
   "moduleNameMapper": {
     "^src/(.*)$": "<rootDir>/../src/$1"
-  }
+  },
+  "globalSetup": "<rootDir>/jest-e2e.global-setup.ts",
+  "globalTeardown": "<rootDir>/jest-e2e.global-teardown.ts"
 }

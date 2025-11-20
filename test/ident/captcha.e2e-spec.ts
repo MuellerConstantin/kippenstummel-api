@@ -23,7 +23,7 @@ import { CvmImportConsumer } from 'src/worker/services';
 import { JobManagementConsumer } from 'src/infrastructure/scheduling/services';
 import { CvmManagementConsumer } from 'src/core/cvm/services';
 
-describe('PoW', () => {
+describe('Captcha', () => {
   let app: INestApplication;
   let mongoConnection: Connection;
   let cacheConnection: Cache;
@@ -117,16 +117,18 @@ describe('PoW', () => {
     redisConnection = new Redis(globalThis.__REDIS_URI__ as string);
   }, 60000);
 
-  it('get', () => {
+  it('get', async () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return request(app.getHttpServer())
-      .get('/api/v1/pow')
-      .expect(200)
-      .expect((res) => {
-        if (!res.headers['x-pow']) {
-          throw new Error('"X-PoW" header is missing');
-        }
-      });
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/captcha')
+      .expect(200);
+
+    expect(res.body).toHaveProperty('id');
+    expect(res.body).toHaveProperty('content');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(typeof res.body.id).toBe('string');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(typeof res.body.content).toBe('string');
   });
 
   afterEach(async () => {

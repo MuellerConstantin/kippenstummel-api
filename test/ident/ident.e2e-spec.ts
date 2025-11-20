@@ -7,8 +7,6 @@ import {
 } from '@nestjs/common';
 import { Connection } from 'mongoose';
 import { Redis } from 'ioredis';
-import { getConnectionToken } from '@nestjs/mongoose';
-import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import { AppModule } from 'src/app.module';
 import {
   ApiExceptionFilter,
@@ -22,8 +20,12 @@ import { KarmaComputationConsumer } from 'src/core/ident/services';
 import { CvmImportConsumer } from 'src/worker/services';
 import { JobManagementConsumer } from 'src/infrastructure/scheduling/services';
 import { CvmManagementConsumer } from 'src/core/cvm/services';
+import { PoWGuard } from 'src/presentation/ident/controllers';
+import { CaptchaGuard } from 'src/presentation/ident/controllers';
+import { getConnectionToken } from '@nestjs/mongoose';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
-describe('PoW', () => {
+describe('Ident', () => {
   let app: INestApplication;
   let mongoConnection: Connection;
   let cacheConnection: Cache;
@@ -90,6 +92,10 @@ describe('PoW', () => {
       .useValue({})
       .overrideProvider(CvmManagementConsumer)
       .useValue({})
+      .overrideGuard(PoWGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(CaptchaGuard)
+      .useValue({ canActivate: () => true })
       .compile();
 
     app = moduleRef.createNestApplication();
@@ -117,16 +123,18 @@ describe('PoW', () => {
     redisConnection = new Redis(globalThis.__REDIS_URI__ as string);
   }, 60000);
 
-  it('get', () => {
+  it('getIdentity', async () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return request(app.getHttpServer())
-      .get('/api/v1/pow')
-      .expect(200)
-      .expect((res) => {
-        if (!res.headers['x-pow']) {
-          throw new Error('"X-PoW" header is missing');
-        }
-      });
+    const res = await request(app.getHttpServer())
+      .get('/api/v1/ident')
+      .expect(200);
+
+    expect(res.body).toHaveProperty('identity');
+    expect(res.body).toHaveProperty('secret');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(typeof res.body.identity).toBe('string');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(typeof res.body.secret).toBe('string');
   });
 
   afterEach(async () => {
