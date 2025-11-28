@@ -29,6 +29,17 @@ export class RsqlToMongoIdentTransformer extends RsqlToMongoTransformer {
       return true;
     }
 
+    if (
+      field === 'displayName' &&
+      (operator === '=like=' ||
+        operator === '=in=' ||
+        operator === '=out=' ||
+        operator === '!=' ||
+        operator === '==')
+    ) {
+      return true;
+    }
+
     if (field === 'credibility' && operator !== '=like=') {
       return true;
     }
@@ -71,6 +82,11 @@ export class RsqlToMongoIdentTransformer extends RsqlToMongoTransformer {
     if (selector === 'karma') {
       selector = 'karma.amount';
       value = Number(value);
+    }
+
+    if (selector === 'displayName') {
+      selector = 'username';
+      value = String(value).replace(/#\d{4}$/, '');
     }
 
     return super.transformExpression(selector, operator, value);
