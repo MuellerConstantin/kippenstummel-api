@@ -14,6 +14,7 @@ import {
   Vote,
   VoteDocument,
 } from 'src/core/cvm/repositories';
+import { ThrottledError } from 'src/lib/models';
 
 describe('RegisterCvmCommandHandler', () => {
   let module: TestingModule;
@@ -84,7 +85,7 @@ describe('RegisterCvmCommandHandler', () => {
     expect(jest.spyOn(eventRepository, 'load')).not.toHaveBeenCalled();
   });
 
-  it('Should upvate existing CVM instead of registering a new one', async () => {
+  it('Should upvote existing CVM instead of registering a new one', async () => {
     // Simulates another registration 25 meters away
     const command = new RegisterCvmCommand(
       8.40395,
@@ -112,5 +113,78 @@ describe('RegisterCvmCommandHandler', () => {
 
     expect(loadSpy).toHaveBeenCalledTimes(1);
     expect(saveSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should throttle because of too many registrations', async () => {
+    // Simulates another registration 75 meters away
+    const command = new RegisterCvmCommand(
+      8.40395,
+      49.009874,
+      '20718133-9c8d-45bb-b3e5-6462827e77ae',
+    );
+
+    (cvmModel.findOne as jest.Mock).mockImplementationOnce(() => ({
+      exec: jest.fn().mockResolvedValue(null),
+    }));
+    jest.spyOn(cvmModel, 'countDocuments').mockResolvedValue(50);
+    (cvmModel.findOne as jest.Mock).mockImplementationOnce(() => ({
+      sort: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockResolvedValue({
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+      }),
+    }));
+    jest.spyOn(credibilityService, 'getCredibility').mockResolvedValue(10);
+
+    await expect(handler.execute(command)).rejects.toThrow(ThrottledError);
+  });
+
+  it('Should throttle because of cooldown (time too recent)', async () => {
+    // Simulates another registration 75 meters away
+    const command = new RegisterCvmCommand(
+      8.40395,
+      49.009874,
+      '20718133-9c8d-45bb-b3e5-6462827e77ae',
+    );
+
+    (cvmModel.findOne as jest.Mock).mockImplementationOnce(() => ({
+      exec: jest.fn().mockResolvedValue(null),
+    }));
+    jest.spyOn(cvmModel, 'countDocuments').mockResolvedValue(0);
+    (cvmModel.findOne as jest.Mock).mockImplementationOnce(() => ({
+      sort: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockResolvedValue({
+        createdAt: new Date(Date.now() - 10 * 1000), // 10 seconds ago
+      }),
+    }));
+    jest.spyOn(credibilityService, 'getCredibility').mockResolvedValue(10);
+
+    await expect(handler.execute(command)).rejects.toThrow(ThrottledError);
+  });
+
+  it('Should do nothing because of recent vote for the CVM', async () => {
+    // Simulates another registration 25 meters away
+    const command = new RegisterCvmCommand(
+      8.40395,
+      49.0094245,
+      '20718133-9c8d-45bb-b3e5-6462827e77ae',
+    );
+
+    (cvmModel.findOne as any) = jest.fn().mockImplementation(() => ({
+      sort: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockResolvedValue({
+        aggregateId: aggregate.id.value,
+      }),
+    }));
+    jest
+      .spyOn(voteModel, 'aggregate')
+      .mockResolvedValue([{ _id: '20718133-9c8d-45bb-b3e5-6462827e77ae' }]);
+    const loadSpy = jest
+      .spyOn(eventRepository, 'load')
+      .mockResolvedValue(aggregate);
+
+    await handler.execute(command);
+
+    expect(loadSpy).toHaveBeenCalledTimes(1);
+    expect(jest.spyOn(eventRepository, 'save')).not.toHaveBeenCalled();
   });
 });
