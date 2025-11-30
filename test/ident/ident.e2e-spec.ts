@@ -1,3 +1,6 @@
+process.env.MONGO_URI = globalThis.__MONGO_URI__ as string;
+process.env.REDIS_URI = globalThis.__REDIS_URI__ as string;
+
 import { default as request } from 'supertest';
 import { Test } from '@nestjs/testing';
 import {
@@ -32,9 +35,6 @@ describe('Ident', () => {
   let redisConnection: Redis;
 
   beforeAll(async () => {
-    process.env.MONGO_URI = globalThis.__MONGO_URI__ as string;
-    process.env.REDIS_URI = globalThis.__REDIS_URI__ as string;
-
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     })
