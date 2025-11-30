@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { BullModule } from '@nestjs/bullmq';
@@ -6,6 +6,7 @@ import { JobRun, JobRunSchema } from './repositories';
 import { JobHistoryService, JobManagementConsumer } from './services';
 import { LoggingInfrastructureModule } from '../logging/logging.infrastructure.module';
 
+@Global()
 @Module({
   imports: [
     LoggingInfrastructureModule,

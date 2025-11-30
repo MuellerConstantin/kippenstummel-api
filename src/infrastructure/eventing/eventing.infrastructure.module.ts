@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { EventSourcingModule } from '@ocoda/event-sourcing';
@@ -11,6 +11,7 @@ import {
 import * as CvmModuleEvents from 'src/core/cvm/events';
 import { Domain2ApplicationEventPublisher } from '../eventing/events';
 
+@Global()
 @Module({
   imports: [
     EventEmitterModule.forRoot(),

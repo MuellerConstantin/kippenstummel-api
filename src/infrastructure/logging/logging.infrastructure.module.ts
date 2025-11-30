@@ -1,5 +1,6 @@
-import { Module, Logger } from '@nestjs/common';
+import { Module, Logger, Global } from '@nestjs/common';
 
+@Global()
 @Module({
   imports: [],
   controllers: [],
