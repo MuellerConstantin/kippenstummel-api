@@ -11,6 +11,7 @@ import { createKeyv } from '@keyv/redis';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('MONGO_URI'),
+        directConnection: true,
       }),
       inject: [ConfigService],
     }),

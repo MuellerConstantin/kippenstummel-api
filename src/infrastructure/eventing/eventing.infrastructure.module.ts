@@ -25,10 +25,12 @@ import { Domain2ApplicationEventPublisher } from '../eventing/events';
         eventStore: {
           driver: MongoDBEventStore,
           url: configService.get<string>('MONGO_URI')!,
+          directConnection: true,
         },
         snapshotStore: {
           driver: MongoDBSnapshotStore,
           url: configService.get<string>('MONGO_URI')!,
+          directConnection: true,
         },
       }),
       inject: [ConfigService],
