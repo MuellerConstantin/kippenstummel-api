@@ -9,6 +9,7 @@ import { CvmId } from '../models';
 import { CvmEventStoreRepository, Report } from '../repositories';
 import { NotFoundError, OutOfReachError } from 'src/lib/models';
 import { calculateDistanceInKm, constants } from 'src/lib';
+import { MurLockService } from 'murlock';
 
 export class ReportCvmCommand implements ICommand {
   constructor(
@@ -23,47 +24,52 @@ export class ReportCvmCommand implements ICommand {
 @CommandHandler(ReportCvmCommand)
 export class ReportCvmCommandHandler implements ICommandHandler {
   constructor(
+    private readonly murLockService: MurLockService,
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Report.name) private readonly reportModel: Model<Report>,
   ) {}
 
   async execute(command: ReportCvmCommand): Promise<void> {
-    const aggregate = await this.cvmEventStoreRepository.load(
-      CvmId.from(command.id),
-    );
+    const lockKey = `lock:cvm:${command.id}`;
 
-    if (!aggregate) {
-      throw new NotFoundError();
-    }
+    await this.murLockService.runWithLock(lockKey, 3000, async () => {
+      const aggregate = await this.cvmEventStoreRepository.load(
+        CvmId.from(command.id),
+      );
 
-    const distanceInKm = calculateDistanceInKm(
-      {
-        longitude: aggregate.longitude,
-        latitude: aggregate.latitude,
-      },
-      {
-        longitude: command.reporterLongitude,
-        latitude: command.reporterLatitude,
-      },
-    );
+      if (!aggregate) {
+        throw new NotFoundError();
+      }
 
-    // Ensure voter is not too far away
-    if (distanceInKm > constants.NEARBY_CVM_RADIUS) {
-      throw new OutOfReachError();
-    }
+      const distanceInKm = calculateDistanceInKm(
+        {
+          longitude: aggregate.longitude,
+          latitude: aggregate.latitude,
+        },
+        {
+          longitude: command.reporterLongitude,
+          latitude: command.reporterLatitude,
+        },
+      );
 
-    // Ensure reporter has not already reported
-    const hasReported = await this.hasReportedRecently(
-      command.reporterIdentity,
-      aggregate.id.value,
-    );
+      // Ensure voter is not too far away
+      if (distanceInKm > constants.NEARBY_CVM_RADIUS) {
+        throw new OutOfReachError();
+      }
 
-    if (hasReported) {
-      return;
-    }
+      // Ensure reporter has not already reported
+      const hasReported = await this.hasReportedRecently(
+        command.reporterIdentity,
+        aggregate.id.value,
+      );
 
-    aggregate.report(command.reporterIdentity, command.type);
-    await this.cvmEventStoreRepository.save(aggregate);
+      if (hasReported) {
+        return;
+      }
+
+      aggregate.report(command.reporterIdentity, command.type);
+      await this.cvmEventStoreRepository.save(aggregate);
+    });
   }
 
   async hasReportedRecently(

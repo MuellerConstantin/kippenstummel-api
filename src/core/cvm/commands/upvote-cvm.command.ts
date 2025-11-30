@@ -9,6 +9,7 @@ import { CvmId } from '../models';
 import { CvmEventStoreRepository, Vote } from '../repositories';
 import { NotFoundError, OutOfReachError } from 'src/lib/models';
 import { calculateDistanceInKm, constants } from 'src/lib';
+import { MurLockService } from 'murlock';
 
 export class UpvoteCvmCommand implements ICommand {
   constructor(
@@ -22,47 +23,52 @@ export class UpvoteCvmCommand implements ICommand {
 @CommandHandler(UpvoteCvmCommand)
 export class UpvoteCvmCommandHandler implements ICommandHandler {
   constructor(
+    private readonly murLockService: MurLockService,
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
   ) {}
 
   async execute(command: UpvoteCvmCommand): Promise<void> {
-    const aggregate = await this.cvmEventStoreRepository.load(
-      CvmId.from(command.id),
-    );
+    const lockKey = `lock:cvm:${command.id}`;
 
-    if (!aggregate) {
-      throw new NotFoundError();
-    }
+    await this.murLockService.runWithLock(lockKey, 3000, async () => {
+      const aggregate = await this.cvmEventStoreRepository.load(
+        CvmId.from(command.id),
+      );
 
-    const distanceInKm = calculateDistanceInKm(
-      {
-        longitude: aggregate.longitude,
-        latitude: aggregate.latitude,
-      },
-      {
-        longitude: command.voterLongitude,
-        latitude: command.voterLatitude,
-      },
-    );
+      if (!aggregate) {
+        throw new NotFoundError();
+      }
 
-    // Ensure voter is not too far away
-    if (distanceInKm > constants.NEARBY_CVM_RADIUS) {
-      throw new OutOfReachError();
-    }
+      const distanceInKm = calculateDistanceInKm(
+        {
+          longitude: aggregate.longitude,
+          latitude: aggregate.latitude,
+        },
+        {
+          longitude: command.voterLongitude,
+          latitude: command.voterLatitude,
+        },
+      );
 
-    // Ensure voter has not already voted
-    const hasVoted = await this.hasVotedRecently(
-      command.voterIdentity,
-      aggregate.id.value,
-    );
+      // Ensure voter is not too far away
+      if (distanceInKm > constants.NEARBY_CVM_RADIUS) {
+        throw new OutOfReachError();
+      }
 
-    if (hasVoted) {
-      return;
-    }
+      // Ensure voter has not already voted
+      const hasVoted = await this.hasVotedRecently(
+        command.voterIdentity,
+        aggregate.id.value,
+      );
 
-    aggregate.upvote(command.voterIdentity);
-    await this.cvmEventStoreRepository.save(aggregate);
+      if (hasVoted) {
+        return;
+      }
+
+      aggregate.upvote(command.voterIdentity);
+      await this.cvmEventStoreRepository.save(aggregate);
+    });
   }
 
   async hasVotedRecently(

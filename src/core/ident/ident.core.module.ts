@@ -23,6 +23,7 @@ import { SchedulingInfrastructureModule } from 'src/infrastructure/scheduling/sc
 import { LoggingInfrastructureModule } from 'src/infrastructure/logging/logging.infrastructure.module';
 import { SecurityInfrastructureModule } from 'src/infrastructure/security/security.infrastructure.module';
 import { EventingInfrastructureModule } from 'src/infrastructure/eventing/eventing.infrastructure.module';
+import { MultithreadingInfrastructureModule } from 'src/infrastructure/multithreading/multithreading.infrastructure.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { EventingInfrastructureModule } from 'src/infrastructure/eventing/eventi
     DatasourceInfrastructureModule,
     EventingInfrastructureModule,
     SchedulingInfrastructureModule,
+    MultithreadingInfrastructureModule,
     SecurityInfrastructureModule,
     MongooseModule.forFeature([{ name: Ident.name, schema: IdentSchema }]),
     MongooseModule.forFeature([

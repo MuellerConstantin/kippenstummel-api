@@ -52,6 +52,7 @@ import { PiiInfrastructureModule } from 'src/infrastructure/pii/pii.infrastructu
 import { SchedulingInfrastructureModule } from 'src/infrastructure/scheduling/scheduling.infrastructure.module';
 import { LoggingInfrastructureModule } from 'src/infrastructure/logging/logging.infrastructure.module';
 import { EventingInfrastructureModule } from 'src/infrastructure/eventing/eventing.infrastructure.module';
+import { MultithreadingInfrastructureModule } from 'src/infrastructure/multithreading/multithreading.infrastructure.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { EventingInfrastructureModule } from 'src/infrastructure/eventing/eventi
     EventingInfrastructureModule,
     PiiInfrastructureModule,
     SchedulingInfrastructureModule,
+    MultithreadingInfrastructureModule,
     IdentCoreModule,
     MongooseModule.forFeature([{ name: Cvm.name, schema: CvmSchema }]),
     MongooseModule.forFeature([{ name: Vote.name, schema: VoteSchema }]),
