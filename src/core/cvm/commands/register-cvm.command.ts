@@ -6,13 +6,13 @@ import {
 } from '@ocoda/event-sourcing';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { MurLockService } from 'murlock';
 import * as geohash from 'ngeohash';
 import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository, Cvm, Vote } from '../repositories';
 import { CredibilityService } from 'src/core/ident/services';
 import { constants } from 'src/lib';
 import { ThrottledError } from 'src/lib/models';
+import { LockService } from 'src/infrastructure/multithreading/services/lock.service';
 
 export class RegisterCvmCommand implements ICommand {
   constructor(
@@ -27,7 +27,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
   private readonly logger = new Logger(RegisterCvmCommandHandler.name);
 
   constructor(
-    private readonly murLockService: MurLockService,
+    private readonly lockService: LockService,
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
@@ -38,7 +38,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
     const hash = geohash.encode(command.latitude, command.longitude, 8);
     const lockKey = `lock:cvm:${hash}`;
 
-    await this.murLockService.runWithLock(lockKey, 3000, async () => {
+    await this.lockService.withLock(lockKey, 3000, async () => {
       const result = await this.cvmModel
         .findOne({
           position: {

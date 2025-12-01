@@ -17,7 +17,7 @@ import {
 } from 'src/lib/models';
 import { CredibilityService } from 'src/core/ident/services';
 import { calculateDistanceInKm, constants } from 'src/lib';
-import { MurLockService } from 'murlock';
+import { LockService } from 'src/infrastructure/multithreading/services/lock.service';
 
 export class RepositionCvmCommand implements ICommand {
   constructor(
@@ -35,7 +35,7 @@ export class RepositionCvmCommandHandler implements ICommandHandler {
   private readonly logger = new Logger(RepositionCvmCommandHandler.name);
 
   constructor(
-    private readonly murLockService: MurLockService,
+    private readonly lockService: LockService,
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     private readonly credibilityService: CredibilityService,
     @InjectModel(Repositioning.name)
@@ -50,7 +50,7 @@ export class RepositionCvmCommandHandler implements ICommandHandler {
     );
     const areaLockKey = `lock:cvm:${hash}`;
 
-    await this.murLockService.runWithLock(areaLockKey, 3000, async () => {
+    await this.lockService.withLock(areaLockKey, 3000, async () => {
       const aggregate = await this.cvmEventStoreRepository.load(
         CvmId.from(command.id),
       );

@@ -9,7 +9,7 @@ import { CvmId } from '../models';
 import { CvmEventStoreRepository, Report } from '../repositories';
 import { NotFoundError, OutOfReachError } from 'src/lib/models';
 import { calculateDistanceInKm, constants } from 'src/lib';
-import { MurLockService } from 'murlock';
+import { LockService } from 'src/infrastructure/multithreading/services/lock.service';
 
 export class ReportCvmCommand implements ICommand {
   constructor(
@@ -24,7 +24,7 @@ export class ReportCvmCommand implements ICommand {
 @CommandHandler(ReportCvmCommand)
 export class ReportCvmCommandHandler implements ICommandHandler {
   constructor(
-    private readonly murLockService: MurLockService,
+    private readonly lockService: LockService,
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Report.name) private readonly reportModel: Model<Report>,
   ) {}
@@ -32,7 +32,7 @@ export class ReportCvmCommandHandler implements ICommandHandler {
   async execute(command: ReportCvmCommand): Promise<void> {
     const lockKey = `lock:cvm:${command.id}`;
 
-    await this.murLockService.runWithLock(lockKey, 3000, async () => {
+    await this.lockService.withLock(lockKey, 3000, async () => {
       const aggregate = await this.cvmEventStoreRepository.load(
         CvmId.from(command.id),
       );

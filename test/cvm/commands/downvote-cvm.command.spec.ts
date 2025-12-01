@@ -9,7 +9,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { CvmAggregate, CvmId } from 'src/core/cvm/models';
 import { Vote, VoteDocument } from 'src/core/cvm/repositories';
 import { NotFoundError, OutOfReachError } from 'src/lib/models';
-import { MurLockService } from 'murlock';
+import { LockService } from 'src/infrastructure/multithreading/services/lock.service';
 
 describe('RegisterCvmCommandHandler', () => {
   let module: TestingModule;
@@ -23,10 +23,10 @@ describe('RegisterCvmCommandHandler', () => {
       providers: [
         DownvoteCvmCommandHandler,
         {
-          provide: MurLockService,
+          provide: LockService,
           useValue: {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-            runWithLock: jest.fn((key, ttl, callback) => callback()),
+            withLock: jest.fn((key, ttl, callback) => callback()),
           },
         },
         { provide: getModelToken(Vote.name), useValue: Model },

@@ -15,7 +15,7 @@ import {
   VoteDocument,
 } from 'src/core/cvm/repositories';
 import { ThrottledError } from 'src/lib/models';
-import { MurLockService } from 'murlock';
+import { LockService } from 'src/infrastructure/multithreading/services/lock.service';
 
 describe('RegisterCvmCommandHandler', () => {
   let module: TestingModule;
@@ -31,10 +31,10 @@ describe('RegisterCvmCommandHandler', () => {
       providers: [
         RegisterCvmCommandHandler,
         {
-          provide: MurLockService,
+          provide: LockService,
           useValue: {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-            runWithLock: jest.fn((key, ttl, callback) => callback()),
+            withLock: jest.fn((key, ttl, callback) => callback()),
           },
         },
         { provide: getModelToken(Cvm.name), useValue: Model },
