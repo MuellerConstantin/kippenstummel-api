@@ -49,68 +49,73 @@ export class RepositionCvmCommandHandler implements ICommandHandler {
       8,
     );
     const areaLockKey = `lock:cvm:${hash}`;
+    const aggregateLockKey = `lock:cvm:${command.id}`;
 
-    await this.lockService.withLock(areaLockKey, 3000, async () => {
-      const aggregate = await this.cvmEventStoreRepository.load(
-        CvmId.from(command.id),
-      );
-
-      if (!aggregate) {
-        throw new NotFoundError();
-      }
-
-      const distanceInKm = calculateDistanceInKm(
-        {
-          longitude: aggregate.longitude,
-          latitude: aggregate.latitude,
-        },
-        {
-          longitude: command.editorLongitude,
-          latitude: command.editorLatitude,
-        },
-      );
-
-      // Ensure editor is not too far away
-      if (distanceInKm > constants.NEARBY_CVM_RADIUS) {
-        throw new OutOfReachError();
-      }
-
-      const movedDistanceInKm = calculateDistanceInKm(
-        {
-          longitude: aggregate.longitude,
-          latitude: aggregate.latitude,
-        },
-        {
-          longitude: command.repositionedLongitude,
-          latitude: command.repositionedLatitude,
-        },
-      );
-
-      // Ensure CVM is not moved too far
-      if (movedDistanceInKm > constants.NEARBY_REPOSITION_RADIUS) {
-        throw new AlterationConflictError();
-      }
-
-      // Ensure editor has not already repositioned
-      const hasRepositioned = await this.hasRepositionedRecently(
-        command.editorIdentity,
-        aggregate.id.value,
-      );
-
-      if (hasRepositioned) {
-        this.logger.debug(
-          `User '${command.editorIdentity}' has reached the reposition limit or is on cooldown`,
+    await this.lockService.withLocks(
+      [areaLockKey, aggregateLockKey],
+      3000,
+      async () => {
+        const aggregate = await this.cvmEventStoreRepository.load(
+          CvmId.from(command.id),
         );
-        throw new ThrottledError();
-      }
 
-      aggregate.reposition(
-        command.editorIdentity,
-        command.repositionedLongitude,
-        command.repositionedLatitude,
-      );
-      await this.cvmEventStoreRepository.save(aggregate);
-    });
+        if (!aggregate) {
+          throw new NotFoundError();
+        }
+
+        const distanceInKm = calculateDistanceInKm(
+          {
+            longitude: aggregate.longitude,
+            latitude: aggregate.latitude,
+          },
+          {
+            longitude: command.editorLongitude,
+            latitude: command.editorLatitude,
+          },
+        );
+
+        // Ensure editor is not too far away
+        if (distanceInKm > constants.NEARBY_CVM_RADIUS) {
+          throw new OutOfReachError();
+        }
+
+        const movedDistanceInKm = calculateDistanceInKm(
+          {
+            longitude: aggregate.longitude,
+            latitude: aggregate.latitude,
+          },
+          {
+            longitude: command.repositionedLongitude,
+            latitude: command.repositionedLatitude,
+          },
+        );
+
+        // Ensure CVM is not moved too far
+        if (movedDistanceInKm > constants.NEARBY_REPOSITION_RADIUS) {
+          throw new AlterationConflictError();
+        }
+
+        // Ensure editor has not already repositioned
+        const hasRepositioned = await this.hasRepositionedRecently(
+          command.editorIdentity,
+          aggregate.id.value,
+        );
+
+        if (hasRepositioned) {
+          this.logger.debug(
+            `User '${command.editorIdentity}' has reached the reposition limit or is on cooldown`,
+          );
+          throw new ThrottledError();
+        }
+
+        aggregate.reposition(
+          command.editorIdentity,
+          command.repositionedLongitude,
+          command.repositionedLatitude,
+        );
+        await this.cvmEventStoreRepository.save(aggregate);
+      },
+    );
   }
 
   async hasRepositionedRecently(

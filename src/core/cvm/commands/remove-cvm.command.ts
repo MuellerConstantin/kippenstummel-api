@@ -8,6 +8,7 @@ import { CvmEventStoreRepository } from '../repositories';
 import { NotFoundError } from 'src/lib/models';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { LockService } from 'src/infrastructure/multithreading/services/lock.service';
 
 export class RemoveCvmCommand implements ICommand {
   constructor(public readonly id: string) {}
@@ -16,30 +17,35 @@ export class RemoveCvmCommand implements ICommand {
 @CommandHandler(RemoveCvmCommand)
 export class RemoveCvmCommandHandler implements ICommandHandler {
   constructor(
+    private readonly lockService: LockService,
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectQueue('tile-computation') private tileComputationQueue: Queue,
   ) {}
 
   async execute(command: RemoveCvmCommand): Promise<void> {
-    const aggregate = await this.cvmEventStoreRepository.load(
-      CvmId.from(command.id),
-    );
+    const lockKey = `lock:cvm:${command.id}`;
 
-    if (!aggregate) {
-      throw new NotFoundError();
-    }
+    await this.lockService.withLock(lockKey, 3000, async () => {
+      const aggregate = await this.cvmEventStoreRepository.load(
+        CvmId.from(command.id),
+      );
 
-    aggregate.remove();
-    await this.cvmEventStoreRepository.save(aggregate);
+      if (!aggregate) {
+        throw new NotFoundError();
+      }
 
-    // Recompute tiles outside of event lifecycle to allow batch processing
-    await this.tileComputationQueue.add('precompute', {
-      positions: [
-        {
-          longitude: aggregate.longitude,
-          latitude: aggregate.latitude,
-        },
-      ],
+      aggregate.remove();
+      await this.cvmEventStoreRepository.save(aggregate);
+
+      // Recompute tiles outside of event lifecycle to allow batch processing
+      await this.tileComputationQueue.add('precompute', {
+        positions: [
+          {
+            longitude: aggregate.longitude,
+            latitude: aggregate.latitude,
+          },
+        ],
+      });
     });
   }
 }
