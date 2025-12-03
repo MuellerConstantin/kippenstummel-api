@@ -119,7 +119,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
       },
       {
         $match: {
-          'cvmDoc.aggregate_id': aggregateId,
+          'cvmDoc.aggregateId': aggregateId,
         },
       },
       {
