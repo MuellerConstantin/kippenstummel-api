@@ -54,7 +54,7 @@ export class CvmReportedEventSubscriber implements IEventSubscriber {
     await this.karmaComputationQueue.add('recompute', {
       targetIdentity: untokenizedIdentity,
       cvmId: envelope.payload.cvmId as string,
-      action: 'downvote_cast',
+      action: 'report_cast',
     });
 
     if (result.registeredBy) {
@@ -66,7 +66,7 @@ export class CvmReportedEventSubscriber implements IEventSubscriber {
         await this.karmaComputationQueue.add('recompute', {
           targetIdentity: untokenizedRegisteredBy,
           cvmId: envelope.payload.cvmId as string,
-          action: 'downvote_received',
+          action: 'report_received',
         });
       }
     }
