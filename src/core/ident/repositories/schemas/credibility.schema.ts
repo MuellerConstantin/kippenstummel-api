@@ -63,7 +63,7 @@ export class Behaviour {
   lastInteractionPosition?: GeoPoint;
 
   @Prop()
-  unrealisticMovementCount: number;
+  unrealisticMovementScore: number;
 
   @Prop({ type: VotingBehaviourSchema })
   voting: VotingBehaviour;

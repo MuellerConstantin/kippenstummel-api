@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { computeCredibility } from '@kippenstummel/credlib';
+import {
+  computeCredibility,
+  isUnrealisticallyMovement,
+} from '@kippenstummel/credlib';
 import { UnknownIdentityError } from 'src/lib/models';
-import { calculateEwma, calculateDistanceInKm, calculateSpeed } from 'src/lib';
+import { calculateEwma } from 'src/lib';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Credibility } from '../models';
@@ -48,7 +51,7 @@ export class CredibilityService {
             lastInteractionAt: result.behaviour.lastInteractionAt,
             averageInteractionInterval:
               result.behaviour.averageInteractionInterval,
-            unrealisticMovementCount: result.behaviour.unrealisticMovementCount,
+            unrealisticMovementScore: result.behaviour.unrealisticMovementScore,
             lastInteractionPosition: result.behaviour.lastInteractionPosition
               ? {
                   longitude:
@@ -77,7 +80,7 @@ export class CredibilityService {
             lastInteractionAt: undefined,
             averageInteractionInterval: 0,
             lastInteractionPosition: undefined,
-            unrealisticMovementCount: 0,
+            unrealisticMovementScore: 0,
             voting: {
               totalCount: 0,
               upvoteCount: 0,
@@ -98,15 +101,24 @@ export class CredibilityService {
       info.behaviour!.lastInteractionPosition &&
       info.behaviour!.lastInteractionAt
     ) {
-      const hasUnrealisticallyMoved: boolean =
-        CredibilityService.isUnrealisticallyMovement(
-          info.behaviour!.lastInteractionPosition,
-          location,
-          info.behaviour!.lastInteractionAt,
-        );
+      const hasUnrealisticallyMoved: boolean = isUnrealisticallyMovement(
+        info.behaviour!.lastInteractionPosition,
+        location,
+        info.behaviour!.lastInteractionAt,
+      );
 
       if (hasUnrealisticallyMoved) {
-        info.behaviour!.unrealisticMovementCount++;
+        info.behaviour!.unrealisticMovementScore = calculateEwma(
+          info.behaviour!.unrealisticMovementScore,
+          1,
+          0.2,
+        );
+      } else {
+        info.behaviour!.unrealisticMovementScore = calculateEwma(
+          info.behaviour!.unrealisticMovementScore,
+          0,
+          0.2,
+        );
       }
     }
 
@@ -196,45 +208,5 @@ export class CredibilityService {
         },
       },
     );
-  }
-
-  private static isUnrealisticallyMovement(
-    lastInteractionPosition: { latitude: number; longitude: number },
-    currentPosition: { latitude: number; longitude: number },
-    lastInteractionAt: Date,
-  ): boolean {
-    const distance = calculateDistanceInKm(
-      lastInteractionPosition,
-      currentPosition,
-    );
-    const speed = calculateSpeed(
-      lastInteractionPosition,
-      currentPosition,
-      lastInteractionAt.getTime(),
-    );
-
-    let maxAllowedSpeed: number;
-
-    if (distance < 1) {
-      // Max 10 km/h for very short distances
-      maxAllowedSpeed = 10;
-    } else if (distance < 10) {
-      // Max 50 km/h for short distances within cities
-      maxAllowedSpeed = 50;
-    } else if (distance < 100) {
-      // Max 120 km/h for medium distances between cities
-      maxAllowedSpeed = 120;
-    } else if (distance < 500) {
-      // Max 200 km/h for long distances between counties or big cities
-      maxAllowedSpeed = 200;
-    } else if (distance < 1000) {
-      // Max 700 km/h for very long distances via aircraft
-      maxAllowedSpeed = 700;
-    } else {
-      // Max 900 km/h for very long distances across continents or oceans
-      maxAllowedSpeed = 900;
-    }
-
-    return speed > maxAllowedSpeed;
   }
 }

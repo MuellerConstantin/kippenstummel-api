@@ -2,7 +2,7 @@ export interface Behaviour {
   lastInteractionAt?: Date;
   averageInteractionInterval: number;
   lastInteractionPosition?: { longitude: number; latitude: number };
-  unrealisticMovementCount: number;
+  unrealisticMovementScore: number;
   voting: {
     totalCount: number;
     upvoteCount: number;

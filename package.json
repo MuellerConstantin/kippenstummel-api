@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@keyv/redis": "^4.3.3",
-    "@kippenstummel/credlib": "github:MuellerConstantin/kippenstummel-credlib#v0.1.0-alpha.1",
+    "@kippenstummel/credlib": "github:MuellerConstantin/kippenstummel-credlib#v0.1.0-alpha.5",
     "@nestjs/bullmq": "^11.0.2",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.15",
