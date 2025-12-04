@@ -95,17 +95,17 @@ export class KarmaService {
   ): number {
     switch (action) {
       case 'registration':
-        return 1;
+        return 5;
       case 'upvote_received':
-        return 10;
+        return 15;
       case 'downvote_received':
         return -10;
       case 'upvote_cast':
-        return 1;
+        return 2;
       case 'downvote_cast':
-        return -1;
+        return 2;
       case 'report_cast':
-        return -1;
+        return 0;
       case 'report_received':
         return 0;
       default:
