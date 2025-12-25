@@ -6,7 +6,7 @@ export class IdentUpdateDto {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   @ValidateIf((object: any) => object.username !== null)
   @IsString()
-  @Matches(/^[A-Za-z](?:[A-Za-z0-9_-]{2,6}[A-Za-z0-9])$/)
+  @Matches(/^[A-Za-z](?:[A-Za-z0-9_-]{2,14}[A-Za-z0-9])$/)
   @IsCleanUsername()
   public username?: string | null;
 }
