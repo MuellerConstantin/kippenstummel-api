@@ -327,6 +327,112 @@ export class IdentService {
     }
   }
 
+  async getLeaderboardMembers(pageable: Pageable): Promise<
+    Page<{
+      identity: string;
+      displayName?: string;
+      karma: number;
+      credibility: number;
+      createdAt: Date;
+      updatedAt: Date;
+    }>
+  > {
+    const { page, perPage } = pageable;
+    const skip = page * perPage;
+
+    const pipeline = [
+      {
+        $lookup: {
+          from: 'karmas',
+          localField: 'identity',
+          foreignField: 'identity',
+          as: 'karma',
+        },
+      },
+      { $unwind: '$karma' },
+      {
+        $match: {
+          'karma.amount': { $gt: 0 },
+        },
+      },
+      {
+        $lookup: {
+          from: 'credibilities',
+          localField: 'credibility',
+          foreignField: '_id',
+          as: 'credibility',
+        },
+      },
+      { $unwind: '$credibility' },
+      {
+        $sort: {
+          'karma.amount': -1,
+        },
+      },
+      { $skip: skip },
+      { $limit: perPage },
+      {
+        $project: {
+          identity: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          karma: '$karma.amount',
+          credibility: '$credibility.rating',
+          displayName: {
+            $cond: [
+              {
+                $and: ['$username', '$suffix'],
+              },
+              {
+                $concat: ['$username', '#', '$suffix'],
+              },
+              undefined,
+            ],
+          },
+        },
+      },
+    ] satisfies PipelineStage[];
+
+    const [content, countResult] = await Promise.all([
+      this.identModel
+        .aggregate<{
+          identity: string;
+          displayName?: string;
+          karma: number;
+          credibility: number;
+          createdAt: Date;
+          updatedAt: Date;
+        }>(pipeline)
+        .exec(),
+
+      this.identModel
+        .aggregate<{
+          count: number;
+        }>([...pipeline.slice(0, 5), { $count: 'count' }])
+        .exec(),
+    ]);
+
+    const totalElements = countResult[0]?.count ?? 0;
+    const totalPages = Math.ceil(totalElements / perPage);
+
+    return {
+      content: content.map((ident) => ({
+        identity: ident.identity,
+        displayName: ident.displayName || undefined,
+        karma: ident.karma,
+        credibility: ident.credibility,
+        createdAt: ident.createdAt,
+        updatedAt: ident.updatedAt,
+      })),
+      info: {
+        page,
+        perPage,
+        totalElements,
+        totalPages,
+      },
+    };
+  }
+
   async getTotalStats(lastNDays: number): Promise<IdentTotalStats> {
     const totalElements = await this.identModel.countDocuments();
     const averageCredibility = await this.getAverageCredibility();

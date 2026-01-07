@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { IdentService, IdentTransferService } from 'src/core/ident/services';
@@ -20,6 +21,7 @@ import {
   TransferTokenDto,
   IdentInfoDto,
   IdentUpdateDto,
+  GetAllLeaderboardMembersQueryDto,
 } from './dtos';
 import { IdentGuard } from './ident.guard';
 import { Identity } from './ident.decorator';
@@ -77,5 +79,28 @@ export class IdentController {
     @Param() params: TransferIdentityParamsDto,
   ): Promise<EncryptedIdentSecretDto> {
     return await this.transferService.verifyTransferToken(params.token);
+  }
+
+  @Get('/leaderboard')
+  async getLeaderboard(
+    @Query() queryParams: GetAllLeaderboardMembersQueryDto,
+  ): Promise<any> {
+    const { page, perPage } = queryParams;
+
+    const pageable = {
+      page: Number(page) || 0,
+      perPage: Number(perPage) || 25,
+    };
+
+    const result = await this.identService.getLeaderboardMembers(pageable);
+
+    return {
+      content: result.content.map((member) => ({
+        identity: member.identity,
+        displayName: member.displayName,
+        karma: member.karma,
+      })),
+      info: result.info,
+    };
   }
 }
