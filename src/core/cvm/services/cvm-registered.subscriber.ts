@@ -50,7 +50,7 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
       imported: false,
       markedForDeletion: false,
       markedForDeletionAt: null,
-      registeredBy: tokenizedIdentity,
+      registeredBy: untokenizedIdentity,
     });
 
     await this.tileComputationQueue.add('precompute', {
