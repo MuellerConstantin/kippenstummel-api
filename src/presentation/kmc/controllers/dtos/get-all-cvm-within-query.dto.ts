@@ -10,7 +10,7 @@ import {
 import { constants } from 'src/lib';
 import { IsBBoxValidConstraint } from 'src/presentation/common/controllers/dtos/validation/is-bbox-valid';
 import { RsqlToMongoQueryResult } from 'src/presentation/common/controllers/filter';
-import { RsqlToMongoCvmTransformer } from 'src/presentation/cvm/controllers';
+import { RsqlToMongoKmcCvmTransformer } from '../filter';
 
 export class GetAllCvmWithinQueryDto {
   @IsLatLong()
@@ -33,7 +33,7 @@ export class GetAllCvmWithinQueryDto {
       return;
     }
 
-    return new RsqlToMongoCvmTransformer().transform(value as string);
+    return new RsqlToMongoKmcCvmTransformer().transform(value as string);
   })
   public filter?: RsqlToMongoQueryResult;
 

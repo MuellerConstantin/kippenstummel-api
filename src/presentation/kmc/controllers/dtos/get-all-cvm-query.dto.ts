@@ -1,7 +1,7 @@
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, Min } from 'class-validator';
 import { RsqlToMongoQueryResult } from 'src/presentation/common/controllers/filter';
-import { RsqlToMongoCvmTransformer } from 'src/presentation/cvm/controllers';
+import { RsqlToMongoKmcCvmTransformer } from '../filter';
 
 export class GetAllCvmQueryDto {
   @IsOptional()
@@ -22,7 +22,7 @@ export class GetAllCvmQueryDto {
       return;
     }
 
-    return new RsqlToMongoCvmTransformer().transform(value as string);
+    return new RsqlToMongoKmcCvmTransformer().transform(value as string);
   })
   public filter?: RsqlToMongoQueryResult;
 }

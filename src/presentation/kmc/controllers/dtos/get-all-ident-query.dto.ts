@@ -1,7 +1,7 @@
 import { Transform } from 'class-transformer';
 import { IsNumber, IsOptional, Min } from 'class-validator';
 import { RsqlToMongoQueryResult } from 'src/presentation/common/controllers/filter';
-import { RsqlToMongoIdentTransformer } from 'src/presentation/ident/controllers';
+import { RsqlToMongoKmcIdentTransformer } from '../filter';
 
 export class GetAllIdentQueryDto {
   @IsOptional()
@@ -22,7 +22,7 @@ export class GetAllIdentQueryDto {
       return;
     }
 
-    return new RsqlToMongoIdentTransformer().transform(value as string);
+    return new RsqlToMongoKmcIdentTransformer().transform(value as string);
   })
   public filter?: RsqlToMongoQueryResult;
 }
