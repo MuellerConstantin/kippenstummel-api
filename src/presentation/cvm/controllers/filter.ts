@@ -6,7 +6,7 @@ export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
     super([]);
   }
 
-  private isSupported(field: string, operator: string) {
+  protected isSupported(field: string, operator: string) {
     if (
       field === 'id' &&
       (operator === '=like=' ||

@@ -17,7 +17,7 @@ export class RsqlToMongoIdentTransformer extends RsqlToMongoTransformer {
     ]);
   }
 
-  private isSupported(field: string, operator: string) {
+  protected isSupported(field: string, operator: string) {
     if (
       field === 'identity' &&
       (operator === '=like=' ||
