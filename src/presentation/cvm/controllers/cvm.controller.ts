@@ -9,7 +9,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@ocoda/event-sourcing';
-import { GetAllWithinQuery, GetByIdQuery } from '../../../core/cvm/queries';
+import {
+  GetAllWithinQuery,
+  GetByIdQuery,
+  GetAllQuery,
+} from '../../../core/cvm/queries';
 import {
   RegisterCvmCommand,
   DownvoteCvmCommand,
@@ -32,12 +36,15 @@ import {
   RepositionCvmDto,
   ReportCvmDto,
   ReportParamsDto,
+  GetAllCvmQueryDto,
+  CvmPageDto,
 } from './dtos';
 import {
   Identity,
   IdentGuard,
   AnonymousGuard,
 } from 'src/presentation/ident/controllers';
+import { Page } from 'src/lib/models';
 
 @Controller({ path: '/cvms', version: '1' })
 export class CvmController {
@@ -46,7 +53,7 @@ export class CvmController {
     private readonly queryBus: QueryBus,
   ) {}
 
-  @Get()
+  @Get('/within')
   @UseGuards(AnonymousGuard)
   async getAllWithin(
     @Query() queryParams: GetAllCvmWithinQueryDto,
@@ -74,6 +81,28 @@ export class CvmController {
     >(query);
 
     return result;
+  }
+
+  @Get()
+  @UseGuards(AnonymousGuard)
+  async getAll(@Query() queryParams: GetAllCvmQueryDto): Promise<CvmPageDto> {
+    const { page, perPage } = queryParams;
+
+    const pageable = {
+      page: Number(page) || 0,
+      perPage: Number(perPage) || 25,
+    };
+    const query = new GetAllQuery(pageable, queryParams.filter);
+
+    const result = await this.queryBus.execute<
+      GetAllQuery,
+      Page<CvmProjection>
+    >(query);
+
+    return {
+      content: result.content,
+      info: result.info,
+    };
   }
 
   @UseGuards(IdentGuard)

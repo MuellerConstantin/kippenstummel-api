@@ -411,7 +411,7 @@ paths:
                 content: data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...
         '500':
           $ref: '#/components/responses/500'
-  /cvms:
+  /cvms/within:
     get:
       tags:
         - Cvm
@@ -473,6 +473,60 @@ paths:
                     inaccessible: 0
                   createdAt: 2025-09-16T15:03:20.567Z
                   updatedAt: 2025-09-16T15:03:20.567Z
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+  /cvms:
+    get:
+      tags:
+        - Cvm
+      summary: Returns all CVMs (paginated).
+      description: >
+        This query returns all cigarette vending machines in a paginated format.
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            example: 0
+        - name: perPage
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            example: 25
+        - name: filter
+          in: query
+          schema:
+            type: string
+            format: rsql
+      responses:
+        '200':
+          description: Successfully fetched the paginated CVMs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CvmPageDto'
+              example:
+                content:
+                  - id: '8efba6ad-08ef-4f0b-b207-f5767ddd3072'
+                    longitude: 8.6402179
+                    latitude: 48.8068875
+                    score: 7
+                    recentlyReported:
+                      missing: 0
+                      spam: 1
+                      inactive: 0
+                      inaccessible: 0
+                    createdAt: 2025-09-16T15:03:20.567Z
+                    updatedAt: 2025-09-16T15:03:20.567Z
+                info:
+                  page: 0
+                  perPage: 25
+                  totalElements: 1
+                  totalPages: 1
         '500':
           $ref: '#/components/responses/500'
         '400':
@@ -768,6 +822,32 @@ components:
         - recentlyReported
         - createdAt
         - updatedAt
+    CvmPageDto:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/CvmDto'
+        info:
+          type: object
+          properties:
+            page:
+              type: integer
+            perPage:
+              type: integer
+            totalElements:
+              type: integer
+            totalPages:
+              type: integer
+          required:
+            - page
+            - perPage
+            - totalElements
+            - totalPages
+      required:
+        - content
+        - info
     CvmClusterDto:
       type: object
       properties:

@@ -1,5 +1,8 @@
 import { RsqlToMongoTransformer } from 'src/presentation/common/controllers';
-import { UnsupportedFilterFieldError } from 'src/lib/models';
+import {
+  InvalidFilterQueryError,
+  UnsupportedFilterFieldError,
+} from 'src/lib/models';
 
 export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
   constructor() {
@@ -44,6 +47,10 @@ export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
       return true;
     }
 
+    if (field === 'bbox' && operator === '==') {
+      return true;
+    }
+
     return false;
   }
 
@@ -59,6 +66,33 @@ export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
           operator,
         },
       ]);
+    }
+
+    if (selector === 'bbox') {
+      if (typeof value !== 'string') {
+        throw new InvalidFilterQueryError(
+          new Error('Property bbox must be a string'),
+        );
+      }
+
+      const [minLng, minLat, maxLng, maxLat] = value.split(',').map(Number);
+
+      if ([minLng, minLat, maxLng, maxLat].some(isNaN)) {
+        throw new InvalidFilterQueryError(
+          new Error('Invalid bbox coordinates'),
+        );
+      }
+
+      return {
+        position: {
+          $geoWithin: {
+            $box: [
+              [minLng, minLat],
+              [maxLng, maxLat],
+            ],
+          },
+        },
+      };
     }
 
     if (selector === 'id') {

@@ -11,3 +11,5 @@ export { RepositionCvmDto } from './reposition-cvm.dto';
 export { RepositionParamsDto } from './reposition-params.dto';
 export { ReportCvmDto } from './report-cvm.dto';
 export { ReportParamsDto } from './report-params.dto';
+export { GetAllCvmQueryDto } from './get-all-cvm-query.dto';
+export { CvmPageDto } from './cvm-page.dto';
