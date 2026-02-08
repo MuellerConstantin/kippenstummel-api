@@ -300,7 +300,7 @@ export class CvmAggregate extends AggregateRoot {
     this._imported = true;
 
     if (
-      this._score < this.MARKED_FOR_DELETION_THRESHOLD &&
+      this._score <= this.MARKED_FOR_DELETION_THRESHOLD &&
       !this._markedForDeletion
     ) {
       this._markedForDeletion = true;
@@ -322,7 +322,7 @@ export class CvmAggregate extends AggregateRoot {
       this._score = event.forcedScore;
 
       if (
-        this._score < this.MARKED_FOR_DELETION_THRESHOLD &&
+        this._score <= this.MARKED_FOR_DELETION_THRESHOLD &&
         !this._markedForDeletion
       ) {
         this._markedForDeletion = true;
@@ -340,7 +340,7 @@ export class CvmAggregate extends AggregateRoot {
     }
 
     if (
-      this._score >= this.MARKED_FOR_DELETION_THRESHOLD &&
+      this._score > this.MARKED_FOR_DELETION_THRESHOLD &&
       this._markedForDeletion
     ) {
       this._markedForDeletion = false;
@@ -357,7 +357,7 @@ export class CvmAggregate extends AggregateRoot {
     }
 
     if (
-      this._score < this.MARKED_FOR_DELETION_THRESHOLD &&
+      this._score <= this.MARKED_FOR_DELETION_THRESHOLD &&
       !this._markedForDeletion
     ) {
       this._markedForDeletion = true;
