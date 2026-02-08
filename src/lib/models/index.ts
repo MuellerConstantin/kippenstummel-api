@@ -21,4 +21,5 @@ export {
   AccessDeniedError,
   InconsistentReadModelError,
   UsernameAlreadyExistsError,
+  TransferTokenAlreadyUsedError,
 } from './error';

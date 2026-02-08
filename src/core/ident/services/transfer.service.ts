@@ -3,7 +3,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { TransferToken, EncryptedIdentSecret } from '../models';
-import { NotFoundError } from 'src/lib/models';
+import { NotFoundError, TransferTokenAlreadyUsedError } from 'src/lib/models';
 import { InjectModel } from '@nestjs/mongoose';
 import { Ident } from '../repositories';
 import { Model } from 'mongoose';
@@ -25,7 +25,7 @@ export class IdentTransferService {
 
     await this.cacheManager.set(
       `transfer:${token}`,
-      JSON.stringify({ identity, encryptedSecret }),
+      JSON.stringify({ identity, encryptedSecret, used: false }),
       expiresIn * 1000,
     );
 
@@ -34,17 +34,27 @@ export class IdentTransferService {
 
   async verifyTransferToken(token: string): Promise<EncryptedIdentSecret> {
     const data = await this.cacheManager.get<string>(`transfer:${token}`);
+    const expiresIn = this.configService.get<number>('TRANSFER_EXPIRES_IN')!;
 
     if (!data) {
       throw new NotFoundError();
     }
 
-    const { identity, encryptedSecret } = JSON.parse(data) as {
+    const { identity, encryptedSecret, used } = JSON.parse(data) as {
       identity: string;
       encryptedSecret: string;
+      used: boolean;
     };
 
-    await this.cacheManager.del(`transfer:${token}`);
+    if (used) {
+      throw new TransferTokenAlreadyUsedError();
+    }
+
+    await this.cacheManager.set(
+      `transfer:${token}`,
+      JSON.stringify({ identity, encryptedSecret, used: true }),
+      expiresIn * 1000,
+    );
 
     return { identity, encryptedSecret };
   }

@@ -18,6 +18,7 @@ export enum ApiErrorCode {
   THROTTLED_ERROR = 'THROTTLED_ERROR',
   INCONSISTENT_READ_MODEL_ERROR = 'INCONSISTENT_READ_MODEL_ERROR',
   USERNAME_ALREADY_EXISTS_ERROR = 'USERNAME_ALREADY_EXISTS_ERROR',
+  TRANSFER_TOKEN_ALREADY_USED_ERROR = 'TRANSFER_TOKEN_ALREADY_USED_ERROR',
 }
 
 export const ApiErrorMessages: Record<ApiErrorCode, string> = {
@@ -40,6 +41,8 @@ export const ApiErrorMessages: Record<ApiErrorCode, string> = {
   [ApiErrorCode.THROTTLED_ERROR]: 'The action was throttled',
   [ApiErrorCode.INCONSISTENT_READ_MODEL_ERROR]: 'Inconsistent read model',
   [ApiErrorCode.USERNAME_ALREADY_EXISTS_ERROR]: 'Username already exists',
+  [ApiErrorCode.TRANSFER_TOKEN_ALREADY_USED_ERROR]:
+    'Transfer token has already been used',
 };
 
 export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
@@ -62,6 +65,7 @@ export const ApiErrorStatuses: Record<ApiErrorCode, number> = {
   [ApiErrorCode.THROTTLED_ERROR]: 429,
   [ApiErrorCode.INCONSISTENT_READ_MODEL_ERROR]: 500,
   [ApiErrorCode.USERNAME_ALREADY_EXISTS_ERROR]: 409,
+  [ApiErrorCode.TRANSFER_TOKEN_ALREADY_USED_ERROR]: 409,
 };
 
 export abstract class ApiError extends Error {
@@ -217,5 +221,11 @@ export class InconsistentReadModelError extends ApiError {
 export class UsernameAlreadyExistsError extends ApiError {
   constructor(cause?: Error) {
     super(ApiErrorCode.USERNAME_ALREADY_EXISTS_ERROR, undefined, cause);
+  }
+}
+
+export class TransferTokenAlreadyUsedError extends ApiError {
+  constructor(cause?: Error) {
+    super(ApiErrorCode.TRANSFER_TOKEN_ALREADY_USED_ERROR, undefined, cause);
   }
 }
