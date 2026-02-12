@@ -1,14 +1,16 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { CaptchaService } from 'src/core/ident/services';
-import { CaptchaDto } from './dtos';
+import { CaptchaDto, GetCaptchaQueryDto } from './dtos';
 
 @Controller({ path: 'captcha', version: '1' })
 export class CaptchaController {
   constructor(private readonly captchaService: CaptchaService) {}
 
   @Get()
-  async get(): Promise<CaptchaDto> {
-    const captcha = await this.captchaService.generateCaptcha();
+  async get(@Query() queryParams: GetCaptchaQueryDto): Promise<CaptchaDto> {
+    const captcha = await this.captchaService.generateCaptcha(
+      queryParams.scope,
+    );
 
     return {
       id: captcha.id,

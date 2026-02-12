@@ -16,7 +16,7 @@ export class PoWService {
     return crypto.randomBytes(16).toString('hex');
   }
 
-  public async generateChallenge(): Promise<PoWStamp> {
+  public async generateChallenge(scope: 'registration'): Promise<PoWStamp> {
     const difficulty = this.configService.get<number>('POW_DIFFICULTY')!;
     const expiresIn = this.configService.get<number>('POW_EXPIRES_IN')!;
     const algorithm = 'sha256';
@@ -33,25 +33,35 @@ export class PoWService {
 
     await this.cacheManager.set(
       `pow:${stamp.nonce}`,
-      stamp.toString(),
+      { stamp: stamp.toStamp(), scope },
       expiresIn * 1000,
     );
 
     return stamp;
   }
 
-  public async verifyChallenge(stamp: PoWStamp): Promise<void> {
+  public async verifyChallenge(
+    stamp: PoWStamp,
+    scope: 'registration',
+  ): Promise<void> {
     if (!stamp.isSolved) {
       throw new InvalidPoWStampError();
     }
 
-    const rawStamp = await this.cacheManager.get<string>(`pow:${stamp.nonce}`);
+    const rawStamp = await this.cacheManager.get<{
+      stamp: string;
+      scope: string;
+    }>(`pow:${stamp.nonce}`);
 
     if (!rawStamp) {
       throw new InvalidPoWStampError();
     }
 
-    const storedStamp = PoWStamp.fromStamp(rawStamp);
+    if (rawStamp.scope !== scope) {
+      throw new InvalidPoWStampError();
+    }
+
+    const storedStamp = PoWStamp.fromStamp(rawStamp.stamp);
 
     if (stamp.toStamp() !== `${storedStamp.toStamp()}:${stamp.counter}`) {
       throw new InvalidPoWStampError();

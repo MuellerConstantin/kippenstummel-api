@@ -21,7 +21,7 @@ export class CaptchaService {
     return crypto.randomBytes(3).toString('hex');
   }
 
-  async generateCaptcha(): Promise<Captcha> {
+  async generateCaptcha(scope: 'registration'): Promise<Captcha> {
     const id = this.generateId();
     const text = this.generateText();
     const expiresIn = this.configService.get<number>('CAPTCHA_EXPIRES_IN')!;
@@ -219,15 +219,25 @@ export class CaptchaService {
 
     const buffer = canvas.toBuffer('image/png');
 
-    await this.cacheManager.set(`captcha:${id}`, text, expiresIn * 1000);
+    await this.cacheManager.set(
+      `captcha:${id}`,
+      { text, scope },
+      expiresIn * 1000,
+    );
 
     return { id, content: buffer, contentType: 'image/png' };
   }
 
-  async validateCaptcha(id: string, text: string): Promise<void> {
-    const storedText = await this.cacheManager.get<string>(`captcha:${id}`);
+  async validateCaptcha(
+    id: string,
+    text: string,
+    scope: 'registration',
+  ): Promise<void> {
+    const stored = await this.cacheManager.get<{ text: string; scope: string }>(
+      `captcha:${id}`,
+    );
 
-    const isValid = storedText === text;
+    const isValid = stored?.text === text && stored?.scope === scope;
 
     if (!isValid) {
       throw new InvalidCaptchaStampError();

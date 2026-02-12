@@ -25,6 +25,8 @@ import {
 } from './dtos';
 import { IdentGuard } from './ident.guard';
 import { Identity } from './ident.decorator';
+import { CaptchaScope } from './captcha-scope.decorator';
+import { PoWScope } from './pow-scope.decorator';
 
 @Controller({ path: 'ident', version: '1' })
 export class IdentController {
@@ -34,6 +36,8 @@ export class IdentController {
   ) {}
 
   @UseGuards(PoWGuard, CaptchaGuard)
+  @CaptchaScope('registration')
+  @PoWScope('registration')
   @Get()
   async getIdentity(): Promise<IdentSecretDto> {
     return await this.identService.issueIdentity();

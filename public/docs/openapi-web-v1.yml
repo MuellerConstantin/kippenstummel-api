@@ -379,6 +379,13 @@ paths:
       description: >
         Issues a new Proof-of-Work challenge. The challenge is returned in the
         `X-PoW` response header.
+      parameters:
+        - name: scope
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [registration]
       security: []
       responses:
         '200':
@@ -398,6 +405,13 @@ paths:
       description: >
         Issues a new captcha challenge. The captcha (image) is returned as a base64-encoded
         data URI.
+      parameters:
+        - name: scope
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [registration]
       security: []
       responses:
         '200':
