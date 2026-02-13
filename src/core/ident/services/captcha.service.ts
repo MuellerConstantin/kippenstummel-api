@@ -21,7 +21,7 @@ export class CaptchaService {
     return crypto.randomBytes(3).toString('hex');
   }
 
-  async generateCaptcha(scope: 'registration'): Promise<Captcha> {
+  async generateCaptcha(scope: 'registration' | 'transfer'): Promise<Captcha> {
     const id = this.generateId();
     const text = this.generateText();
     const expiresIn = this.configService.get<number>('CAPTCHA_EXPIRES_IN')!;
@@ -231,7 +231,7 @@ export class CaptchaService {
   async validateCaptcha(
     id: string,
     text: string,
-    scope: 'registration',
+    scope: 'registration' | 'transfer',
   ): Promise<void> {
     const stored = await this.cacheManager.get<{ text: string; scope: string }>(
       `captcha:${id}`,

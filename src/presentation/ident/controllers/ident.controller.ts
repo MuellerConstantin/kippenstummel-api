@@ -66,7 +66,8 @@ export class IdentController {
     return await this.identService.updateIdentity(identity, body);
   }
 
-  @UseGuards(IdentGuard)
+  @UseGuards(IdentGuard, CaptchaGuard)
+  @CaptchaScope('transfer')
   @Post('/transfer')
   async requestTransferToken(
     @Identity() identity: string,

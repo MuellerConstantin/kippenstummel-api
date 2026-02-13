@@ -17,7 +17,7 @@ export class PoWGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const powHeader = request.headers['x-pow'];
 
-    const scope = this.reflector.get<'registration'>(
+    const scope = this.reflector.get<'registration' | 'transfer'>(
       PoWScope,
       context.getHandler(),
     );

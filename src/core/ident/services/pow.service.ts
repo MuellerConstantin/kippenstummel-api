@@ -16,7 +16,9 @@ export class PoWService {
     return crypto.randomBytes(16).toString('hex');
   }
 
-  public async generateChallenge(scope: 'registration'): Promise<PoWStamp> {
+  public async generateChallenge(
+    scope: 'registration' | 'transfer',
+  ): Promise<PoWStamp> {
     const difficulty = this.configService.get<number>('POW_DIFFICULTY')!;
     const expiresIn = this.configService.get<number>('POW_EXPIRES_IN')!;
     const algorithm = 'sha256';
@@ -42,7 +44,7 @@ export class PoWService {
 
   public async verifyChallenge(
     stamp: PoWStamp,
-    scope: 'registration',
+    scope: 'registration' | 'transfer',
   ): Promise<void> {
     if (!stamp.isSolved) {
       throw new InvalidPoWStampError();

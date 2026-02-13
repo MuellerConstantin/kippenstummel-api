@@ -19,7 +19,7 @@ export class CaptchaGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const captchaHeader = request.headers['x-captcha'];
 
-    const scope = this.reflector.get<'registration'>(
+    const scope = this.reflector.get<'registration' | 'transfer'>(
       CaptchaScope,
       context.getHandler(),
     );

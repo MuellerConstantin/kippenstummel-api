@@ -315,6 +315,13 @@ paths:
       description: >
         Requests a transfer token for securely transferring an identity to another device.  
         Requires authentication with an existing access token.
+      parameters:
+        - name: X-Captcha
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Captcha stamp (`<id>:<text>`).
       requestBody:
         required: true
         content:
@@ -385,7 +392,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [registration]
+            enum: [registration, transfer]
       security: []
       responses:
         '200':
@@ -411,7 +418,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [registration]
+            enum: [registration, transfer]
       security: []
       responses:
         '200':
