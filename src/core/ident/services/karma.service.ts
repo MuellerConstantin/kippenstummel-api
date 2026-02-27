@@ -3,10 +3,17 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Karma as KarmaModel } from '../repositories';
 import { Page, Pageable } from 'src/lib/models';
-import { KarmaEvent } from '../models/karma.model';
+import { KarmaEvent, KarmaAction } from '../models';
 
 @Injectable()
 export class KarmaService {
+  private static readonly voteActions: KarmaAction[] = [
+    'upvote_cast',
+    'downvote_cast',
+    'upvote_received',
+    'downvote_received',
+  ];
+
   constructor(
     @InjectModel(KarmaModel.name)
     private readonly karmaModel: Model<KarmaModel>,
@@ -15,16 +22,10 @@ export class KarmaService {
   async applyEvent(
     targetIdentity: string,
     cvmId: string,
-    action:
-      | 'registration'
-      | 'upvote_received'
-      | 'downvote_received'
-      | 'upvote_cast'
-      | 'downvote_cast'
-      | 'report_cast'
-      | 'report_received',
+    action: KarmaAction,
+    isSelfInteraction: boolean = false,
   ) {
-    const delta = KarmaService.getDeltaForAction(action);
+    const delta = KarmaService.getDeltaForAction(action, isSelfInteraction);
 
     await this.karmaModel.updateOne(
       { identity: targetIdentity },
@@ -84,15 +85,16 @@ export class KarmaService {
   }
 
   private static getDeltaForAction(
-    action:
-      | 'registration'
-      | 'upvote_received'
-      | 'downvote_received'
-      | 'upvote_cast'
-      | 'downvote_cast'
-      | 'report_cast'
-      | 'report_received',
+    action: KarmaAction,
+    isSelfInteraction: boolean,
   ): number {
+    const isVoteAction = KarmaService.voteActions.includes(action);
+
+    if (isSelfInteraction && isVoteAction) {
+      // To prevent abuse, self-interactions (e.g., upvoting one's own CVM) should not yield karma changes
+      return 0;
+    }
+
     switch (action) {
       case 'registration':
         return 5;

@@ -9,3 +9,4 @@ export { Credibility, Behaviour } from './credibility.model';
 export { Captcha } from './captcha.model';
 export { IdentTotalStats } from './ident-stats.model';
 export { TransferToken } from './transfer.model';
+export { KarmaEvent, KarmaAction } from './karma.model';

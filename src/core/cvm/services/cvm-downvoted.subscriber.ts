@@ -74,24 +74,22 @@ export class CvmDownvotedEventSubscriber implements IEventSubscriber {
         action: 'downvote',
       });
 
+      const isSelfInteraction = untokenizedIdentity === result.registeredBy;
+
       await this.karmaComputationQueue.add('recompute', {
         targetIdentity: untokenizedIdentity,
         cvmId,
         action: 'downvote_cast',
+        isSelfInteraction,
       });
 
       if (result.registeredBy) {
-        const untokenizedRegisteredBy = (await this.piiService.untokenizePii(
-          result.registeredBy,
-        )) as string | null;
-
-        if (untokenizedRegisteredBy) {
-          await this.karmaComputationQueue.add('recompute', {
-            targetIdentity: untokenizedRegisteredBy,
-            cvmId,
-            action: 'downvote_received',
-          });
-        }
+        await this.karmaComputationQueue.add('recompute', {
+          targetIdentity: result.registeredBy,
+          cvmId,
+          action: 'downvote_received',
+          isSelfInteraction: false,
+        });
       }
     }
   }

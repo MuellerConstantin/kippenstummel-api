@@ -30,6 +30,7 @@ export class KarmaComputationConsumer extends WorkerHost {
                 | 'downvote_cast'
                 | 'report_cast'
                 | 'report_received';
+              isSelfInteraction: boolean;
             },
             void,
             string
@@ -52,6 +53,7 @@ export class KarmaComputationConsumer extends WorkerHost {
           | 'downvote_cast'
           | 'report_cast'
           | 'report_received';
+        isSelfInteraction: boolean;
       },
       void,
       string
@@ -69,6 +71,7 @@ export class KarmaComputationConsumer extends WorkerHost {
       job.data.targetIdentity,
       job.data.cvmId,
       job.data.action,
+      job.data.isSelfInteraction,
     );
 
     await job.log(
