@@ -39,7 +39,7 @@ describe('PoWService', () => {
   describe('generateCaptcha', () => {
     it('Should generate captcha successfully"', async () => {
       const captchaService = app.get(CaptchaService);
-      const captcha = await captchaService.generateCaptcha();
+      const captcha = await captchaService.generateCaptcha('registration');
 
       expect(captcha).toBeDefined();
     });

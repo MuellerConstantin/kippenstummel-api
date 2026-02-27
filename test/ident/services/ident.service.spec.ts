@@ -28,7 +28,7 @@ identities.set('4c12ee89-4672-44dd-a23c-29c1ace369b2', {
         type: 'Point',
         coordinates: [48.09900075726553, 11.602646642911846],
       },
-      unrealisticMovementCount: 0,
+      unrealisticMovementScore: 0,
       voting: {
         totalCount: 44,
         upvoteCount: 30,
