@@ -95,6 +95,15 @@ export class RepositionCvmCommandHandler implements ICommandHandler {
           throw new AlterationConflictError();
         }
 
+        const throttle = await this.shouldThrottle(command.editorIdentity);
+
+        if (throttle) {
+          this.logger.debug(
+            `User '${command.editorIdentity}' has reached the reposition limit or is on cooldown`,
+          );
+          throw new ThrottledError();
+        }
+
         // Ensure editor has not already repositioned
         const hasRepositioned = await this.hasRepositionedRecently(
           command.editorIdentity,
@@ -103,7 +112,7 @@ export class RepositionCvmCommandHandler implements ICommandHandler {
 
         if (hasRepositioned) {
           this.logger.debug(
-            `User '${command.editorIdentity}' has reached the reposition limit or is on cooldown`,
+            `User '${command.editorIdentity}' has already repositioned this CVM recently`,
           );
           throw new ThrottledError();
         }
