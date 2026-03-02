@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
-import { IsNumber, IsOptional, Min } from 'class-validator';
+import { IsNumber, IsOptional, Max, Min } from 'class-validator';
+import { MAX_PAGE_SIZE } from 'src/lib/constants';
 
 export class GetKarmaHistoryQueryDto {
   @IsOptional()
@@ -11,6 +12,7 @@ export class GetKarmaHistoryQueryDto {
   @IsOptional()
   @IsNumber()
   @Min(1)
+  @Max(MAX_PAGE_SIZE)
   @Transform(({ value }) => Number(value))
   public perPage: number = 25;
 }

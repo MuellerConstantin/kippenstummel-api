@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
-import { IsNumber, IsOptional, Min, IsBoolean } from 'class-validator';
+import { IsNumber, IsOptional, Min, IsBoolean, Max } from 'class-validator';
+import { MAX_PAGE_SIZE } from 'src/lib/constants';
 
 export class GetAllJobQueryDto {
   @IsOptional()
@@ -11,6 +12,7 @@ export class GetAllJobQueryDto {
   @IsOptional()
   @IsNumber()
   @Min(1)
+  @Max(MAX_PAGE_SIZE)
   @Transform(({ value }) => Number(value))
   public perPage: number = 25;
 
