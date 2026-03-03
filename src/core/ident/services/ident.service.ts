@@ -69,8 +69,12 @@ export class IdentService {
       }
 
       return payload.identity;
-    } catch {
-      throw new InvalidIdentTokenError();
+    } catch (err: unknown) {
+      if (err instanceof UnknownIdentityError) {
+        throw err;
+      }
+
+      throw new InvalidIdentTokenError(err instanceof Error ? err : undefined);
     }
   }
 
