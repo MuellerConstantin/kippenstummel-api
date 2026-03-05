@@ -25,6 +25,10 @@ export class IdentRemovedEventSubscriber {
      * about a movement profile would theoretically be possible.
      */
 
+    await this.updateReadModel(identity);
+  }
+
+  async updateReadModel(identity: string): Promise<void> {
     await this.cvmModel.updateMany(
       { registeredBy: identity },
       { $unset: { registeredBy: '' } },

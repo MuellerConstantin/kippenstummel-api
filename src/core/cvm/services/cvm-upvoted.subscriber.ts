@@ -27,6 +27,7 @@ export class CvmUpvotedEventSubscriber implements IEventSubscriber {
   async handle(envelope: EventEnvelope<CvmUpvotedEvent>) {
     const cvmId = envelope.payload.cvmId as string;
     const tokenizedIdentity = envelope.payload.voterIdentity as string;
+    const scoreChange = envelope.payload.impact as number;
 
     /*
      * Due to GDPR, PII is tokenized. This step must be reversed when reading,
@@ -37,27 +38,11 @@ export class CvmUpvotedEventSubscriber implements IEventSubscriber {
       tokenizedIdentity,
     )) as string | null;
 
-    // Update read model
-    const result = await this.cvmModel
-      .findOneAndUpdate(
-        { aggregateId: cvmId },
-        {
-          $inc: { score: envelope.payload.impact },
-        },
-        { new: true },
-      )
-      .exec();
-
-    if (!result) {
-      throw new InconsistentReadModelError();
-    }
-
-    await this.voteModel.create({
-      identity: untokenizedIdentity,
-      cvm: result._id,
-      impact: envelope.payload.impact as number,
-      type: 'upvote',
-    });
+    const result = await this.updateReadModel(
+      cvmId,
+      untokenizedIdentity,
+      scoreChange,
+    );
 
     const position = {
       longitude: result.position.coordinates[0],
@@ -92,5 +77,34 @@ export class CvmUpvotedEventSubscriber implements IEventSubscriber {
         });
       }
     }
+  }
+
+  async updateReadModel(
+    cvmId: string,
+    voterIdentity: string | null,
+    scoreChange: number,
+  ): Promise<Cvm> {
+    const result = await this.cvmModel
+      .findOneAndUpdate(
+        { aggregateId: cvmId },
+        {
+          $inc: { score: scoreChange },
+        },
+        { new: true },
+      )
+      .exec();
+
+    if (!result) {
+      throw new InconsistentReadModelError();
+    }
+
+    await this.voteModel.create({
+      identity: voterIdentity,
+      cvm: result._id,
+      impact: scoreChange,
+      type: 'upvote',
+    });
+
+    return result;
   }
 }

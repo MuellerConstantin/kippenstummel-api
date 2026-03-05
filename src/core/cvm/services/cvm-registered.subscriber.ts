@@ -40,18 +40,12 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
     )) as string | null;
 
     // Update read model
-    await this.cvmModel.create({
-      aggregateId: envelope.payload.cvmId as string,
-      position: {
-        type: 'Point',
-        coordinates: [position.longitude, position.latitude],
-      },
-      score: 0,
-      imported: false,
-      markedForDeletion: false,
-      markedForDeletionAt: null,
-      registeredBy: untokenizedIdentity,
-    });
+    await this.updateReadModel(
+      envelope.payload.cvmId as string,
+      position.longitude,
+      position.latitude,
+      untokenizedIdentity,
+    );
 
     await this.tileComputationQueue.add('precompute', {
       positions: [
@@ -78,5 +72,27 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
         action: 'registration',
       });
     }
+  }
+
+  async updateReadModel(
+    cvmId: string,
+    longitude: number,
+    latitude: number,
+    creatorIdentity: string | null,
+  ): Promise<Cvm> {
+    const result = await this.cvmModel.create({
+      aggregateId: cvmId,
+      position: {
+        type: 'Point',
+        coordinates: [longitude, latitude],
+      },
+      score: 0,
+      imported: false,
+      markedForDeletion: false,
+      markedForDeletionAt: null,
+      registeredBy: creatorIdentity,
+    });
+
+    return result;
   }
 }

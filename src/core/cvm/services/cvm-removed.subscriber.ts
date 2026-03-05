@@ -22,14 +22,28 @@ export class CvmRemovedEventSubscriber implements IEventSubscriber {
   ) {}
 
   async handle(envelope: EventEnvelope<CvmRemovedEvent>) {
+    const aggregateId = envelope.payload.cvmId as string;
     const position = envelope.payload.position as {
       longitude: number;
       latitude: number;
     };
 
+    await this.updateReadModel(aggregateId);
+
+    await this.tileComputationQueue.add('precompute', {
+      positions: [
+        {
+          longitude: position.longitude,
+          latitude: position.latitude,
+        },
+      ],
+    });
+  }
+
+  async updateReadModel(cvmId: string): Promise<void> {
     const documentId = (
       await this.cvmModel.findOne({
-        aggregateId: envelope.payload.cvmId as string,
+        aggregateId: cvmId,
       })
     )?._id;
 
@@ -40,16 +54,7 @@ export class CvmRemovedEventSubscriber implements IEventSubscriber {
     await this.repositioningModel.deleteMany({ cvm: documentId });
 
     await this.cvmModel.deleteOne({
-      aggregateId: envelope.payload.cvmId as string,
-    });
-
-    await this.tileComputationQueue.add('precompute', {
-      positions: [
-        {
-          longitude: position.longitude,
-          latitude: position.latitude,
-        },
-      ],
+      aggregateId: cvmId,
     });
   }
 }

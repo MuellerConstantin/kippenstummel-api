@@ -23,34 +23,19 @@ export class CvmSynchronizedEventSubscriber implements IEventSubscriber {
   ) {}
 
   async handle(envelope: EventEnvelope<CvmSynchronizedEvent>) {
+    const aggregateId = envelope.payload.cvmId as string;
     const forcedScore = envelope.payload.forcedScore as number;
     const forcedPosition = envelope.payload.position as {
       longitude: number;
       latitude: number;
     };
 
-    // Update read model
-    const result = await this.cvmModel
-      .findOneAndUpdate(
-        {
-          aggregateId: envelope.payload.cvmId as string,
-        },
-        {
-          $set: {
-            score: forcedScore,
-            position: {
-              type: 'Point',
-              coordinates: [forcedPosition.longitude, forcedPosition.latitude],
-            },
-          },
-        },
-        { new: false },
-      )
-      .exec();
-
-    if (!result) {
-      throw new InconsistentReadModelError();
-    }
+    await this.updateReadModel(
+      aggregateId,
+      forcedPosition.longitude,
+      forcedPosition.latitude,
+      forcedScore,
+    );
 
     /*
      * Cluster tiles are explicitly not recomputed here. This is because
@@ -58,5 +43,32 @@ export class CvmSynchronizedEventSubscriber implements IEventSubscriber {
      * be run every time a CVM is imported. Instead the cluster tile computation
      * is scheduled batch-wise after the import finishes.
      */
+  }
+
+  async updateReadModel(
+    cvmId: string,
+    longitude: number,
+    latitude: number,
+    forcedScore?: number,
+  ): Promise<Cvm> {
+    const result = await this.cvmModel.findOneAndUpdate(
+      { aggregateId: cvmId },
+      {
+        $set: {
+          score: forcedScore,
+          position: {
+            type: 'Point',
+            coordinates: [longitude, latitude],
+          },
+        },
+      },
+      { new: true },
+    );
+
+    if (!result) {
+      throw new InconsistentReadModelError();
+    }
+
+    return result;
   }
 }

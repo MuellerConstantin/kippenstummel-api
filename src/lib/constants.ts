@@ -158,6 +158,11 @@ const NEARBY_CVM_RADIUS = 0.05;
  */
 const CVM_SCORE_BELOW_DELETE_THRESHOLD_PERIOD = 7;
 
+/**
+ * The score threshold below which a CVM is marked for deletion.
+ */
+const MARKED_FOR_DELETION_THRESHOLD = -8;
+
 export {
   MAX_PAGE_SIZE,
   DEFAULT_CVM_VOTE_IMPACT,
@@ -178,4 +183,5 @@ export {
   getRegistrationLimitByCredibility,
   getRepositionCooldownByCredibility,
   getRepositionLimitByCredibility,
+  MARKED_FOR_DELETION_THRESHOLD,
 };

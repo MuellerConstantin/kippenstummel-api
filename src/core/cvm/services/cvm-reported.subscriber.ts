@@ -23,6 +23,8 @@ export class CvmReportedEventSubscriber implements IEventSubscriber {
   ) {}
 
   async handle(envelope: EventEnvelope<CvmReportedEvent>) {
+    const aggregateId = envelope.payload.cvmId as string;
+    const reportType = envelope.payload.type as string;
     const tokenizedIdentity = envelope.payload.reporterIdentity as string;
 
     /*
@@ -34,26 +36,15 @@ export class CvmReportedEventSubscriber implements IEventSubscriber {
       tokenizedIdentity,
     )) as string | null;
 
-    const result = await this.cvmModel
-      .findOne({
-        aggregateId: envelope.payload.cvmId as string,
-      })
-      .exec();
-
-    if (!result) {
-      throw new InconsistentReadModelError();
-    }
-
-    // Update read model
-    await this.reportModel.create({
-      identity: untokenizedIdentity,
-      cvm: result._id,
-      type: envelope.payload.type as string,
-    });
+    const result = await this.updateReadModel(
+      aggregateId,
+      untokenizedIdentity,
+      reportType,
+    );
 
     await this.karmaComputationQueue.add('recompute', {
       targetIdentity: untokenizedIdentity,
-      cvmId: envelope.payload.cvmId as string,
+      cvmId: aggregateId,
       action: 'report_cast',
     });
 
@@ -65,10 +56,35 @@ export class CvmReportedEventSubscriber implements IEventSubscriber {
       if (untokenizedRegisteredBy) {
         await this.karmaComputationQueue.add('recompute', {
           targetIdentity: untokenizedRegisteredBy,
-          cvmId: envelope.payload.cvmId as string,
+          cvmId: aggregateId,
           action: 'report_received',
         });
       }
     }
+  }
+
+  async updateReadModel(
+    cvmId: string,
+    reporterIdentity: string | null,
+    type: string,
+  ): Promise<Cvm> {
+    const result = await this.cvmModel
+      .findOne({
+        aggregateId: cvmId,
+      })
+      .exec();
+
+    if (!result) {
+      throw new InconsistentReadModelError();
+    }
+
+    // Update read model
+    await this.reportModel.create({
+      identity: reporterIdentity,
+      cvm: result._id,
+      type,
+    });
+
+    return result;
   }
 }

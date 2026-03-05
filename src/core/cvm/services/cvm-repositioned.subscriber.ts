@@ -23,6 +23,7 @@ export class CvmRepositionedEventSubscriber implements IEventSubscriber {
   ) {}
 
   async handle(envelope: EventEnvelope<CvmRepositionedEvent>) {
+    const aggregateId = envelope.payload.cvmId as string;
     const tokenizedIdentity = envelope.payload.editorIdentity as string;
     const oldPosition = envelope.payload.formerPosition as {
       longitude: number;
@@ -43,35 +44,12 @@ export class CvmRepositionedEventSubscriber implements IEventSubscriber {
     )) as string | null;
 
     // Update read model
-    const result = await this.cvmModel
-      .findOneAndUpdate(
-        {
-          aggregateId: envelope.payload.cvmId as string,
-        },
-        {
-          $set: {
-            position: {
-              type: 'Point',
-              coordinates: [newPosition.longitude, newPosition.latitude],
-            },
-          },
-        },
-        { new: true },
-      )
-      .exec();
-
-    if (!result) {
-      throw new InconsistentReadModelError();
-    }
-
-    await this.repositioningModel.create({
-      identity: untokenizedIdentity,
-      cvm: result._id,
-      position: {
-        type: 'Point',
-        coordinates: [newPosition.longitude, newPosition.latitude],
-      },
-    });
+    await this.updateReadModel(
+      aggregateId,
+      untokenizedIdentity,
+      newPosition.longitude,
+      newPosition.latitude,
+    );
 
     /*
      * All affected tiles need to be re-computed. The tiles affected
@@ -91,5 +69,44 @@ export class CvmRepositionedEventSubscriber implements IEventSubscriber {
         },
       ],
     });
+  }
+
+  async updateReadModel(
+    cvmId: string,
+    editorIdentity: string | null,
+    longitude: number,
+    latitude: number,
+  ): Promise<Cvm> {
+    const result = await this.cvmModel
+      .findOneAndUpdate(
+        {
+          aggregateId: cvmId,
+        },
+        {
+          $set: {
+            position: {
+              type: 'Point',
+              coordinates: [longitude, latitude],
+            },
+          },
+        },
+        { new: true },
+      )
+      .exec();
+
+    if (!result) {
+      throw new InconsistentReadModelError();
+    }
+
+    await this.repositioningModel.create({
+      identity: editorIdentity,
+      cvm: result._id,
+      position: {
+        type: 'Point',
+        coordinates: [longitude, latitude],
+      },
+    });
+
+    return result;
   }
 }
