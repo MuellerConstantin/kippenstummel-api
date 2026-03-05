@@ -246,4 +246,42 @@ export class CvmReadModelSynchronizer {
       { $unset: { identity: '' } },
     );
   }
+
+  async applyDeletionMark(cvmId: string, deletedAt: Date): Promise<void> {
+    const result = await this.cvmModel
+      .findOneAndUpdate(
+        { aggregateId: cvmId },
+        {
+          $set: {
+            markedForDeletion: true,
+            markedForDeletionAt: deletedAt,
+          },
+        },
+        { new: true },
+      )
+      .exec();
+
+    if (!result) {
+      throw new InconsistentReadModelError();
+    }
+  }
+
+  async applyDeletionUnmark(cvmId: string): Promise<void> {
+    const result = await this.cvmModel
+      .findOneAndUpdate(
+        { aggregateId: cvmId },
+        {
+          $set: {
+            markedForDeletion: false,
+            markedForDeletionAt: null,
+          },
+        },
+        { new: true },
+      )
+      .exec();
+
+    if (!result) {
+      throw new InconsistentReadModelError();
+    }
+  }
 }

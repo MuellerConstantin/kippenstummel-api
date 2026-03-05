@@ -10,3 +10,5 @@ export { CvmRemovedEventSubscriber } from './cvm-removed.subscriber';
 export { CvmReportedEventSubscriber } from './cvm-reported.subscriber';
 export { CvmImportedEventSubscriber } from './cvm-imported.subscriber';
 export { CvmSynchronizedEventSubscriber } from './cvm-synchronized.subscriber';
+export { CvmDeletionMarkedEventSubscriber } from './cvm-deletion-marked.subscriber';
+export { CvmDeletionUnmarkedEventSubscriber } from './cvm-deletion-unmarked.subscriber';

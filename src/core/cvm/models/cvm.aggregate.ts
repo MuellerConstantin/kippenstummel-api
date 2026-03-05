@@ -14,6 +14,8 @@ import {
   CvmReportedEvent,
   CvmRestoredEvent,
   CvmRemovedEvent,
+  CvmDeletionMarkedEvent,
+  CvmDeletionUnmarkedEvent,
 } from '../events';
 import { constants } from 'src/lib';
 
@@ -112,21 +114,19 @@ export class CvmAggregate extends AggregateRoot {
     this._removed = removed;
   }
 
-  private updateDeletionMarking(timestamp: Date) {
+  private checkDeletionMarking() {
     if (
       this._score <= constants.MARKED_FOR_DELETION_THRESHOLD &&
       !this._markedForDeletion
     ) {
-      this._markedForDeletion = true;
-      this._markedForDeletionAt = timestamp;
+      this.applyEvent(new CvmDeletionMarkedEvent(this.id.value, new Date()));
     }
 
     if (
       this._score > constants.MARKED_FOR_DELETION_THRESHOLD &&
       this._markedForDeletion
     ) {
-      this._markedForDeletion = false;
-      this._markedForDeletionAt = undefined;
+      this.applyEvent(new CvmDeletionUnmarkedEvent(this.id.value));
     }
   }
 
@@ -143,6 +143,8 @@ export class CvmAggregate extends AggregateRoot {
     }
 
     this.applyEvent(new CvmUpvotedEvent(this.id.value, voterIdentity, impact));
+
+    this.checkDeletionMarking();
   }
 
   public downvote(
@@ -160,6 +162,8 @@ export class CvmAggregate extends AggregateRoot {
     this.applyEvent(
       new CvmDownvotedEvent(this.id.value, voterIdentity, impact),
     );
+
+    this.checkDeletionMarking();
   }
 
   public synchronize(data: {
@@ -192,6 +196,10 @@ export class CvmAggregate extends AggregateRoot {
         data.score,
       ),
     );
+
+    if (data.score !== undefined) {
+      this.checkDeletionMarking();
+    }
   }
 
   public reposition(
@@ -315,8 +323,6 @@ export class CvmAggregate extends AggregateRoot {
     this._latitude = event.position.latitude;
     this._score = event.initialScore ?? 0;
     this._imported = true;
-
-    this.updateDeletionMarking(new Date());
   }
 
   @EventHandler(CvmSynchronizedEvent)
@@ -331,7 +337,6 @@ export class CvmAggregate extends AggregateRoot {
 
     if (event.forcedScore !== undefined) {
       this._score = event.forcedScore;
-      this.updateDeletionMarking(new Date());
     }
   }
 
@@ -342,8 +347,6 @@ export class CvmAggregate extends AggregateRoot {
     if (this._score > constants.MAX_CVM_SCORE) {
       this._score = constants.MAX_CVM_SCORE;
     }
-
-    this.updateDeletionMarking(new Date());
   }
 
   @EventHandler(CvmDownvotedEvent)
@@ -353,8 +356,6 @@ export class CvmAggregate extends AggregateRoot {
     if (this._score < constants.MIN_CVM_SCORE) {
       this._score = constants.MIN_CVM_SCORE;
     }
-
-    this.updateDeletionMarking(new Date());
   }
 
   @EventHandler(CvmRepositionedEvent)
@@ -400,5 +401,17 @@ export class CvmAggregate extends AggregateRoot {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onCvmRestoredEvent(_: CvmRestoredEvent): void {
     this._removed = false;
+  }
+
+  @EventHandler(CvmDeletionMarkedEvent)
+  onCvmDeletionMarkedEvent(event: CvmDeletionMarkedEvent): void {
+    this._markedForDeletion = true;
+    this._markedForDeletionAt = event.markedAt;
+  }
+
+  @EventHandler(CvmDeletionUnmarkedEvent)
+  onCvmDeletionUnmarkedEvent(): void {
+    this._markedForDeletion = false;
+    this._markedForDeletionAt = undefined;
   }
 }

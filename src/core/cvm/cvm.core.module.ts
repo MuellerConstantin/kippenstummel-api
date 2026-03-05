@@ -39,6 +39,8 @@ import {
   CvmReportedEventSubscriber,
   CvmImportedEventSubscriber,
   CvmSynchronizedEventSubscriber,
+  CvmDeletionMarkedEventSubscriber,
+  CvmDeletionUnmarkedEventSubscriber,
 } from './services';
 import {
   GetAllQueryHandler,
@@ -102,6 +104,8 @@ import { MultithreadingInfrastructureModule } from 'src/infrastructure/multithre
     CvmReportedEventSubscriber,
     CvmImportedEventSubscriber,
     CvmSynchronizedEventSubscriber,
+    CvmDeletionMarkedEventSubscriber,
+    CvmDeletionUnmarkedEventSubscriber,
     CvmReadModelSynchronizer,
   ],
   exports: [CvmTileService],

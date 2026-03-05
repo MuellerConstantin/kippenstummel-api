@@ -7,3 +7,5 @@ export { CvmRepositionedEvent } from './cvm-repositioned.event';
 export { CvmReportedEvent } from './cvm-reported.event';
 export { CvmRemovedEvent } from './cvm-removed.event';
 export { CvmRestoredEvent } from './cvm-restored.event';
+export { CvmDeletionMarkedEvent } from './cvm-deletion-marked.event';
+export { CvmDeletionUnmarkedEvent } from './cvm-deletion-unmarked.event';
