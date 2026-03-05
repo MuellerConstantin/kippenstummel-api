@@ -1,5 +1,6 @@
 export { CvmEventStoreRepository } from './cvm.es-repository';
 export { CvmSnapshotRepository } from './cvm.snapshot-repository';
+export { CvmReadModelSynchronizer } from './cvm.rm-syncronizer';
 export {
   CvmSchema,
   Cvm,

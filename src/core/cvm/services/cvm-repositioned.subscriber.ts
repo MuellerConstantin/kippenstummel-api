@@ -6,18 +6,13 @@ import {
   EventEnvelope,
 } from '@ocoda/event-sourcing';
 import { CvmRepositionedEvent } from '../events';
-import { Cvm, Repositioning } from '../repositories';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { CvmReadModelSynchronizer } from '../repositories';
 import { PiiService } from 'src/infrastructure/pii/services';
-import { InconsistentReadModelError } from 'src/lib/models';
 
 @EventSubscriber(CvmRepositionedEvent)
 export class CvmRepositionedEventSubscriber implements IEventSubscriber {
   constructor(
-    @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
-    @InjectModel(Repositioning.name)
-    private readonly repositioningModel: Model<Repositioning>,
+    private readonly cvmReadModelSynchronizer: CvmReadModelSynchronizer,
     @InjectQueue('tile-computation') private tileComputationQueue: Queue,
     private readonly piiService: PiiService,
   ) {}
@@ -44,7 +39,7 @@ export class CvmRepositionedEventSubscriber implements IEventSubscriber {
     )) as string | null;
 
     // Update read model
-    await this.updateReadModel(
+    await this.cvmReadModelSynchronizer.applyReposition(
       aggregateId,
       untokenizedIdentity,
       newPosition.longitude,
@@ -69,44 +64,5 @@ export class CvmRepositionedEventSubscriber implements IEventSubscriber {
         },
       ],
     });
-  }
-
-  async updateReadModel(
-    cvmId: string,
-    editorIdentity: string | null,
-    longitude: number,
-    latitude: number,
-  ): Promise<Cvm> {
-    const result = await this.cvmModel
-      .findOneAndUpdate(
-        {
-          aggregateId: cvmId,
-        },
-        {
-          $set: {
-            position: {
-              type: 'Point',
-              coordinates: [longitude, latitude],
-            },
-          },
-        },
-        { new: true },
-      )
-      .exec();
-
-    if (!result) {
-      throw new InconsistentReadModelError();
-    }
-
-    await this.repositioningModel.create({
-      identity: editorIdentity,
-      cvm: result._id,
-      position: {
-        type: 'Point',
-        coordinates: [longitude, latitude],
-      },
-    });
-
-    return result;
   }
 }

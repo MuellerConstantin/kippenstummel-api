@@ -4,17 +4,17 @@ import {
   EventEnvelope,
 } from '@ocoda/event-sourcing';
 import { CvmReportedEvent } from '../events';
-import { Cvm, Report } from '../repositories';
+import { Cvm, CvmReadModelSynchronizer, Report } from '../repositories';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { PiiService } from 'src/infrastructure/pii/services';
-import { InconsistentReadModelError } from 'src/lib/models';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 
 @EventSubscriber(CvmReportedEvent)
 export class CvmReportedEventSubscriber implements IEventSubscriber {
   constructor(
+    private readonly cvmReadModelSynchronizer: CvmReadModelSynchronizer,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     @InjectModel(Report.name) private readonly reportModel: Model<Report>,
     @InjectQueue('karma-computation')
@@ -36,11 +36,13 @@ export class CvmReportedEventSubscriber implements IEventSubscriber {
       tokenizedIdentity,
     )) as string | null;
 
-    const result = await this.updateReadModel(
+    await this.cvmReadModelSynchronizer.applyReport(
       aggregateId,
       untokenizedIdentity,
       reportType,
     );
+
+    const result = await this.cvmModel.findOne({ aggregateId }).exec();
 
     await this.karmaComputationQueue.add('recompute', {
       targetIdentity: untokenizedIdentity,
@@ -48,9 +50,9 @@ export class CvmReportedEventSubscriber implements IEventSubscriber {
       action: 'report_cast',
     });
 
-    if (result.registeredBy) {
+    if (result!.registeredBy) {
       const untokenizedRegisteredBy = (await this.piiService.untokenizePii(
-        result.registeredBy,
+        result!.registeredBy,
       )) as string | null;
 
       if (untokenizedRegisteredBy) {
@@ -61,30 +63,5 @@ export class CvmReportedEventSubscriber implements IEventSubscriber {
         });
       }
     }
-  }
-
-  async updateReadModel(
-    cvmId: string,
-    reporterIdentity: string | null,
-    type: string,
-  ): Promise<Cvm> {
-    const result = await this.cvmModel
-      .findOne({
-        aggregateId: cvmId,
-      })
-      .exec();
-
-    if (!result) {
-      throw new InconsistentReadModelError();
-    }
-
-    // Update read model
-    await this.reportModel.create({
-      identity: reporterIdentity,
-      cvm: result._id,
-      type,
-    });
-
-    return result;
   }
 }

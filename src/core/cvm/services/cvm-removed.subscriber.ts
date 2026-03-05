@@ -4,20 +4,14 @@ import {
   EventEnvelope,
 } from '@ocoda/event-sourcing';
 import { CvmRemovedEvent } from '../events';
-import { Cvm, Report, Repositioning, Vote } from '../repositories';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { CvmReadModelSynchronizer } from '../repositories';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 
 @EventSubscriber(CvmRemovedEvent)
 export class CvmRemovedEventSubscriber implements IEventSubscriber {
   constructor(
-    @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
-    @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
-    @InjectModel(Repositioning.name)
-    private readonly repositioningModel: Model<Repositioning>,
-    @InjectModel(Report.name) private readonly reportModel: Model<Report>,
+    private readonly cvmReadModelSynchronizer: CvmReadModelSynchronizer,
     @InjectQueue('tile-computation') private tileComputationQueue: Queue,
   ) {}
 
@@ -28,7 +22,7 @@ export class CvmRemovedEventSubscriber implements IEventSubscriber {
       latitude: number;
     };
 
-    await this.updateReadModel(aggregateId);
+    await this.cvmReadModelSynchronizer.applyRemove(aggregateId);
 
     await this.tileComputationQueue.add('precompute', {
       positions: [
@@ -37,24 +31,6 @@ export class CvmRemovedEventSubscriber implements IEventSubscriber {
           latitude: position.latitude,
         },
       ],
-    });
-  }
-
-  async updateReadModel(cvmId: string): Promise<void> {
-    const documentId = (
-      await this.cvmModel.findOne({
-        aggregateId: cvmId,
-      })
-    )?._id;
-
-    await this.voteModel.deleteMany({ cvm: documentId });
-
-    await this.reportModel.deleteMany({ cvm: documentId });
-
-    await this.repositioningModel.deleteMany({ cvm: documentId });
-
-    await this.cvmModel.deleteOne({
-      aggregateId: cvmId,
     });
   }
 }

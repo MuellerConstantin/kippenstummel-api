@@ -6,14 +6,12 @@ import {
   EventEnvelope,
 } from '@ocoda/event-sourcing';
 import { CvmRestoredEvent } from '../events';
-import { InjectModel } from '@nestjs/mongoose';
-import { Cvm } from '../repositories';
-import { Model } from 'mongoose';
+import { CvmReadModelSynchronizer } from '../repositories';
 
 @EventSubscriber(CvmRestoredEvent)
 export class CvmRestoredEventSubscriber implements IEventSubscriber {
   constructor(
-    @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
+    private readonly cvmReadModelSynchronizer: CvmReadModelSynchronizer,
     @InjectQueue('tile-computation') private tileComputationQueue: Queue,
   ) {}
 
@@ -25,7 +23,7 @@ export class CvmRestoredEventSubscriber implements IEventSubscriber {
     };
 
     // Update read model
-    await this.updateReadModel(
+    await this.cvmReadModelSynchronizer.applyRestore(
       aggregateId,
       position.longitude,
       position.latitude,
@@ -39,26 +37,5 @@ export class CvmRestoredEventSubscriber implements IEventSubscriber {
         },
       ],
     });
-  }
-
-  async updateReadModel(
-    cvmId: string,
-    longitude: number,
-    latitude: number,
-  ): Promise<Cvm> {
-    const result = await this.cvmModel.create({
-      aggregateId: cvmId,
-      position: {
-        type: 'Point',
-        coordinates: [longitude, latitude],
-      },
-      score: 0,
-      imported: false,
-      markedForDeletion: false,
-      markedForDeletionAt: null,
-      registeredBy: null,
-    });
-
-    return result;
   }
 }

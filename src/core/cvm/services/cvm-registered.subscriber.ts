@@ -7,14 +7,12 @@ import {
 } from '@ocoda/event-sourcing';
 import { CvmRegisteredEvent } from '../events';
 import { PiiService } from 'src/infrastructure/pii/services';
-import { InjectModel } from '@nestjs/mongoose';
-import { Cvm } from '../repositories';
-import { Model } from 'mongoose';
+import { CvmReadModelSynchronizer } from '../repositories';
 
 @EventSubscriber(CvmRegisteredEvent)
 export class CvmRegisteredEventSubscriber implements IEventSubscriber {
   constructor(
-    @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
+    private readonly cvmReadModelSynchronizer: CvmReadModelSynchronizer,
     @InjectQueue('tile-computation') private tileComputationQueue: Queue,
     @InjectQueue('credibility-computation')
     private credibilityComputationQueue: Queue,
@@ -40,7 +38,7 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
     )) as string | null;
 
     // Update read model
-    await this.updateReadModel(
+    await this.cvmReadModelSynchronizer.applyRegister(
       envelope.payload.cvmId as string,
       position.longitude,
       position.latitude,
@@ -72,27 +70,5 @@ export class CvmRegisteredEventSubscriber implements IEventSubscriber {
         action: 'registration',
       });
     }
-  }
-
-  async updateReadModel(
-    cvmId: string,
-    longitude: number,
-    latitude: number,
-    creatorIdentity: string | null,
-  ): Promise<Cvm> {
-    const result = await this.cvmModel.create({
-      aggregateId: cvmId,
-      position: {
-        type: 'Point',
-        coordinates: [longitude, latitude],
-      },
-      score: 0,
-      imported: false,
-      markedForDeletion: false,
-      markedForDeletionAt: null,
-      registeredBy: creatorIdentity,
-    });
-
-    return result;
   }
 }

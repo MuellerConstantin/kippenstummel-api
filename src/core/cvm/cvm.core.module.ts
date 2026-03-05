@@ -13,6 +13,7 @@ import {
   RepositioningSchema,
   Report,
   ReportSchema,
+  CvmReadModelSynchronizer,
 } from './repositories';
 import {
   RegisterCvmCommandHandler,
@@ -101,6 +102,7 @@ import { MultithreadingInfrastructureModule } from 'src/infrastructure/multithre
     CvmReportedEventSubscriber,
     CvmImportedEventSubscriber,
     CvmSynchronizedEventSubscriber,
+    CvmReadModelSynchronizer,
   ],
   exports: [CvmTileService],
 })

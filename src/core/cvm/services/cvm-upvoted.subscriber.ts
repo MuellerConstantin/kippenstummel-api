@@ -7,16 +7,16 @@ import {
 } from '@ocoda/event-sourcing';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Cvm, Vote } from '../repositories/schemas';
+import { Cvm } from '../repositories/schemas';
 import { CvmUpvotedEvent } from '../events';
 import { PiiService } from 'src/infrastructure/pii/services';
-import { InconsistentReadModelError } from 'src/lib/models';
+import { CvmReadModelSynchronizer } from '../repositories';
 
 @EventSubscriber(CvmUpvotedEvent)
 export class CvmUpvotedEventSubscriber implements IEventSubscriber {
   constructor(
+    private readonly cvmReadModelSynchronizer: CvmReadModelSynchronizer,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
-    @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
     @InjectQueue('credibility-computation')
     private credibilityComputationQueue: Queue,
     @InjectQueue('karma-computation')
@@ -38,15 +38,17 @@ export class CvmUpvotedEventSubscriber implements IEventSubscriber {
       tokenizedIdentity,
     )) as string | null;
 
-    const result = await this.updateReadModel(
+    await this.cvmReadModelSynchronizer.applyUpvote(
       cvmId,
       untokenizedIdentity,
       scoreChange,
     );
 
+    const result = await this.cvmModel.findOne({ aggregateId: cvmId }).exec();
+
     const position = {
-      longitude: result.position.coordinates[0],
-      latitude: result.position.coordinates[1],
+      longitude: result!.position.coordinates[0],
+      latitude: result!.position.coordinates[1],
     };
 
     if (untokenizedIdentity) {
@@ -59,7 +61,7 @@ export class CvmUpvotedEventSubscriber implements IEventSubscriber {
         action: 'upvote',
       });
 
-      const isSelfInteraction = untokenizedIdentity === result.registeredBy;
+      const isSelfInteraction = untokenizedIdentity === result!.registeredBy;
 
       await this.karmaComputationQueue.add('recompute', {
         targetIdentity: untokenizedIdentity,
@@ -68,43 +70,14 @@ export class CvmUpvotedEventSubscriber implements IEventSubscriber {
         isSelfInteraction,
       });
 
-      if (result.registeredBy) {
+      if (result!.registeredBy) {
         await this.karmaComputationQueue.add('recompute', {
-          targetIdentity: result.registeredBy,
+          targetIdentity: result!.registeredBy,
           cvmId,
           action: 'upvote_received',
           isSelfInteraction,
         });
       }
     }
-  }
-
-  async updateReadModel(
-    cvmId: string,
-    voterIdentity: string | null,
-    scoreChange: number,
-  ): Promise<Cvm> {
-    const result = await this.cvmModel
-      .findOneAndUpdate(
-        { aggregateId: cvmId },
-        {
-          $inc: { score: scoreChange },
-        },
-        { new: true },
-      )
-      .exec();
-
-    if (!result) {
-      throw new InconsistentReadModelError();
-    }
-
-    await this.voteModel.create({
-      identity: voterIdentity,
-      cvm: result._id,
-      impact: scoreChange,
-      type: 'upvote',
-    });
-
-    return result;
   }
 }

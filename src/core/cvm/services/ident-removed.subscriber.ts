@@ -1,18 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { Model } from 'mongoose';
 import { IdentRemovedEvent } from 'src/core/ident/events';
-import { Cvm, Repositioning, Vote, Report } from '../repositories';
-import { InjectModel } from '@nestjs/mongoose';
+import { CvmReadModelSynchronizer } from '../repositories';
 
 @Injectable()
 export class IdentRemovedEventSubscriber {
   constructor(
-    @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
-    @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
-    @InjectModel(Repositioning.name)
-    private readonly repositioningModel: Model<Repositioning>,
-    @InjectModel(Report.name) private readonly reportModel: Model<Report>,
+    private readonly cvmReadModelSynchronizer: CvmReadModelSynchronizer,
   ) {}
 
   @OnEvent('ident-removed')
@@ -25,25 +19,6 @@ export class IdentRemovedEventSubscriber {
      * about a movement profile would theoretically be possible.
      */
 
-    await this.updateReadModel(identity);
-  }
-
-  async updateReadModel(identity: string): Promise<void> {
-    await this.cvmModel.updateMany(
-      { registeredBy: identity },
-      { $unset: { registeredBy: '' } },
-    );
-
-    await this.voteModel.updateMany({ identity }, { $unset: { identity: '' } });
-
-    await this.repositioningModel.updateMany(
-      { identity },
-      { $unset: { identity: '' } },
-    );
-
-    await this.reportModel.updateMany(
-      { identity: identity },
-      { $unset: { identity: '' } },
-    );
+    await this.cvmReadModelSynchronizer.applyCreatorRemove(identity);
   }
 }
