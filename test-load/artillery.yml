@@ -1,0 +1,48 @@
+config:
+  target: '{{ $processEnvironment.TARGET }}'
+  processor: './processor.ts'
+  phases:
+    - name: warmup
+      duration: 60
+      arrivalRate: 50
+    - name: ramp-up
+      duration: 120
+      arrivalRate: 200
+      rampTo: 600
+    - name: sustained-load
+      duration: 180
+      arrivalRate: 600
+  defaults:
+    headers:
+      Accept: application/json
+scenarios:
+  - name: load-map-clusters
+    weight: 7
+    flow:
+      # Initial viewport
+      - function: buildViewportQuery
+      - get:
+          url: '/cvms/within?bottomLeft={{ bottomLeft }}&topRight={{ topRight }}&zoom={{ zoom }}'
+      - think: 1
+      # User moves the map around, triggering new queries for different viewports
+      - loop:
+          - function: buildViewportQuery
+          - get:
+              url: '/cvms/within?bottomLeft={{ bottomLeft }}&topRight={{ topRight }}&zoom={{ zoom }}'
+          - think: 0.4
+        count: 6
+  - name: list-page
+    weight: 3
+    flow:
+      # Initial page load
+      - function: buildPaginationQuery
+      - get:
+          url: '/cvms?page={{ page }}&perPage={{ perPage }}'
+      - think: 2
+      # User clicks through several pages of the list, triggering new queries with different pagination parameters
+      - loop:
+          - function: buildPaginationQuery
+          - get:
+              url: '/cvms?page={{ page }}&perPage={{ perPage }}'
+          - think: 2
+        count: 3
