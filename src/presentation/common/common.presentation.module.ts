@@ -1,12 +1,14 @@
 import { Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
+import { TerminusModule } from '@nestjs/terminus';
 import {
   DefaultExceptionFilter,
   HttpExceptionFilter,
   ApiExceptionFilter,
   JwtStrategy,
   JwtGuard,
+  HealthController,
 } from './controllers';
 import { InvalidPayloadError } from 'src/lib/models/error';
 import { ValidationError } from 'class-validator';
@@ -35,8 +37,9 @@ import { SecurityInfrastructureModule } from 'src/infrastructure/security/securi
       inject: [ConfigService],
     }),
     PassportModule,
+    TerminusModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [
     DefaultExceptionFilter,
     HttpExceptionFilter,

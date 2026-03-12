@@ -4,3 +4,4 @@ export { ApiExceptionFilter } from './api-exception.filter';
 export { JwtStrategy } from './jwt.strategy';
 export { JwtGuard } from './jwt.guard';
 export { RsqlToMongoTransformer } from './filter';
+export { HealthController } from './health.controller';
