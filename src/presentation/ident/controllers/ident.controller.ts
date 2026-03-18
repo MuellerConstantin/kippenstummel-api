@@ -9,7 +9,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { IdentService, IdentTransferService } from 'src/core/ident/services';
-import { PoWGuard } from './pow.guard';
 import { CaptchaGuard } from './captcha.guard';
 import {
   EncryptedIdentityDto,
@@ -26,7 +25,6 @@ import {
 import { IdentGuard } from './ident.guard';
 import { Identity } from './ident.decorator';
 import { CaptchaScope } from './captcha-scope.decorator';
-import { PoWScope } from './pow-scope.decorator';
 
 @Controller({ path: 'ident', version: '1' })
 export class IdentController {
@@ -35,9 +33,8 @@ export class IdentController {
     private readonly transferService: IdentTransferService,
   ) {}
 
-  @UseGuards(PoWGuard, CaptchaGuard)
+  @UseGuards(CaptchaGuard)
   @CaptchaScope('registration')
-  @PoWScope('registration')
   @Get()
   async getIdentity(): Promise<IdentSecretDto> {
     return await this.identService.issueIdentity();

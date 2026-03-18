@@ -89,8 +89,6 @@ info:
     | `INTERNAL_ERROR`                 | 500         | Internal error occured        |
     | `NOT_FOUND_ERROR`                | 404         | Resource not found            |
     | `INVALID_PAYLOAD_ERROR`          | 422         | Payload validation failed     |
-    | `MALFORMED_POW_STAMP_ERROR`      | 403         | Malformed PoW stamp           |
-    | `INVALID_POW_STAMP_ERROR`        | 403         | Invalid PoW stamp             |
     | `MALFORMED_CAPTCHA_STAMP_ERROR`  | 403         | Malformed Captcha stamp       |
     | `INVALID_CAPTCHA_STAMP_ERROR`    | 403         | Invalid Captcha stamp         |
     | `ACCESS_DENIED_ERROR`            | 403         | Access denied                 |
@@ -144,24 +142,7 @@ info:
     This platform uses a number of challenge-response mechanisms to prevent abuse and
     ensure the security of the system. The following mechanisms are used:
 
-    - Proof-of-Work (PoW)
     - Captcha
-
-    ### Proof-of-Work (PoW)
-
-    PoW is a computational challenge-response mechanism that requires the client to solve a
-    mathematical problem in order to prove that they are not a robot. The difficulty of the
-    problem is set by the server and is determined by the number of leading zeros in the
-    hash of the challenge itself. The server will provide the challenge in the following
-    format:
-
-    ```
-    <difficulty>:<expiresAt>:<algorithm>:<nonce>[:<counter>]
-    ```
-
-    The client's task is to find a value (often called a counter or solution) which, when
-    appended to the challenge and hashed with the specified algorithm (e.g. SHA-256), produces
-    a hash with the required number of leading zeros defined by the `difficulty`.
 
     ### Captcha
 
@@ -198,12 +179,6 @@ paths:
         proof of work. Both solutions must be provided via headers.
       security: []
       parameters:
-        - name: X-PoW
-          in: header
-          required: true
-          schema:
-            type: string
-          description: Proof-of-Work stamp (`<difficulty>:<expiresAt>:<algorithm>:<nonce>[:<counter>]`).
         - name: X-Captcha
           in: header
           required: true
@@ -378,32 +353,6 @@ paths:
           $ref: '#/components/responses/500'
         '400':
           $ref: '#/components/responses/400'
-  /pow:
-    get:
-      tags:
-        - Ident
-      summary: Issues a PoW challenge.
-      description: >
-        Issues a new Proof-of-Work challenge. The challenge is returned in the
-        `X-PoW` response header.
-      parameters:
-        - name: scope
-          in: query
-          required: true
-          schema:
-            type: string
-            enum: [registration, transfer]
-      security: []
-      responses:
-        '200':
-          description: Successfully issued a PoW challenge.
-          headers:
-            X-PoW:
-              description: Proof-of-Work challenge stamp (`<difficulty>:<expiresAt>:<algorithm>:<nonce>[:<counter>]`).
-              schema:
-                type: string
-        '500':
-          $ref: '#/components/responses/500'
   /captcha:
     get:
       tags:

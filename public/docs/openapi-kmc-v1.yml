@@ -88,8 +88,6 @@ info:
     | `INTERNAL_ERROR`                 | 500         | Internal error occured        |
     | `NOT_FOUND_ERROR`                | 404         | Resource not found            |
     | `INVALID_PAYLOAD_ERROR`          | 422         | Payload validation failed     |
-    | `MALFORMED_POW_STAMP_ERROR`      | 403         | Malformed PoW stamp           |
-    | `INVALID_POW_STAMP_ERROR`        | 403         | Invalid PoW stamp             |
     | `MALFORMED_CAPTCHA_STAMP_ERROR`  | 403         | Malformed Captcha stamp       |
     | `INVALID_CAPTCHA_STAMP_ERROR`    | 403         | Invalid Captcha stamp         |
     | `ACCESS_DENIED_ERROR`            | 403         | Access denied                 |

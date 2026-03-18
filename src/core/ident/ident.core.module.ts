@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import {
   CaptchaService,
   IdentService,
-  PoWService,
   CredibilityService,
   IdentTransferService,
   CredibilityComputationConsumer,
@@ -41,7 +40,6 @@ import { MultithreadingInfrastructureModule } from 'src/infrastructure/multithre
   ],
   controllers: [],
   providers: [
-    PoWService,
     IdentService,
     CaptchaService,
     CredibilityService,
@@ -51,7 +49,6 @@ import { MultithreadingInfrastructureModule } from 'src/infrastructure/multithre
     KarmaComputationConsumer,
   ],
   exports: [
-    PoWService,
     IdentService,
     CaptchaService,
     CredibilityService,

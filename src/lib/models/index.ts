@@ -5,8 +5,6 @@ export {
   ApiErrorCode,
   InternalError,
   NotFoundError,
-  MalformedPoWStampError,
-  InvalidPoWStampError,
   InvalidIdentTokenError,
   MalformedCaptchaStampError,
   InvalidCaptchaStampError,

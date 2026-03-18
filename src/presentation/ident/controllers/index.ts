@@ -1,10 +1,8 @@
-export { PoWController } from './pow.controller';
 export { IdentController } from './ident.controller';
 export { CaptchaController } from './captcha.controller';
 export { KarmaController } from './karma.controller';
 export { IdentGuard } from './ident.guard';
 export { AnonymousGuard } from './anonymous.guard';
-export { PoWGuard } from './pow.guard';
 export { CaptchaGuard } from './captcha.guard';
 export { Identity } from './ident.decorator';
 export { RsqlToMongoIdentTransformer } from './filter';

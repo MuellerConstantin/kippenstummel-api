@@ -1,4 +1,3 @@
-export { PoWStamp } from './pow.model';
 export {
   IdentToken,
   IdentInfo,

@@ -44,12 +44,10 @@ The following configuration options are available:
 
 The following configuration options are available:
 
-| Environment Variable | Description                                                                                                              | Required |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------- |
-| JWT_SECRET           | Symmetric key used to verify JWT tokens used for administrative authentication                                           | true     |
-| POW_DIFFICULTY       | The difficulty of the PoW algorithm used for authentication. The difficulty is a number between 1 and 256. Default is 20 | false    |
-| POW_EXPIRES_IN       | The number of seconds until the PoW challenge expires. Default is 5 minutes.                                             | false    |
-| CAPTCHA_EXPIRES_IN   | The number of seconds until the Captcha challenge expires. Default is 5 minutes.                                         | false    |
-| IDENT_SECRET         | The secret used to sign the ident tokens.                                                                                | true     |
-| IDENT_EXPIRES_IN     | The number of seconds until the ident token expires. Default is 7 days.                                                  | false    |
-| TMP_DIR              | The path to the temporary storage directory. Used for storing temporary files.                                           | true     |
+| Environment Variable | Description                                                                      | Required |
+| -------------------- | -------------------------------------------------------------------------------- | -------- |
+| JWT_SECRET           | Symmetric key used to verify JWT tokens used for administrative authentication   | true     |
+| CAPTCHA_EXPIRES_IN   | The number of seconds until the Captcha challenge expires. Default is 5 minutes. | false    |
+| IDENT_SECRET         | The secret used to sign the ident tokens.                                        | true     |
+| IDENT_EXPIRES_IN     | The number of seconds until the ident token expires. Default is 7 days.          | false    |
+| TMP_DIR              | The path to the temporary storage directory. Used for storing temporary files.   | true     |

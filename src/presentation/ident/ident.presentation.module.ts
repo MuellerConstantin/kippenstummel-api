@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
 import {
-  PoWController,
   IdentController,
   CaptchaController,
   KarmaController,
-  PoWGuard,
   IdentGuard,
   AnonymousGuard,
   CaptchaGuard,
@@ -13,19 +11,8 @@ import { IdentCoreModule } from '../../core/ident/ident.core.module';
 
 @Module({
   imports: [IdentCoreModule],
-  controllers: [
-    PoWController,
-    IdentController,
-    CaptchaController,
-    KarmaController,
-  ],
-  providers: [PoWGuard, IdentGuard, AnonymousGuard, CaptchaGuard],
-  exports: [
-    IdentCoreModule,
-    PoWGuard,
-    IdentGuard,
-    CaptchaGuard,
-    AnonymousGuard,
-  ],
+  controllers: [IdentController, CaptchaController, KarmaController],
+  providers: [IdentGuard, AnonymousGuard, CaptchaGuard],
+  exports: [IdentCoreModule, IdentGuard, CaptchaGuard, AnonymousGuard],
 })
 export class IdentPresentationModule {}

@@ -5,7 +5,7 @@ import { CaptchaService } from 'src/core/ident/services';
 
 const inMemoryCache = new Map<string, string>();
 
-describe('PoWService', () => {
+describe('CaptchaService', () => {
   let app: TestingModule;
 
   beforeAll(async () => {

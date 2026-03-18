@@ -23,7 +23,6 @@ import { KarmaComputationConsumer } from 'src/core/ident/services';
 import { CvmImportConsumer } from 'src/worker/services';
 import { JobManagementConsumer } from 'src/infrastructure/scheduling/services';
 import { CvmManagementConsumer } from 'src/core/cvm/services';
-import { PoWGuard } from 'src/presentation/ident/controllers';
 import { CaptchaGuard } from 'src/presentation/ident/controllers';
 import { getConnectionToken } from '@nestjs/mongoose';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -92,8 +91,6 @@ describe('Ident', () => {
       .useValue({})
       .overrideProvider(CvmManagementConsumer)
       .useValue({})
-      .overrideGuard(PoWGuard)
-      .useValue({ canActivate: () => true })
       .overrideGuard(CaptchaGuard)
       .useValue({ canActivate: () => true })
       .compile();
