@@ -47,4 +47,4 @@ export class JobRun {
 
 export const JobRunSchema = SchemaFactory.createForClass(JobRun);
 
-JobRunSchema.index({ queue: 1, name: 1, createdAt: -1 });
+JobRunSchema.index({ jobId: 1, queue: 1 }, { unique: true });
