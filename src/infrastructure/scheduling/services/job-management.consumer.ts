@@ -17,6 +17,9 @@ export class JobManagementConsumer extends WorkerHost {
       case 'cleanup': {
         return this.cleanup(job);
       }
+      case 'mark-orphaned': {
+        return this.markOrphaned(job);
+      }
     }
   }
 
@@ -28,6 +31,19 @@ export class JobManagementConsumer extends WorkerHost {
     await job.log('Cleanup outdated job logs older than 14 days...');
     await this.jobHistoryService.deleteAllFinishedJobRunsOlderThan(14);
     await job.log('Cleanup finished');
+  }
+
+  async markOrphaned(job: Job<any, any, string>) {
+    this.logger.log(
+      'Mark running jobs older than 24h as orphaned...',
+      'JobManagementConsumer',
+    );
+
+    await job.log('Mark running jobs older than 24h as orphaned...');
+
+    await this.jobHistoryService.markRunningJobsAsOrphanedOlderThan(24);
+
+    await job.log('Mark orphaned finished');
   }
 
   @OnWorkerEvent('active')

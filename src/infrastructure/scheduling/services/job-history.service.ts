@@ -39,6 +39,11 @@ export class JobHistoryService implements OnModuleInit {
       immediately: true,
     });
 
+    await this.jobManagementQueue.upsertJobScheduler('mark-orphaned', {
+      every: 24 * 60 * 60 * 1000, // Every 24 hours
+      immediately: true,
+    });
+
     await this.cvmManagementQueue.upsertJobScheduler('cleanup', {
       pattern: '0 0 * * 1', // Every Monday at 00:00 AM
       immediately: true,
@@ -52,7 +57,7 @@ export class JobHistoryService implements OnModuleInit {
     error,
   }: {
     job: BullMqJob;
-    status: 'running' | 'completed' | 'failed';
+    status: 'running' | 'completed' | 'failed' | 'orphaned';
     result?: any;
     error?: Error;
   }) {
@@ -90,6 +95,23 @@ export class JobHistoryService implements OnModuleInit {
     await this.jobRunModel.deleteMany({
       finishedOn: { $lt: cutOffDate },
     });
+  }
+
+  async markRunningJobsAsOrphanedOlderThan(hours: number) {
+    const threshold = new Date(Date.now() - hours * 60 * 60 * 1000);
+
+    await this.jobRunModel.updateMany(
+      {
+        status: 'running',
+        updatedAt: { $lt: threshold },
+      },
+      {
+        $set: {
+          status: 'orphaned',
+          finishedOn: new Date(),
+        },
+      },
+    );
   }
 
   async getJobRuns(pageable: Pageable): Promise<Page<JobRun>> {
@@ -275,7 +297,7 @@ export class JobHistoryService implements OnModuleInit {
 
   async getJobRunCountsByStatus(
     lastNDays: number,
-  ): Promise<Record<'running' | 'completed' | 'failed', number>> {
+  ): Promise<Record<'running' | 'completed' | 'failed' | 'orphaned', number>> {
     const sinceDate = new Date();
     sinceDate.setDate(sinceDate.getDate() - lastNDays);
 

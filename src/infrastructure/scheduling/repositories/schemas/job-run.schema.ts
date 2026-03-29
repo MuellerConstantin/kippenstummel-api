@@ -16,7 +16,7 @@ export class JobRun {
 
   @Prop({
     required: true,
-    enum: ['running', 'completed', 'failed'],
+    enum: ['running', 'completed', 'failed', 'orphaned'],
   })
   status: string;
 
