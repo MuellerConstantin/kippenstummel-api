@@ -1,8 +1,8 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { AnyBulkWriteOperation, Model } from 'mongoose';
 import { JobRun as JobRunModel } from '../repositories';
-import { Job as BullMqJob, Queue } from 'bullmq';
+import { Job as BullMqJob, Job, Queue } from 'bullmq';
 import { JobRun, JobTotalStats } from '../models';
 import { Pageable, Page } from 'src/lib/models';
 import { InjectQueue } from '@nestjs/bullmq';
@@ -39,8 +39,8 @@ export class JobHistoryService implements OnModuleInit {
       immediately: true,
     });
 
-    await this.jobManagementQueue.upsertJobScheduler('mark-orphaned', {
-      every: 24 * 60 * 60 * 1000, // Every 24 hours
+    await this.jobManagementQueue.upsertJobScheduler('check-orphaned', {
+      pattern: '*/30 * * * *', // Every 30 minutes
       immediately: true,
     });
 
@@ -97,21 +97,77 @@ export class JobHistoryService implements OnModuleInit {
     });
   }
 
-  async markRunningJobsAsOrphanedOlderThan(hours: number) {
+  async checkOrphanedJobsOlderThan(hours: number) {
     const threshold = new Date(Date.now() - hours * 60 * 60 * 1000);
 
-    await this.jobRunModel.updateMany(
+    const candidates = await this.jobRunModel.find(
       {
         status: 'running',
         updatedAt: { $lt: threshold },
       },
-      {
-        $set: {
-          status: 'orphaned',
-          finishedOn: new Date(),
-        },
-      },
+      { jobId: 1, queue: 1, updatedAt: 1 },
     );
+
+    if (!candidates.length) {
+      return;
+    }
+
+    const grouped = new Map<string, (typeof candidates)[number][]>();
+
+    // Group by queue for efficient processing
+    for (const job of candidates) {
+      if (!grouped.has(job.queue)) {
+        grouped.set(job.queue, []);
+      }
+
+      grouped.get(job.queue)!.push(job);
+    }
+
+    const bulkOps: AnyBulkWriteOperation<JobRunModel>[] = [];
+
+    for (const [queueName, jobs] of grouped.entries()) {
+      const queue = this.jobQueues.get(queueName);
+
+      if (!queue) {
+        continue;
+      }
+
+      // Fetch active jobs in a single call
+      const activeJobs: Job[] = (await queue.getActive()) as Job[];
+      const waitingJobs: Job[] = (await queue.getWaiting()) as Job[];
+      const delayedJobs: Job[] = (await queue.getDelayed()) as Job[];
+
+      const aliveIds = new Set<string>();
+
+      activeJobs.forEach((job) => job.id && aliveIds.add(job.id));
+      waitingJobs.forEach((job) => job.id && aliveIds.add(job.id));
+      delayedJobs.forEach((job) => job.id && aliveIds.add(job.id));
+
+      for (const job of jobs) {
+        if (!aliveIds.has(job.jobId)) {
+          bulkOps.push({
+            updateOne: {
+              filter: {
+                _id: job._id,
+                status: 'running',
+                updatedAt: job.updatedAt, // Race-Guard
+              },
+              update: {
+                $set: {
+                  status: 'orphaned',
+                  finishedOn: new Date(),
+                  updatedAt: new Date(),
+                },
+              },
+            },
+          });
+        }
+      }
+    }
+
+    if (bulkOps.length) {
+      await this.jobRunModel.bulkWrite(bulkOps);
+    }
   }
 
   async getJobRuns(pageable: Pageable): Promise<Page<JobRun>> {
