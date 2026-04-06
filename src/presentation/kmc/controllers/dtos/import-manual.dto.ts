@@ -16,12 +16,12 @@ export class ImportManualCvmDto {
   @IsDefined()
   @IsNumber()
   @IsLongitude()
-  public longitude: number;
+  public longitude!: number;
 
   @IsDefined()
   @IsNumber()
   @IsLatitude()
-  public latitude: number;
+  public latitude!: number;
 
   @IsOptional()
   @IsNumber()
@@ -35,5 +35,5 @@ export class ImportManualDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => ImportManualCvmDto)
-  public cvms: ImportManualCvmDto[];
+  public cvms!: ImportManualCvmDto[];
 }

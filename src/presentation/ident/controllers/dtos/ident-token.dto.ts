@@ -18,19 +18,19 @@ export interface EncryptedIdentSecretDto {
 export class IdentityDto {
   @IsDefined()
   @IsUUID()
-  public identity: string;
+  public identity!: string;
 
   @IsDefined()
   @IsString()
-  public secret: string;
+  public secret!: string;
 }
 
 export class EncryptedIdentityDto {
   @IsDefined()
   @IsUUID()
-  public identity: string;
+  public identity!: string;
 
   @IsDefined()
   @IsString()
-  public encryptedSecret: string;
+  public encryptedSecret!: string;
 }

@@ -10,14 +10,14 @@ export class ReportCvmDto {
   @IsDefined()
   @IsNumber()
   @IsLongitude()
-  public longitude: number;
+  public longitude!: number;
 
   @IsDefined()
   @IsNumber()
   @IsLatitude()
-  public latitude: number;
+  public latitude!: number;
 
   @IsDefined()
   @IsEnum(['missing', 'spam', 'inactive', 'inaccessible'])
-  public type: 'missing' | 'spam' | 'inactive' | 'inaccessible';
+  public type!: 'missing' | 'spam' | 'inactive' | 'inaccessible';
 }
