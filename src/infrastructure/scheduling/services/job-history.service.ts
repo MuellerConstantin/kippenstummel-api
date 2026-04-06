@@ -4,7 +4,7 @@ import { AnyBulkWriteOperation, Model } from 'mongoose';
 import { JobRun as JobRunModel } from '../repositories';
 import { Job as BullMqJob, Job, Queue } from 'bullmq';
 import { JobRun, JobTotalStats } from '../models';
-import { Pageable, Page } from 'src/lib/models';
+import { Pageable, Page, NotFoundError } from 'src/lib/models';
 import { InjectQueue } from '@nestjs/bullmq';
 
 @Injectable()
@@ -248,6 +248,31 @@ export class JobHistoryService implements OnModuleInit {
         totalElements,
         totalPages,
       },
+    };
+  }
+
+  async getJobRunById(jobId: string, queue: string): Promise<JobRun> {
+    const job = await this.jobRunModel.findOne({ jobId, queue });
+
+    if (!job) {
+      throw new NotFoundError();
+    }
+
+    return {
+      jobId: job.jobId,
+      name: job.name,
+      queue: job.queue,
+      data: job.data,
+      status: job.status,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      result: job.result,
+      failedReason: job.failedReason,
+      attemptsMade: job.attemptsMade,
+      timestamp: job.timestamp,
+      finishedOn: job.finishedOn,
+      logs: job.logs,
+      createdAt: job.createdAt,
+      updatedAt: job.updatedAt,
     };
   }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { JwtGuard } from 'src/presentation/common/controllers';
 import { GetAllJobQueryDto, JobPageDto } from './dtos';
 import { JobHistoryService } from 'src/infrastructure/scheduling/services';
@@ -47,5 +47,13 @@ export class JobController {
       })),
       info: result.info,
     };
+  }
+
+  @Get('/queues/:queue/runs/:jobId')
+  async getById(
+    @Param('queue') queue: string,
+    @Param('jobId') jobId: string,
+  ): Promise<JobRun> {
+    return this.jobHistoryService.getJobRunById(jobId, queue);
   }
 }
