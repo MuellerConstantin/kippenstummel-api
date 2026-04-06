@@ -26,9 +26,11 @@ export class GetTotalRegistrationStatsQueryHandler
     query: GetTotalRegistrationStatsQuery,
   ): Promise<CvmTotalRegistrationStatsProjection> {
     const totalElements = await this.cvmModel.countDocuments();
+
     const totalImported = await this.cvmModel.countDocuments({
       imported: true,
     });
+
     const totalRegistered = await this.cvmModel.countDocuments({
       imported: false,
     });
@@ -38,22 +40,12 @@ export class GetTotalRegistrationStatsQueryHandler
     );
     const importHistory = await this.getImportsPerDay(query.lastNDays);
 
-    const totalRegistrationsLast7Days =
-      query.lastNDays >= 7
-        ? registrationHistory.slice(-7).reduce((acc, item) => {
-            return acc + item.count;
-          }, 0)
-        : (await this.getRegistrationsPerDay(7)).reduce((acc, item) => {
-            return acc + item.count;
-          }, 0);
-    const totalImportsLast7Days =
-      query.lastNDays >= 7
-        ? importHistory.slice(-7).reduce((acc, item) => {
-            return acc + item.count;
-          }, 0)
-        : (await this.getImportsPerDay(7)).reduce((acc, item) => {
-            return acc + item.count;
-          }, 0);
+    const totalRegistrationsLastNDays = this.sumLast(
+      registrationHistory,
+      query.lastNDays,
+    );
+
+    const totalImportsLastNDays = this.sumLast(importHistory, query.lastNDays);
 
     const averageScore = await this.getAverageScore();
 
@@ -62,62 +54,33 @@ export class GetTotalRegistrationStatsQueryHandler
       averageScore,
       imports: {
         total: totalImported,
-        totalLast7Days: totalImportsLast7Days,
+        totalLastNDays: totalImportsLastNDays,
         history: importHistory,
       },
       registrations: {
         total: totalRegistered,
-        totalLast7Days: totalRegistrationsLast7Days,
+        totalLastNDays: totalRegistrationsLastNDays,
         history: registrationHistory,
       },
     };
   }
 
+  private sumLast(
+    history: { date: string; count: number }[],
+    days: number,
+  ): number {
+    return history.slice(-days).reduce((acc, item) => acc + item.count, 0);
+  }
+
   async getRegistrationsPerDay(lastNDays: number) {
-    const now = new Date();
-    const startDate = new Date();
-    startDate.setDate(now.getDate() - lastNDays + 1);
-
-    const queryResult = await this.cvmModel.aggregate<{
-      _id: string;
-      count: number;
-    }>([
-      {
-        $match: {
-          createdAt: { $gte: startDate, $lte: now },
-          imported: false,
-        },
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
-          },
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $sort: { _id: 1 },
-      },
-    ]);
-
-    const result = new Map(queryResult.map(({ _id, count }) => [_id, count]));
-
-    const history = Array.from({ length: lastNDays }, (_, index) => {
-      const date = new Date();
-      date.setDate(now.getDate() - lastNDays + 1 + index);
-      const key = date.toISOString().split('T')[0];
-
-      return {
-        date: key,
-        count: result.get(key) ?? 0,
-      };
-    });
-
-    return history;
+    return this.getPerDay(lastNDays, { imported: false });
   }
 
   async getImportsPerDay(lastNDays: number) {
+    return this.getPerDay(lastNDays, { imported: true });
+  }
+
+  private async getPerDay(lastNDays: number, filter: Partial<Cvm>) {
     const now = new Date();
     const startDate = new Date();
     startDate.setDate(now.getDate() - lastNDays + 1);
@@ -129,13 +92,17 @@ export class GetTotalRegistrationStatsQueryHandler
       {
         $match: {
           createdAt: { $gte: startDate, $lte: now },
-          imported: true,
+          ...filter,
         },
       },
       {
         $group: {
           _id: {
-            $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+            $dateToString: {
+              format: '%Y-%m-%d',
+              date: '$createdAt',
+              timezone: 'Europe/Berlin',
+            },
           },
           count: { $sum: 1 },
         },

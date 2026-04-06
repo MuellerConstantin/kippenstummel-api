@@ -1,7 +1,7 @@
 export interface JobTotalStats {
   total: number;
   differentTypes: number;
-  totalRunLast7Days: number;
+  totalRunLastNDays: number;
   statusCounts: {
     running: number;
     completed: number;

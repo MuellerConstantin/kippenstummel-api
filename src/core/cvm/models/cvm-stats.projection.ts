@@ -3,7 +3,7 @@ export interface CvmTotalRegistrationStatsProjection {
   averageScore: number;
   imports: {
     total: number;
-    totalLast7Days: number;
+    totalLastNDays: number;
     history: {
       date: string;
       count: number;
@@ -11,7 +11,7 @@ export interface CvmTotalRegistrationStatsProjection {
   };
   registrations: {
     total: number;
-    totalLast7Days: number;
+    totalLastNDays: number;
     history: {
       date: string;
       count: number;
@@ -23,7 +23,7 @@ export interface CvmTotalVotesStatsProjection {
   total: number;
   upvotes: {
     total: number;
-    totalLast7Days: number;
+    totalLastNDays: number;
     history: {
       date: string;
       count: number;
@@ -31,7 +31,7 @@ export interface CvmTotalVotesStatsProjection {
   };
   downvotes: {
     total: number;
-    totalLast7Days: number;
+    totalLastNDays: number;
     history: {
       date: string;
       count: number;

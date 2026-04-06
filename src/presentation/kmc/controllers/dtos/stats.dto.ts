@@ -4,7 +4,7 @@ export interface TotalStatsDto {
     averageScore: number;
     imports: {
       total: number;
-      totalLast7Days: number;
+      totalLastNDays: number;
       history: {
         date: string;
         count: number;
@@ -12,7 +12,7 @@ export interface TotalStatsDto {
     };
     registrations: {
       total: number;
-      totalLast7Days: number;
+      totalLastNDays: number;
       history: {
         date: string;
         count: number;
@@ -23,7 +23,7 @@ export interface TotalStatsDto {
     total: number;
     upvotes: {
       total: number;
-      totalLast7Days: number;
+      totalLastNDays: number;
       history: {
         date: string;
         count: number;
@@ -31,7 +31,7 @@ export interface TotalStatsDto {
     };
     downvotes: {
       total: number;
-      totalLast7Days: number;
+      totalLastNDays: number;
       history: {
         date: string;
         count: number;
@@ -41,7 +41,7 @@ export interface TotalStatsDto {
   idents: {
     total: number;
     averageCredibility: number;
-    totalNewLast7Days: number;
+    totalNewLastNDays: number;
     newHistory: {
       date: string;
       count: number;
@@ -55,7 +55,7 @@ export interface TotalStatsDto {
       completed: number;
       failed: number;
     };
-    totalRunLast7Days: number;
+    totalRunLastNDays: number;
     runHistory: {
       date: string;
       count: number;

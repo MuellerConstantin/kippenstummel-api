@@ -440,23 +440,24 @@ export class IdentService {
   async getTotalStats(lastNDays: number): Promise<IdentTotalStats> {
     const totalElements = await this.identModel.countDocuments();
     const averageCredibility = await this.getAverageCredibility();
+
     const newHistory = await this.getNewIdentsPerDay(lastNDays);
 
-    const totalNewLast7Days =
-      lastNDays >= 7
-        ? newHistory.slice(-7).reduce((acc, item) => {
-            return acc + item.count;
-          }, 0)
-        : (await this.getNewIdentsPerDay(7)).reduce((acc, item) => {
-            return acc + item.count;
-          }, 0);
+    const totalNewLastNDays = this.sumLast(newHistory, lastNDays);
 
     return {
       total: totalElements,
       averageCredibility,
-      totalNewLast7Days,
+      totalNewLastNDays,
       newHistory,
     };
+  }
+
+  private sumLast(
+    history: { date: string; count: number }[],
+    days: number,
+  ): number {
+    return history.slice(-days).reduce((acc, item) => acc + item.count, 0);
   }
 
   async getAverageCredibility() {
@@ -498,7 +499,11 @@ export class IdentService {
         {
           $group: {
             _id: {
-              $dateToString: { format: '%Y-%m-%d', date: '$issuedAt' },
+              $dateToString: {
+                format: '%Y-%m-%d',
+                date: '$issuedAt',
+                timezone: 'Europe/Berlin',
+              },
             },
             count: { $sum: 1 },
           },

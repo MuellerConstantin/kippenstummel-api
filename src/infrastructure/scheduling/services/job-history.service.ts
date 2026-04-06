@@ -253,26 +253,27 @@ export class JobHistoryService implements OnModuleInit {
 
   async getTotalStats(lastNDays: number): Promise<JobTotalStats> {
     const totalElements = await this.jobRunModel.countDocuments();
+
     const runHistory = await this.getRunJobRunsPerDay(lastNDays);
     const jobTypes = await this.getDifferentJobTypes(lastNDays);
     const jobStatusCounts = await this.getJobRunCountsByStatus(lastNDays);
 
-    const totalRunLast7Days =
-      lastNDays >= 7
-        ? runHistory.slice(-7).reduce((acc, item) => {
-            return acc + item.count;
-          }, 0)
-        : (await this.getRunJobRunsPerDay(7)).reduce((acc, item) => {
-            return acc + item.count;
-          }, 0);
+    const totalRunLastNDays = this.sumLast(runHistory, lastNDays);
 
     return {
       total: totalElements,
       differentTypes: jobTypes.length,
       statusCounts: jobStatusCounts,
-      totalRunLast7Days,
+      totalRunLastNDays,
       runHistory,
     };
+  }
+
+  private sumLast(
+    history: { date: string; count: number }[],
+    days: number,
+  ): number {
+    return history.slice(-days).reduce((acc, item) => acc + item.count, 0);
   }
 
   private async getRunJobRunsPerDay(lastNDays: number) {
@@ -293,7 +294,11 @@ export class JobHistoryService implements OnModuleInit {
         {
           $group: {
             _id: {
-              $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+              $dateToString: {
+                format: '%Y-%m-%d',
+                date: '$createdAt',
+                timezone: 'Europe/Berlin',
+              },
             },
             count: { $sum: 1 },
           },
