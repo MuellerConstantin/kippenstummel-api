@@ -639,7 +639,7 @@ paths:
                   averageScore: 5.3
                   imports:
                     total: 80
-                    totalLast7Days: 10
+                    totalLastNDays: 10
                     history:
                       - date: '2025-09-10'
                         count: 3
@@ -647,7 +647,7 @@ paths:
                         count: 2
                   registrations:
                     total: 120
-                    totalLast7Days: 8
+                    totalLastNDays: 8
                     history:
                       - date: '2025-09-12'
                         count: 4
@@ -655,13 +655,13 @@ paths:
                   total: 400
                   upvotes:
                     total: 300
-                    totalLast7Days: 20
+                    totalLastNDays: 20
                     history:
                       - date: '2025-09-13'
                         count: 5
                   downvotes:
                     total: 100
-                    totalLast7Days: 8
+                    totalLastNDays: 8
                     history:
                       - date: '2025-09-13'
                         count: 3
@@ -979,7 +979,7 @@ components:
               properties:
                 total:
                   type: integer
-                totalLast7Days:
+                totalLastNDays:
                   type: integer
                 history:
                   type: array
@@ -996,7 +996,7 @@ components:
               properties:
                 total:
                   type: integer
-                totalLast7Days:
+                totalLastNDays:
                   type: integer
                 history:
                   type: array
@@ -1018,7 +1018,7 @@ components:
               properties:
                 total:
                   type: integer
-                totalLast7Days:
+                totalLastNDays:
                   type: integer
                 history:
                   type: array
@@ -1035,7 +1035,7 @@ components:
               properties:
                 total:
                   type: integer
-                totalLast7Days:
+                totalLastNDays:
                   type: integer
                 history:
                   type: array
