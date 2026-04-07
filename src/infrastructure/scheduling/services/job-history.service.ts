@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { AnyBulkWriteOperation, Model } from 'mongoose';
 import { JobRun as JobRunModel } from '../repositories';
@@ -8,7 +8,7 @@ import { Pageable, Page, NotFoundError } from 'src/lib/models';
 import { InjectQueue } from '@nestjs/bullmq';
 
 @Injectable()
-export class JobHistoryService implements OnModuleInit {
+export class JobHistoryService {
   private jobQueues: Map<string, Queue> = new Map();
 
   constructor(
@@ -31,23 +31,6 @@ export class JobHistoryService implements OnModuleInit {
     this.jobQueues.set('tile-computation', this.tileComputationQueue);
     this.jobQueues.set('cvm-import', this.cvmImportQueue);
     this.jobQueues.set('cvm-management', this.cvmManagementQueue);
-  }
-
-  async onModuleInit() {
-    await this.jobManagementQueue.upsertJobScheduler('cleanup', {
-      pattern: '0 0 1,15 * *', // At 12:00 AM, on day 1 and 15 of the month
-      immediately: true,
-    });
-
-    await this.jobManagementQueue.upsertJobScheduler('check-orphaned', {
-      pattern: '*/30 * * * *', // Every 30 minutes
-      immediately: true,
-    });
-
-    await this.cvmManagementQueue.upsertJobScheduler('cleanup', {
-      pattern: '0 0 * * 1', // Every Monday at 00:00 AM
-      immediately: true,
-    });
   }
 
   async upsertJobRunLog({

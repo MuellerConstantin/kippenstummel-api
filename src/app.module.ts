@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import * as Joi from 'joi';
@@ -7,6 +7,8 @@ import { CommonPresentationModule } from './presentation/common/common.presentat
 import { CvmPresentationModule } from './presentation/cvm/cvm.presentation.module';
 import { KmcPresentationModule } from './presentation/kmc/kmc.presentation.module';
 import { IdentPresentationModule } from './presentation/ident/ident.presentation.module';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -56,4 +58,34 @@ import { IdentPresentationModule } from './presentation/ident/ident.presentation
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  constructor(
+    @InjectQueue('job-management')
+    private jobManagementQueue: Queue,
+    @InjectQueue('cvm-management')
+    private cvmManagementQueue: Queue,
+  ) {}
+
+  async onModuleInit() {
+    /*
+     * This scheduled jobs initialization on startup is not multiple-instance safe, but for simplicity we will keep it like this
+     * for now. In the future, we can consider using a distributed lock or a leader election mechanism to ensure that only one
+     * instance initializes the scheduled jobs.
+     */
+
+    await this.jobManagementQueue.upsertJobScheduler('cleanup', {
+      pattern: '0 0 1,15 * *', // At 12:00 AM, on day 1 and 15 of the month
+      immediately: true,
+    });
+
+    await this.jobManagementQueue.upsertJobScheduler('check-orphaned', {
+      pattern: '*/30 * * * *', // Every 30 minute
+      immediately: true,
+    });
+
+    await this.cvmManagementQueue.upsertJobScheduler('cleanup', {
+      pattern: '0 0 * * 1', // Every Monday at 00:00 AM
+      immediately: true,
+    });
+  }
+}
