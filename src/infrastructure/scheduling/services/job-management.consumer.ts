@@ -13,7 +13,6 @@ export class JobManagementConsumer extends WorkerHost {
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
-    console.log(job.name);
     switch (job.name) {
       case 'cleanup': {
         return this.cleanup(job);
