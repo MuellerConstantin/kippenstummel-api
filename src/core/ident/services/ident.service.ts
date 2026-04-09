@@ -228,6 +228,7 @@ export class IdentService {
           ? `${result.username}#${result.suffix}`
           : undefined,
       karma: result.karma.amount,
+      lastActiveAt: result.lastActiveAt,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
     };
@@ -303,6 +304,7 @@ export class IdentService {
               : undefined,
           createdAt: ident.createdAt,
           updatedAt: ident.updatedAt,
+          lastActiveAt: ident.lastActiveAt,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           credibility: (ident as any).credibility_fallback.rating,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
@@ -338,6 +340,7 @@ export class IdentService {
               : undefined,
           createdAt: ident.createdAt,
           updatedAt: ident.updatedAt,
+          lastActiveAt: ident.lastActiveAt,
           credibility: ident.credibility.rating,
           karma: ident.karma.amount,
         })),

@@ -18,6 +18,7 @@ export interface IdentInfo {
   displayName?: string;
   credibility: number;
   karma: number;
+  lastActiveAt: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }

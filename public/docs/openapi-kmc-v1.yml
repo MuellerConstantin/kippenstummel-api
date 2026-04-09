@@ -857,6 +857,9 @@ components:
           type: number
         karma:
           type: number
+        lastActiveAt:
+          type: string
+          format: date-time
         createdAt:
           type: string
           format: date-time
@@ -867,6 +870,7 @@ components:
         - identity
         - credibility
         - karma
+        - lastActiveAt
     IdentPageDto:
       type: object
       properties:
