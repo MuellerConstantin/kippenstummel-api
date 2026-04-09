@@ -130,11 +130,11 @@ info:
     After receiving the anonymous credentials, the authentication flow essentially follows
     the classic procedure. In exchange for a valid anonymous identity, which requires the
     submission of the identifier and secret, the user is issued a JWT access token. This
-    token is used for all subsequent authentication requests. For this purpose, the *HTTP
-    Bearer Authentication* schema and the `Authorization` header are used.
+    token is used for all subsequent authentication requests. For this purpose, a custom
+    `x-ident` header is used.
 
     ```
-    Authorization: Bearer <ACCESS TOKEN>
+    x-ident: <ACCESS TOKEN>
     ```
 
     ## Challenge-Response Mechanisms
@@ -150,6 +150,19 @@ info:
     simple visual challenge. The server will generate a short alphanumeric string and
     embedd it into an image. The user is then presented with the image and asked to
     enter the string into a text field.
+
+    ## Identity Activity Tracking
+
+    Clients that possess an anonymous identity SHOULD include the `x-ident` header
+    with every request, including read-only endpoints, even if authentication is not
+    required for the specific endpoint.
+
+    If a valid identity token is supplied, the server updates the identity's
+    activity timestamp. This information is used for housekeeping tasks such as
+    removal of inactive identities.
+
+    Requests without the `x-ident` header are still accepted, but the identity will
+    not be considered active.
   license:
     name: GNU Affero General Public License v3.0
     url: https://www.gnu.org/licenses/agpl-3.0.en.html
@@ -454,6 +467,7 @@ paths:
       summary: Returns all CVMs (paginated).
       description: >
         This query returns all cigarette vending machines in a paginated format.
+      security: []
       parameters:
         - name: page
           in: query
@@ -1057,9 +1071,9 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorDto'
   securitySchemes:
-    jwt:
-      type: http
-      scheme: bearer
-      bearerFormat: jwt
+    xIdent:
+      type: apiKey
+      in: header
+      name: x-ident
 security:
-  - jwt: []
+  - xIdent: []
