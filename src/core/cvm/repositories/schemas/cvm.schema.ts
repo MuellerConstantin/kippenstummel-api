@@ -6,7 +6,7 @@ export type CvmDocument = HydratedDocument<Cvm>;
 @Schema({ collection: 'cvms', timestamps: true })
 export class Cvm {
   @Prop()
-  aggregateId: string;
+  aggregateId!: string;
 
   @Prop({
     type: {
@@ -20,19 +20,19 @@ export class Cvm {
       required: true,
     },
   })
-  position: {
+  position!: {
     type: string;
     coordinates: number[];
   };
 
   @Prop()
-  score: number;
+  score!: number;
 
   @Prop()
-  imported: boolean;
+  imported!: boolean;
 
   @Prop()
-  markedForDeletion: boolean;
+  markedForDeletion!: boolean;
 
   @Prop()
   markedForDeletionAt?: Date;

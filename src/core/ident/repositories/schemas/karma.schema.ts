@@ -18,7 +18,7 @@ export class KarmaEvent {
     ],
     required: true,
   })
-  type:
+  type!:
     | 'registration'
     | 'upvote_received'
     | 'downvote_received'
@@ -28,10 +28,10 @@ export class KarmaEvent {
     | 'report_received';
 
   @Prop({ required: true })
-  delta: number;
+  delta!: number;
 
   @Prop({ type: Date, default: Date.now })
-  occurredAt: Date;
+  occurredAt!: Date;
 
   @Prop()
   cvmId?: string;
@@ -42,13 +42,13 @@ export const KarmaEventSchema = SchemaFactory.createForClass(KarmaEvent);
 @Schema({ collection: 'karmas', timestamps: true })
 export class Karma {
   @Prop({ required: true })
-  identity: string;
+  identity!: string;
 
   @Prop()
-  amount: number;
+  amount!: number;
 
   @Prop({ type: [KarmaEventSchema], default: [] })
-  history: KarmaEvent[];
+  history!: KarmaEvent[];
 
   createdAt?: Date;
   updatedAt?: Date;

@@ -6,10 +6,10 @@ export type CredibilityDocument = HydratedDocument<Credibility>;
 @Schema({ _id: false })
 export class GeoPoint {
   @Prop({ type: String, enum: ['Point'], default: 'Point', required: true })
-  type: string;
+  type!: string;
 
   @Prop({ type: [Number], required: true })
-  coordinates: number[];
+  coordinates!: number[];
 }
 
 export const GeoPointSchema = SchemaFactory.createForClass(GeoPoint);
@@ -17,19 +17,19 @@ export const GeoPointSchema = SchemaFactory.createForClass(GeoPoint);
 @Schema({ _id: false })
 export class VotingBehaviour {
   @Prop()
-  totalCount: number;
+  totalCount!: number;
 
   @Prop()
-  upvoteCount: number;
+  upvoteCount!: number;
 
   @Prop()
-  downvoteCount: number;
+  downvoteCount!: number;
 
   @Prop({ type: Date, default: undefined })
   lastVotedAt?: Date;
 
   @Prop()
-  averageVotingInterval: number;
+  averageVotingInterval!: number;
 }
 
 export const VotingBehaviourSchema =
@@ -38,13 +38,13 @@ export const VotingBehaviourSchema =
 @Schema({ _id: false })
 export class RegistrationBehaviour {
   @Prop()
-  totalCount: number;
+  totalCount!: number;
 
   @Prop({ type: Date, default: undefined })
   lastRegistrationAt?: Date;
 
   @Prop()
-  averageRegistrationInterval: number;
+  averageRegistrationInterval!: number;
 }
 
 export const RegistrationBehaviourSchema = SchemaFactory.createForClass(
@@ -57,19 +57,19 @@ export class Behaviour {
   lastInteractionAt?: Date;
 
   @Prop()
-  averageInteractionInterval: number;
+  averageInteractionInterval!: number;
 
   @Prop({ type: GeoPointSchema, required: false, default: undefined })
   lastInteractionPosition?: GeoPoint;
 
   @Prop()
-  unrealisticMovementScore: number;
+  unrealisticMovementScore!: number;
 
   @Prop({ type: VotingBehaviourSchema })
-  voting: VotingBehaviour;
+  voting!: VotingBehaviour;
 
   @Prop({ type: RegistrationBehaviourSchema })
-  registration: RegistrationBehaviour;
+  registration!: RegistrationBehaviour;
 }
 
 export const BehaviourSchema = SchemaFactory.createForClass(Behaviour);
@@ -79,10 +79,10 @@ BehaviourSchema.index({ lastInteractionPosition: '2dsphere' });
 @Schema({ collection: 'credibilities', timestamps: true })
 export class Credibility {
   @Prop()
-  identity: string;
+  identity!: string;
 
   @Prop()
-  rating: number;
+  rating!: number;
 
   @Prop({ type: Behaviour })
   behaviour?: Behaviour;

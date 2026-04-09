@@ -11,7 +11,7 @@ export class Repositioning {
   identity?: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Cvm' })
-  cvm: Cvm;
+  cvm!: Cvm;
 
   @Prop({
     type: {
@@ -25,7 +25,7 @@ export class Repositioning {
       required: true,
     },
   })
-  position: {
+  position!: {
     type: string;
     coordinates: number[];
   };

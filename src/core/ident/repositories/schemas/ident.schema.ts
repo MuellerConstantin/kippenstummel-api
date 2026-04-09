@@ -9,10 +9,10 @@ export type IdentDocument = HydratedDocument<Ident>;
 @Schema({ collection: 'idents', timestamps: true })
 export class Ident {
   @Prop()
-  identity: string;
+  identity!: string;
 
   @Prop()
-  secret: string;
+  secret!: string;
 
   @Prop({ required: false })
   username?: string;
@@ -21,10 +21,10 @@ export class Ident {
   suffix?: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Credibility' })
-  credibility: Credibility;
+  credibility!: Credibility;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Karma' })
-  karma: Karma;
+  karma!: Karma;
 
   createdAt?: Date;
   updatedAt?: Date;

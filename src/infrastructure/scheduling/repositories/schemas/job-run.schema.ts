@@ -6,22 +6,22 @@ export type JobDocument = HydratedDocument<JobRun>;
 @Schema({ collection: 'job-runs', timestamps: true })
 export class JobRun {
   @Prop({ required: true })
-  jobId: string;
+  jobId!: string;
 
   @Prop({ required: true })
-  name: string;
+  name!: string;
 
   @Prop({ required: true })
-  queue: string;
+  queue!: string;
 
   @Prop({
     required: true,
     enum: ['running', 'completed', 'failed', 'orphaned'],
   })
-  status: string;
+  status!: string;
 
   @Prop({ type: Object })
-  data: Record<string, any>;
+  data!: Record<string, any>;
 
   @Prop({ type: Object })
   result?: any;
@@ -30,7 +30,7 @@ export class JobRun {
   failedReason?: string;
 
   @Prop()
-  attemptsMade: number;
+  attemptsMade!: number;
 
   @Prop()
   timestamp?: Date;

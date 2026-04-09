@@ -11,13 +11,13 @@ export class Vote {
   identity?: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Cvm' })
-  cvm: Cvm;
+  cvm!: Cvm;
 
   @Prop()
-  type: 'upvote' | 'downvote';
+  type!: 'upvote' | 'downvote';
 
   @Prop()
-  impact: number;
+  impact!: number;
 
   createdAt?: Date;
   updatedAt?: Date;

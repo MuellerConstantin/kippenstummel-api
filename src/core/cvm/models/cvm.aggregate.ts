@@ -30,11 +30,11 @@ export type ReportEntry = {
 
 @Aggregate({ streamName: 'cvm' })
 export class CvmAggregate extends AggregateRoot {
-  private _id: CvmId;
-  private _longitude: number;
-  private _latitude: number;
-  private _score: number;
-  private _imported: boolean;
+  private _id!: CvmId;
+  private _longitude!: number;
+  private _latitude!: number;
+  private _score!: number;
+  private _imported!: boolean;
   private _recentReports: ReportEntry[] = [];
   private _markedForDeletion = false;
   private _markedForDeletionAt?: Date;

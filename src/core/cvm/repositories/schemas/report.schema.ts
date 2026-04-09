@@ -11,10 +11,10 @@ export class Report {
   identity?: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Cvm' })
-  cvm: Cvm;
+  cvm!: Cvm;
 
   @Prop()
-  type: 'missing' | 'spam' | 'inactive' | 'inaccessible';
+  type!: 'missing' | 'spam' | 'inactive' | 'inaccessible';
 
   createdAt?: Date;
   updatedAt?: Date;

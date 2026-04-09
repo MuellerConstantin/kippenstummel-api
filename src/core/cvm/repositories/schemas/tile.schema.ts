@@ -19,16 +19,16 @@ class CvmTileCluster {
       required: true,
     },
   })
-  position: {
+  position!: {
     type: string;
     coordinates: number[];
   };
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Cvm' })
-  cvm: Cvm;
+  cvm!: Cvm;
 
   @Prop()
-  count: number;
+  count!: number;
 }
 
 export const CvmTileClusterSchema =
@@ -39,16 +39,16 @@ CvmTileClusterSchema.index({ position: '2dsphere' });
 @Schema({ collection: 'cvm-tiles', timestamps: true })
 export class CvmTile {
   @Prop()
-  x: number;
+  x!: number;
 
   @Prop()
-  y: number;
+  y!: number;
 
   @Prop()
-  z: number;
+  z!: number;
 
   @Prop({ type: [CvmTileClusterSchema] })
-  clusters: CvmTileCluster[];
+  clusters!: CvmTileCluster[];
 
   createdAt?: Date;
   updatedAt?: Date;

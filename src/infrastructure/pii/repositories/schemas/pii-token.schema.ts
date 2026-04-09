@@ -7,10 +7,10 @@ export type PiiTokenDocument = HydratedDocument<PiiToken>;
 @Schema({ collection: 'pii-tokens', timestamps: true })
 export class PiiToken {
   @Prop({ required: true })
-  authority: string;
+  authority!: string;
 
   @Prop({ required: true })
-  token: string;
+  token!: string;
 
   @Prop({ type: mongoose.Schema.Types.Mixed })
   data: any;
