@@ -73,19 +73,67 @@ export class AppModule implements OnModuleInit {
      * instance initializes the scheduled jobs.
      */
 
-    await this.jobManagementQueue.upsertJobScheduler('cleanup', {
-      pattern: '0 0 1,15 * *', // At 12:00 AM, on day 1 and 15 of the month
-      immediately: true,
-    });
+    await this.jobManagementQueue.removeJobScheduler('cleanup');
+    await this.jobManagementQueue.upsertJobScheduler(
+      'cleanup',
+      {
+        pattern: '0 0 1,15 * *', // At 12:00 AM, on day 1 and 15 of the month
+        immediately: true,
+      },
+      {
+        opts: {
+          removeOnComplete: {
+            age: 24 * 3600,
+            count: 200,
+          },
+          removeOnFail: {
+            age: 24 * 3600,
+            count: 1000,
+          },
+        },
+      },
+    );
 
-    await this.jobManagementQueue.upsertJobScheduler('check-orphaned', {
-      pattern: '*/30 * * * *', // Every 30 minute
-      immediately: true,
-    });
+    await this.jobManagementQueue.removeJobScheduler('check-orphaned');
+    await this.jobManagementQueue.upsertJobScheduler(
+      'check-orphaned',
+      {
+        pattern: '*/30 * * * *', // Every 30 minute
+        immediately: true,
+      },
+      {
+        opts: {
+          removeOnComplete: {
+            age: 24 * 3600,
+            count: 200,
+          },
+          removeOnFail: {
+            age: 24 * 3600,
+            count: 1000,
+          },
+        },
+      },
+    );
 
-    await this.cvmManagementQueue.upsertJobScheduler('cleanup', {
-      pattern: '0 0 * * 1', // Every Monday at 00:00 AM
-      immediately: true,
-    });
+    await this.cvmManagementQueue.removeJobScheduler('cleanup');
+    await this.cvmManagementQueue.upsertJobScheduler(
+      'cleanup',
+      {
+        pattern: '0 0 * * 1', // Every Monday at 00:00 AM
+        immediately: true,
+      },
+      {
+        opts: {
+          removeOnComplete: {
+            age: 24 * 3600,
+            count: 200,
+          },
+          removeOnFail: {
+            age: 24 * 3600,
+            count: 1000,
+          },
+        },
+      },
+    );
   }
 }
