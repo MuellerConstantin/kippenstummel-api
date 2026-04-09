@@ -26,6 +26,9 @@ export class Ident {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Karma' })
   karma!: Karma;
 
+  @Prop({ index: true, default: Date.now })
+  lastActiveAt!: Date;
+
   createdAt?: Date;
   updatedAt?: Date;
 }

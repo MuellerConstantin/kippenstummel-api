@@ -19,6 +19,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { IdentCreatedEvent, IdentRemovedEvent } from '../events';
 import { RsqlToMongoQueryResult } from 'src/presentation/common/controllers/filter';
 import { IdentDocument } from '../repositories/schemas/ident.schema';
+import { constants } from 'src/lib';
 
 @Injectable()
 export class IdentService {
@@ -112,6 +113,25 @@ export class IdentService {
     await this.karmaModel.deleteOne({ identity });
 
     this.eventEmitter.emit('ident-removed', new IdentRemovedEvent(identity));
+  }
+
+  async updateLastActive(identity: string): Promise<void> {
+    const now = new Date();
+    const threshold = new Date(
+      now.getTime() - constants.IDENT_LAST_ACTIVE_DELAY * 60 * 1000,
+    );
+
+    await this.identModel
+      .updateOne(
+        {
+          identity,
+          lastActiveAt: { $lt: threshold },
+        },
+        {
+          $set: { lastActiveAt: now },
+        },
+      )
+      .exec();
   }
 
   async updateIdentity(

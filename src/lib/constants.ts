@@ -163,6 +163,12 @@ const CVM_SCORE_BELOW_DELETE_THRESHOLD_PERIOD = 7;
  */
 const MARKED_FOR_DELETION_THRESHOLD = -8;
 
+/**
+ * The delay in minutes after which an ident is considered inactive and can be
+ * updated with a new last active timestamp.
+ */
+const IDENT_LAST_ACTIVE_DELAY = 15;
+
 export {
   MAX_PAGE_SIZE,
   DEFAULT_CVM_VOTE_IMPACT,
@@ -184,4 +190,5 @@ export {
   getRepositionCooldownByCredibility,
   getRepositionLimitByCredibility,
   MARKED_FOR_DELETION_THRESHOLD,
+  IDENT_LAST_ACTIVE_DELAY,
 };
