@@ -20,6 +20,9 @@ function normalizeWord(input: string): string {
     .replace(/0/g, 'o')
     .replace(/5/g, 's')
     .replace(/7/g, 't')
+    .replace(/8/g, 'b')
+    .replace(/6/g, 'b')
+    .replace(/9/g, 'g')
     .replace(/[^a-z]/g, '')
     .replace(/(.)\1{2,}/g, '$1$1');
 }
