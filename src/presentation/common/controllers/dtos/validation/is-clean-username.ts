@@ -23,8 +23,26 @@ function normalizeWord(input: string): string {
     .replace(/8/g, 'b')
     .replace(/6/g, 'b')
     .replace(/9/g, 'g')
-    .replace(/[^a-z]/g, '')
-    .replace(/(.)\1{2,}/g, '$1$1');
+    .replace(/[^a-z]/g, '');
+}
+
+function normalizeWordPhonetic(input: string): string {
+  return normalizeWord(input).replace(/z/g, 's').replace(/ph/g, 'f');
+}
+
+function deduplicateChars(input: string): string {
+  return input.replace(/(.)\1+/g, '$1');
+}
+
+function getCandidates(input: string): string[] {
+  return [
+    ...new Set([
+      input.toLowerCase(),
+      normalizeWord(input),
+      deduplicateChars(normalizeWord(input)),
+      deduplicateChars(normalizeWordPhonetic(input)),
+    ]),
+  ];
 }
 
 const blockedTerms = file
@@ -33,27 +51,39 @@ const blockedTerms = file
   .filter(Boolean)
   .map(normalizeWord);
 
-function containsBlockedTerm(username: string): boolean {
-  const normalizedUsername = normalizeWord(username);
+function matchesBlockedTerm(candidate: string, word: string): boolean {
+  if (candidate.includes(word)) {
+    return true;
+  }
 
-  return blockedTerms.some((word) => {
-    if (normalizedUsername.includes(word)) return true;
+  if (word.length < MIN_FUZZY_LENGTH) {
+    return false;
+  }
 
-    if (word.length < MIN_FUZZY_LENGTH) return false;
+  const maxDistance = Math.max(1, Math.floor(word.length * FUZZY_PERCENT));
 
-    const maxDistance = Math.max(1, Math.floor(word.length * FUZZY_PERCENT));
-
-    for (let len = word.length - 1; len <= word.length + 1; len++) {
-      if (len <= 0) continue;
-
-      for (let i = 0; i <= normalizedUsername.length - len; i++) {
-        const segment = normalizedUsername.slice(i, i + len);
-        if (distance(segment, word) <= maxDistance) return true;
-      }
+  for (let length = word.length - 1; length <= word.length + 1; length++) {
+    if (length <= 0) {
+      continue;
     }
 
-    return false;
-  });
+    for (let index = 0; index <= candidate.length - length; index++) {
+      const segment = candidate.slice(index, index + length);
+
+      if (distance(segment, word) <= maxDistance) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function containsBlockedTerm(username: string): boolean {
+  const candidates = getCandidates(username);
+  return blockedTerms.some((word) =>
+    candidates.some((candidate) => matchesBlockedTerm(candidate, word)),
+  );
 }
 
 export function IsCleanUsername(validationOptions?: ValidationOptions) {
