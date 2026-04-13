@@ -657,6 +657,56 @@ paths:
           $ref: '#/components/responses/422'
         '500':
           $ref: '#/components/responses/500'
+  /stats/cvms/density:
+    get:
+      tags:
+        - Stats
+      summary: Returns CVM density statistics.
+      parameters:
+        - name: bottomLeft
+          in: query
+          required: true
+          schema:
+            type: string
+            format: geo-coordinate
+        - name: topRight
+          in: query
+          required: true
+          schema:
+            type: string
+            format: geo-coordinate
+        - name: zoom
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 8
+            maximum: 18
+            example: 12
+        - name: filter
+          in: query
+          schema:
+            type: string
+            format: rsql
+      responses:
+        '200':
+          description: Successfully fetched CVM density statistics.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CvmDensityStatsPointDto'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
   /stats/votes:
     get:
       tags:
@@ -1207,6 +1257,21 @@ components:
         - statusCounts
         - totalRunLastNDays
         - runHistory
+    CvmDensityStatsPointDto:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: geo-coordinate
+        longitude:
+          type: number
+          format: geo-coordinate
+        count:
+          type: integer
+      required:
+        - latitude
+        - longitude
+        - count
   responses:
     '500':
       description: An internal error has occurred on the server side.

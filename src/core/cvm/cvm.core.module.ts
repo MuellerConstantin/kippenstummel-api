@@ -48,6 +48,7 @@ import {
   GetTotalRegistrationStatsQueryHandler,
   GetTotalVotesStatsQueryHandler,
   GetByIdQueryHandler,
+  GetCvmDensityQueryHandler,
 } from './queries';
 import { IdentCoreModule } from 'src/core/ident/ident.core.module';
 import { DatasourceInfrastructureModule } from 'src/infrastructure/datasource/datasource.infrastructure.module';
@@ -90,6 +91,7 @@ import { MultithreadingInfrastructureModule } from 'src/infrastructure/multithre
     GetAllQueryHandler,
     GetByIdQueryHandler,
     GetAllWithinQueryHandler,
+    GetCvmDensityQueryHandler,
     GetTotalRegistrationStatsQueryHandler,
     GetTotalVotesStatsQueryHandler,
     CvmManagementConsumer,

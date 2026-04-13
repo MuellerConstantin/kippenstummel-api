@@ -38,3 +38,9 @@ export interface CvmTotalVotesStatsProjection {
     }[];
   };
 }
+
+export interface CvmDensityStatsPointProjection {
+  longitude: number;
+  latitude: number;
+  count: number;
+}

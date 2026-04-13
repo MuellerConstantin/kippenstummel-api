@@ -12,3 +12,7 @@ export {
   GetTotalRegistrationStatsQuery,
 } from './get-total-registration-stats.query';
 export { GetByIdQuery, GetByIdQueryHandler } from './get-by-id.query';
+export {
+  GetCvmDensityQuery,
+  GetCvmDensityQueryHandler,
+} from './get-density-stats.query';
