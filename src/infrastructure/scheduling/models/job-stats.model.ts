@@ -6,6 +6,7 @@ export interface JobTotalStats {
     running: number;
     completed: number;
     failed: number;
+    orphaned: number;
   };
   runHistory: {
     date: string;

@@ -609,14 +609,11 @@ paths:
           $ref: '#/components/responses/401'
         '403':
           $ref: '#/components/responses/429'
-  /stats:
+  /stats/cvms:
     get:
       tags:
         - Stats
-      summary: Returns total statistics.
-      description: >
-        This query returns statistics and insights about cigarette vending machines, votes,
-        identities, and jobs. The query can be limited to the last N days.
+      summary: Returns aggregated CVM statistics.
       parameters:
         - name: lastNDays
           in: query
@@ -628,71 +625,164 @@ paths:
             example: 30
       responses:
         '200':
-          description: Successfully fetched the statistics.
+          description: Successfully fetched CVM statistics.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TotalStatsDto'
+                $ref: '#/components/schemas/AggregatedCvmStatsDto'
               example:
-                cvms:
-                  total: 200
-                  averageScore: 5.3
-                  imports:
-                    total: 80
-                    totalLastNDays: 10
-                    history:
-                      - date: '2025-09-10'
-                        count: 3
-                      - date: '2025-09-11'
-                        count: 2
-                  registrations:
-                    total: 120
-                    totalLastNDays: 8
-                    history:
-                      - date: '2025-09-12'
-                        count: 4
-                votes:
-                  total: 400
-                  upvotes:
-                    total: 300
-                    totalLastNDays: 20
-                    history:
-                      - date: '2025-09-13'
-                        count: 5
-                  downvotes:
-                    total: 100
-                    totalLastNDays: 8
-                    history:
-                      - date: '2025-09-13'
-                        count: 3
-                idents:
-                  total: 50
-                  averageCredibility: 7.2
-                  totalNewLast7Days: 5
-                  newHistory:
-                    - date: '2025-09-14'
+                total: 200
+                averageScore: 5.3
+                imports:
+                  total: 80
+                  totalLastNDays: 10
+                  history:
+                    - date: '2025-09-10'
+                      count: 3
+                    - date: '2025-09-11'
                       count: 2
-                jobs:
-                  total: 30
-                  differentTypes: 5
-                  statusCounts:
-                    running: 2
-                    completed: 25
-                    failed: 3
-                  totalRunLast7Days: 10
-                  runHistory:
-                    - date: '2025-09-15'
+                registrations:
+                  total: 120
+                  totalLastNDays: 8
+                  history:
+                    - date: '2025-09-12'
                       count: 4
-        '500':
-          $ref: '#/components/responses/500'
         '400':
           $ref: '#/components/responses/400'
-        '422':
-          $ref: '#/components/responses/422'
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/429'
+          $ref: '#/components/responses/403'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+  /stats/votes:
+    get:
+      tags:
+        - Stats
+      summary: Returns aggregated vote statistics.
+      parameters:
+        - name: lastNDays
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 365
+            default: 14
+            example: 30
+      responses:
+        '200':
+          description: Successfully fetched vote statistics.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AggregatedVoteStatsDto'
+              example:
+                total: 400
+                upvotes:
+                  total: 300
+                  totalLastNDays: 20
+                  history:
+                    - date: '2025-09-13'
+                      count: 5
+                downvotes:
+                  total: 100
+                  totalLastNDays: 8
+                  history:
+                    - date: '2025-09-13'
+                      count: 3
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+  /stats/idents:
+    get:
+      tags:
+        - Stats
+      summary: Returns aggregated identity statistics.
+      parameters:
+        - name: lastNDays
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 365
+            default: 14
+            example: 30
+      responses:
+        '200':
+          description: Successfully fetched identity statistics.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AggregatedIdentStatsDto'
+              example:
+                total: 50
+                averageCredibility: 7.2
+                totalNewLastNDays: 5
+                newHistory:
+                  - date: '2025-09-14'
+                    count: 2
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
+  /stats/jobs:
+    get:
+      tags:
+        - Stats
+      summary: Returns aggregated job statistics.
+      parameters:
+        - name: lastNDays
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 365
+            default: 14
+            example: 30
+      responses:
+        '200':
+          description: Successfully fetched job statistics.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AggregatedJobStatsDto'
+              example:
+                total: 30
+                differentTypes: 5
+                statusCounts:
+                  running: 2
+                  completed: 25
+                  failed: 3
+                  orphaned: 1
+                totalRunLastNDays: 10
+                runHistory:
+                  - date: '2025-09-15'
+                    count: 4
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
 components:
   schemas:
     ErrorDto:
@@ -968,99 +1058,21 @@ components:
       required:
         - content
         - info
-    TotalStatsDto:
+    AggregatedCvmStatsDto:
       type: object
       properties:
-        cvms:
+        total:
+          type: integer
+        averageScore:
+          type: number
+        imports:
           type: object
           properties:
             total:
               type: integer
-            averageScore:
-              type: number
-            imports:
-              type: object
-              properties:
-                total:
-                  type: integer
-                totalLastNDays:
-                  type: integer
-                history:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      date:
-                        type: string
-                        format: date
-                      count:
-                        type: integer
-            registrations:
-              type: object
-              properties:
-                total:
-                  type: integer
-                totalLastNDays:
-                  type: integer
-                history:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      date:
-                        type: string
-                        format: date
-                      count:
-                        type: integer
-        votes:
-          type: object
-          properties:
-            total:
+            totalLastNDays:
               type: integer
-            upvotes:
-              type: object
-              properties:
-                total:
-                  type: integer
-                totalLastNDays:
-                  type: integer
-                history:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      date:
-                        type: string
-                        format: date
-                      count:
-                        type: integer
-            downvotes:
-              type: object
-              properties:
-                total:
-                  type: integer
-                totalLastNDays:
-                  type: integer
-                history:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      date:
-                        type: string
-                        format: date
-                      count:
-                        type: integer
-        idents:
-          type: object
-          properties:
-            total:
-              type: integer
-            averageCredibility:
-              type: number
-            totalNewLast7Days:
-              type: integer
-            newHistory:
+            history:
               type: array
               items:
                 type: object
@@ -1070,25 +1082,14 @@ components:
                     format: date
                   count:
                     type: integer
-        jobs:
+        registrations:
           type: object
           properties:
             total:
               type: integer
-            differentTypes:
+            totalLastNDays:
               type: integer
-            statusCounts:
-              type: object
-              properties:
-                running:
-                  type: integer
-                completed:
-                  type: integer
-                failed:
-                  type: integer
-            totalRunLast7Days:
-              type: integer
-            runHistory:
+            history:
               type: array
               items:
                 type: object
@@ -1099,10 +1100,113 @@ components:
                   count:
                     type: integer
       required:
-        - cvms
-        - votes
-        - idents
-        - jobs
+        - total
+        - averageScore
+        - imports
+        - registrations
+    AggregatedVoteStatsDto:
+      type: object
+      properties:
+        total:
+          type: integer
+        upvotes:
+          type: object
+          properties:
+            total:
+              type: integer
+            totalLastNDays:
+              type: integer
+            history:
+              type: array
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                  count:
+                    type: integer
+        downvotes:
+          type: object
+          properties:
+            total:
+              type: integer
+            totalLastNDays:
+              type: integer
+            history:
+              type: array
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                  count:
+                    type: integer
+      required:
+        - total
+        - upvotes
+        - downvotes
+    AggregatedIdentStatsDto:
+      type: object
+      properties:
+        total:
+          type: integer
+        averageCredibility:
+          type: number
+        totalNewLastNDays:
+          type: integer
+        newHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              count:
+                type: integer
+      required:
+        - total
+        - averageCredibility
+        - totalNewLastNDays
+        - newHistory
+    AggregatedJobStatsDto:
+      type: object
+      properties:
+        total:
+          type: integer
+        differentTypes:
+          type: integer
+        statusCounts:
+          type: object
+          properties:
+            running:
+              type: integer
+            completed:
+              type: integer
+            failed:
+              type: integer
+            orphaned:
+              type: integer
+        totalRunLastNDays:
+          type: integer
+        runHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              count:
+                type: integer
+      required:
+        - total
+        - differentTypes
+        - statusCounts
+        - totalRunLastNDays
+        - runHistory
   responses:
     '500':
       description: An internal error has occurred on the server side.

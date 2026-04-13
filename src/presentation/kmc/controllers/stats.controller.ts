@@ -1,7 +1,13 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { CommandBus, QueryBus } from '@ocoda/event-sourcing';
+import { QueryBus } from '@ocoda/event-sourcing';
 import { JwtGuard } from 'src/presentation/common/controllers';
-import { TotalStatsDto, GetStatsQueryDto } from './dtos';
+import {
+  GetStatsQueryDto,
+  AggregatedCvmStatsDto,
+  AggregatedVoteStatsDto,
+  AggregatedIdentStatsDto,
+  AggregatedJobStatsDto,
+} from './dtos';
 import {
   GetTotalRegistrationStatsQuery,
   GetTotalVotesStatsQuery,
@@ -17,42 +23,60 @@ import { JobHistoryService } from 'src/infrastructure/scheduling/services';
 @UseGuards(JwtGuard)
 export class StatsController {
   constructor(
-    private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
     private readonly identService: IdentService,
     private readonly jobHistoryService: JobHistoryService,
   ) {}
 
-  @Get()
-  async getAll(@Query() queryParams: GetStatsQueryDto): Promise<TotalStatsDto> {
+  @Get('/cvms')
+  async getAggregatedCvmStats(
+    @Query() queryParams: GetStatsQueryDto,
+  ): Promise<AggregatedCvmStatsDto> {
     const registrationQuery = new GetTotalRegistrationStatsQuery(
       queryParams.lastNDays,
     );
-    const votesQuery = new GetTotalVotesStatsQuery(queryParams.lastNDays);
 
     const registrationResult = await this.queryBus.execute<
       GetTotalRegistrationStatsQuery,
       CvmTotalRegistrationStatsProjection
     >(registrationQuery);
 
+    return registrationResult;
+  }
+
+  @Get('/votes')
+  async getAggregatedVoteStats(
+    @Query() queryParams: GetStatsQueryDto,
+  ): Promise<AggregatedVoteStatsDto> {
+    const votesQuery = new GetTotalVotesStatsQuery(queryParams.lastNDays);
+
     const votesResult = await this.queryBus.execute<
       GetTotalVotesStatsQuery,
       CvmTotalVotesStatsProjection
     >(votesQuery);
 
+    return votesResult;
+  }
+
+  @Get('/idents')
+  async getAggregatedIdentStats(
+    @Query() queryParams: GetStatsQueryDto,
+  ): Promise<AggregatedIdentStatsDto> {
     const indentResult = await this.identService.getTotalStats(
       queryParams.lastNDays,
     );
 
+    return indentResult;
+  }
+
+  @Get('/jobs')
+  async getAggregatedJobStats(
+    @Query() queryParams: GetStatsQueryDto,
+  ): Promise<AggregatedJobStatsDto> {
     const jobResult = await this.jobHistoryService.getTotalStats(
       queryParams.lastNDays,
     );
 
-    return {
-      cvms: registrationResult,
-      votes: votesResult,
-      idents: indentResult,
-      jobs: jobResult,
-    };
+    return jobResult;
   }
 }
