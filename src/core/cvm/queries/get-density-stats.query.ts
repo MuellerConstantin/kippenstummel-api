@@ -1,7 +1,6 @@
 import { RsqlToMongoQueryResult } from 'src/presentation/common/controllers/filter';
 import { CvmDensityStatsPointProjection } from '../models';
-import { PipelineStage } from 'mongoose';
-import { Model } from 'mongoose';
+import { PipelineStage, Model } from 'mongoose';
 import { Cvm, CvmDocument } from '../repositories';
 import { InjectModel } from '@nestjs/mongoose';
 import { IQuery, IQueryHandler, QueryHandler } from '@ocoda/event-sourcing';
@@ -24,53 +23,7 @@ export class GetCvmDensityQueryHandler
   ) {}
 
   private zoomToGridSize(zoom: number): number {
-    return (360 / Math.pow(2, zoom)) * 2;
-  }
-
-  private buildGridStages(gridSize: number): PipelineStage[] {
-    return [
-      {
-        $group: {
-          _id: {
-            lon: {
-              $multiply: [
-                {
-                  $floor: {
-                    $divide: [
-                      { $arrayElemAt: ['$position.coordinates', 0] },
-                      gridSize,
-                    ],
-                  },
-                },
-                gridSize,
-              ],
-            },
-            lat: {
-              $multiply: [
-                {
-                  $floor: {
-                    $divide: [
-                      { $arrayElemAt: ['$position.coordinates', 1] },
-                      gridSize,
-                    ],
-                  },
-                },
-                gridSize,
-              ],
-            },
-          },
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          longitude: { $add: ['$_id.lon', { $divide: [gridSize, 2] }] },
-          latitude: { $add: ['$_id.lat', { $divide: [gridSize, 2] }] },
-          count: 1,
-        },
-      },
-    ];
+    return 360 / Math.pow(2, zoom + 3);
   }
 
   public async execute(
@@ -79,36 +32,63 @@ export class GetCvmDensityQueryHandler
     const gridSize = this.zoomToGridSize(query.zoom);
     const { filter } = query;
 
-    const bboxMatch = {
-      position: {
-        $geoWithin: {
-          $box: [
-            [query.bottomLeft.longitude, query.bottomLeft.latitude],
-            [query.topRight.longitude, query.topRight.latitude],
-          ],
+    const bboxMatch: PipelineStage = {
+      $match: {
+        position: {
+          $geoWithin: {
+            $box: [
+              [query.bottomLeft.longitude, query.bottomLeft.latitude],
+              [query.topRight.longitude, query.topRight.latitude],
+            ],
+          },
         },
       },
     };
 
-    if (filter?.useAggregate) {
-      const pipeline: PipelineStage[] = [
-        { $match: bboxMatch },
-        ...((filter.pipeline as PipelineStage[]) || []),
-        ...this.buildGridStages(gridSize),
-      ];
+    const filterStages: PipelineStage[] = filter?.useAggregate
+      ? (filter.pipeline as PipelineStage[]) || []
+      : filter?.filter
+        ? [{ $match: filter.filter }]
+        : [];
 
-      return await this.cvmModel.aggregate<CvmDensityStatsPointProjection>(
-        pipeline,
-      );
-    } else {
-      const pipeline: PipelineStage[] = [
-        { $match: { ...bboxMatch, ...(filter?.filter || {}) } },
-        ...this.buildGridStages(gridSize),
-      ];
+    const pipeline: PipelineStage[] = [
+      bboxMatch,
+      ...filterStages,
+      {
+        $group: {
+          _id: {
+            lon: {
+              $floor: {
+                $divide: [
+                  { $arrayElemAt: ['$position.coordinates', 0] },
+                  gridSize,
+                ],
+              },
+            },
+            lat: {
+              $floor: {
+                $divide: [
+                  { $arrayElemAt: ['$position.coordinates', 1] },
+                  gridSize,
+                ],
+              },
+            },
+          },
+          count: { $sum: 1 },
+          avgLng: { $avg: { $arrayElemAt: ['$position.coordinates', 0] } },
+          avgLat: { $avg: { $arrayElemAt: ['$position.coordinates', 1] } },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          longitude: '$avgLng',
+          latitude: '$avgLat',
+          count: 1,
+        },
+      },
+    ];
 
-      return await this.cvmModel.aggregate<CvmDensityStatsPointProjection>(
-        pipeline,
-      );
-    }
+    return this.cvmModel.aggregate<CvmDensityStatsPointProjection>(pipeline);
   }
 }
