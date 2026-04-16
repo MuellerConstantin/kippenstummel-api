@@ -103,6 +103,14 @@ export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
       value = Number(value);
     }
 
+    if (selector === 'createdAt' || selector === 'updatedAt') {
+      if (Array.isArray(value)) {
+        value = value.map((v) => new Date(v) as unknown as string);
+      } else if (typeof value === 'string') {
+        value = new Date(value) as unknown as string;
+      }
+    }
+
     return super.transformExpression(selector, operator, value);
   }
 }

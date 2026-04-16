@@ -1,24 +1,14 @@
 import { Transform } from 'class-transformer';
-import {
-  IsLatLong,
-  IsNumber,
-  IsOptional,
-  Max,
-  Min,
-  Validate,
-} from 'class-validator';
+import { IsLatLong, IsNumber, IsOptional, Max, Min } from 'class-validator';
 import { constants } from 'src/lib';
-import { IsBBoxValidConstraint } from 'src/presentation/common/controllers/dtos/validation/is-bbox-valid';
 import { RsqlToMongoQueryResult } from 'src/presentation/common/controllers/filter';
 import { RsqlToMongoKmcCvmTransformer } from '../filter';
 
 export class GetCvmDensityQueryDto {
   @IsLatLong()
-  @Validate(IsBBoxValidConstraint)
   public bottomLeft!: string;
 
   @IsLatLong()
-  @Validate(IsBBoxValidConstraint)
   public topRight!: string;
 
   @IsNumber()
