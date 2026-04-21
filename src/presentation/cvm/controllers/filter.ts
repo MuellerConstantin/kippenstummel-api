@@ -6,7 +6,17 @@ import {
 
 export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
   constructor() {
-    super([]);
+    super([
+      {
+        collection: 'votes',
+        localField: '_id',
+        foreignField: 'cvm',
+        as: '_votes',
+        computedFields: {
+          lastVotedAt: { $max: '$_votes.createdAt' },
+        },
+      },
+    ]);
   }
 
   protected isSupported(field: string, operator: string) {
@@ -40,6 +50,15 @@ export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
 
     if (
       field === 'updatedAt' &&
+      operator !== '=like=' &&
+      operator !== '=in=' &&
+      operator !== '=out='
+    ) {
+      return true;
+    }
+
+    if (
+      field === 'lastVotedAt' &&
       operator !== '=like=' &&
       operator !== '=in=' &&
       operator !== '=out='
@@ -101,6 +120,14 @@ export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
 
     if (selector === 'score') {
       value = Number(value);
+    }
+
+    if (selector === 'lastVotedAt') {
+      if (Array.isArray(value)) {
+        value = value.map((v) => new Date(v) as unknown as string);
+      } else if (typeof value === 'string') {
+        value = new Date(value) as unknown as string;
+      }
     }
 
     if (selector === 'createdAt' || selector === 'updatedAt') {

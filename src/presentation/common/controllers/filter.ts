@@ -23,20 +23,37 @@ export type RsqlToMongoQueryResult =
   | { useAggregate: false; filter: object }
   | { useAggregate: true; pipeline: object[] };
 
-export type RsqlToMongoRefDefinition = {
-  collection: string;
-  localField: string;
-  foreignField: string;
-};
+export type RsqlToMongoRefDefinition =
+  | {
+      collection: string;
+      localField: string;
+      foreignField: string;
+      as?: string;
+    }
+  | {
+      collection: string;
+      localField: string;
+      foreignField: string;
+      as: string;
+      computedFields: Record<string, object>;
+    };
 
 export class RsqlToMongoTransformer {
   private supportedRefs: Record<string, RsqlToMongoRefDefinition> = {};
+  private virtualFieldToRef: Record<string, string> = {};
   private usedRefs = new Set<string>();
   private usesRefs = false;
 
   constructor(refs: RsqlToMongoRefDefinition[] = []) {
     refs.forEach((ref) => {
-      this.supportedRefs[ref.localField] = ref;
+      const key = ref.as ?? ref.localField;
+      this.supportedRefs[key] = ref;
+
+      if ('computedFields' in ref && ref.computedFields) {
+        Object.keys(ref.computedFields).forEach((field) => {
+          this.virtualFieldToRef[field] = key;
+        });
+      }
     });
   }
 
@@ -85,42 +102,40 @@ export class RsqlToMongoTransformer {
       }
     }
 
+    const refKey = this.virtualFieldToRef[selector];
+
+    if (refKey) {
+      this.usedRefs.add(refKey);
+      this.usesRefs = true;
+    }
+
     switch (operator) {
       case EQ: {
         return { [selector]: value };
-        break;
       }
       case NEQ: {
         return { [selector]: { $ne: value } };
-        break;
       }
       case LE: {
         return { [selector]: { $lte: value } };
-        break;
       }
       case GE: {
         return { [selector]: { $gte: value } };
-        break;
       }
       case LT: {
         return { [selector]: { $lt: value } };
-        break;
       }
       case GT: {
         return { [selector]: { $gt: value } };
-        break;
       }
       case IN: {
         return { [selector]: { $in: value } };
-        break;
       }
       case OUT: {
         return { [selector]: { $nin: value } };
-        break;
       }
       case '=like=': {
         return { [selector]: { $regex: value } };
-        break;
       }
       default: {
         throw new InvalidFilterQueryError();
@@ -147,23 +162,30 @@ export class RsqlToMongoTransformer {
 
       for (const ref of this.usedRefs) {
         const refDef = this.supportedRefs[ref];
+        const asField = refDef.as ?? refDef.localField;
 
-        lookupStages.push(
-          {
-            $lookup: {
-              from: refDef.collection,
-              localField: refDef.localField,
-              foreignField: refDef.foreignField,
-              as: refDef.localField,
-            },
+        lookupStages.push({
+          $lookup: {
+            from: refDef.collection,
+            localField: refDef.localField,
+            foreignField: refDef.foreignField,
+            as: asField,
           },
-          {
+        });
+
+        if ('computedFields' in refDef && refDef.computedFields) {
+          lookupStages.push(
+            { $addFields: refDef.computedFields },
+            { $project: { [asField]: 0 } },
+          );
+        } else {
+          lookupStages.push({
             $unwind: {
-              path: `$${refDef.localField}`,
+              path: `$${asField}`,
               preserveNullAndEmptyArrays: false,
             },
-          },
-        );
+          });
+        }
       }
 
       return {
