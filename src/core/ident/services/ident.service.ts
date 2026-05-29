@@ -394,6 +394,7 @@ export class IdentService {
       {
         $sort: {
           'karma.amount': -1,
+          _id: 1,
         },
       },
       { $skip: skip },
