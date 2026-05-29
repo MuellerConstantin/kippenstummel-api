@@ -75,7 +75,7 @@ export class CvmDownvotedEventSubscriber implements IEventSubscriber {
           targetIdentity: result!.registeredBy,
           cvmId,
           action: 'downvote_received',
-          isSelfInteraction: false,
+          isSelfInteraction,
         });
       }
     }
