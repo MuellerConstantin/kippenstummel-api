@@ -9,7 +9,7 @@ import { Model } from 'mongoose';
 import * as geohash from 'ngeohash';
 import { CvmAggregate, CvmId } from '../models';
 import { CvmEventStoreRepository, Cvm, Vote } from '../repositories';
-import { CredibilityService } from 'src/core/ident/services';
+import { CredibilityService, IdentService } from 'src/core/ident/services';
 import { constants } from 'src/lib';
 import { ThrottledError } from 'src/lib/models';
 import { LockService } from 'src/infrastructure/multithreading/services/lock.service';
@@ -32,6 +32,7 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
     @InjectModel(Vote.name) private readonly voteModel: Model<Vote>,
     private readonly credibilityService: CredibilityService,
+    private readonly identService: IdentService,
   ) {}
 
   async execute(command: RegisterCvmCommand): Promise<void> {
@@ -134,6 +135,10 @@ export class RegisterCvmCommandHandler implements ICommandHandler {
   }
 
   async shouldThrottle(identity: string): Promise<boolean> {
+    if (await this.identService.isTrusted(identity)) {
+      return false;
+    }
+
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
 

@@ -228,10 +228,27 @@ export class IdentService {
           ? `${result.username}#${result.suffix}`
           : undefined,
       karma: result.karma.amount,
+      trusted: result.trusted ?? false,
       lastActiveAt: result.lastActiveAt,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
     };
+  }
+
+  async isTrusted(identity: string): Promise<boolean> {
+    const result = await this.identModel.exists({ identity, trusted: true });
+    return result !== null;
+  }
+
+  async setTrusted(identity: string, trusted: boolean): Promise<void> {
+    const result = await this.identModel.updateOne(
+      { identity },
+      { $set: { trusted } },
+    );
+
+    if (result.matchedCount === 0) {
+      throw new UnknownIdentityError();
+    }
   }
 
   async getIdentities(
@@ -309,6 +326,7 @@ export class IdentService {
           credibility: (ident as any).credibility_fallback.rating,
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
           karma: (ident as any).karma_fallback.amount,
+          trusted: ident.trusted ?? false,
         })),
         info: {
           page,
@@ -343,6 +361,7 @@ export class IdentService {
           lastActiveAt: ident.lastActiveAt,
           credibility: ident.credibility.rating,
           karma: ident.karma.amount,
+          trusted: ident.trusted ?? false,
         })),
         info: {
           page: pageable.page,

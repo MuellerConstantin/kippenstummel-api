@@ -5,5 +5,6 @@ export interface IdentInfoDto {
   updatedAt?: Date;
   credibility: number;
   karma: number;
+  trusted: boolean;
   lastActiveAt: Date;
 }

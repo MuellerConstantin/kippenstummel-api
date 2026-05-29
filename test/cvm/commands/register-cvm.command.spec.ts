@@ -5,7 +5,7 @@ import {
   RegisterCvmCommand,
 } from 'src/core/cvm/commands';
 import { CvmEventStoreRepository } from 'src/core/cvm/repositories/cvm.es-repository';
-import { CredibilityService } from 'src/core/ident/services';
+import { CredibilityService, IdentService } from 'src/core/ident/services';
 import { getModelToken } from '@nestjs/mongoose';
 import { CvmAggregate, CvmId } from 'src/core/cvm/models';
 import {
@@ -24,6 +24,7 @@ describe('RegisterCvmCommandHandler', () => {
   let voteModel: Model<VoteDocument>;
   let eventRepository: CvmEventStoreRepository;
   let credibilityService: CredibilityService;
+  let identService: IdentService;
   let aggregate: CvmAggregate;
 
   beforeEach(async () => {
@@ -47,6 +48,10 @@ describe('RegisterCvmCommandHandler', () => {
           provide: CredibilityService,
           useValue: { getCredibility: jest.fn() },
         },
+        {
+          provide: IdentService,
+          useValue: { isTrusted: jest.fn().mockResolvedValue(false) },
+        },
       ],
     }).compile();
 
@@ -55,6 +60,7 @@ describe('RegisterCvmCommandHandler', () => {
     voteModel = module.get<Model<VoteDocument>>(getModelToken(Vote.name));
     eventRepository = module.get(CvmEventStoreRepository);
     credibilityService = module.get(CredibilityService);
+    identService = module.get(IdentService);
 
     aggregate = new CvmAggregate();
     aggregate.id = CvmId.from('8eadee97-4ba8-47ee-a24b-246166a55966');
@@ -167,6 +173,32 @@ describe('RegisterCvmCommandHandler', () => {
     jest.spyOn(credibilityService, 'getCredibility').mockResolvedValue(10);
 
     await expect(handler.execute(command)).rejects.toThrow(ThrottledError);
+  });
+
+  it('Should bypass throttle when ident is trusted', async () => {
+    const command = new RegisterCvmCommand(
+      8.40395,
+      49.009874,
+      '20718133-9c8d-45bb-b3e5-6462827e77ae',
+    );
+
+    (cvmModel.findOne as any) = jest.fn().mockImplementation(() => ({
+      sort: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockResolvedValue(null),
+    }));
+    jest.spyOn(identService, 'isTrusted').mockResolvedValue(true);
+
+    const credibilitySpy = jest.spyOn(credibilityService, 'getCredibility');
+    const countSpy = jest.spyOn(cvmModel, 'countDocuments');
+    const saveSpy = jest
+      .spyOn(eventRepository, 'save')
+      .mockResolvedValue(undefined);
+
+    await handler.execute(command);
+
+    expect(saveSpy).toHaveBeenCalledTimes(1);
+    expect(credibilitySpy).not.toHaveBeenCalled();
+    expect(countSpy).not.toHaveBeenCalled();
   });
 
   it('Should do nothing because of recent vote for the CVM', async () => {

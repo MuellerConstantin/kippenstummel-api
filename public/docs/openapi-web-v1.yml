@@ -263,6 +263,7 @@ paths:
                 credibility: 75
                 displayName: Maxi123#4731
                 karma: 120
+                trusted: false
                 createdAt: 2025-09-16T15:03:20.567Z
                 updatedAt: 2025-09-18T11:21:00.123Z
         '500':
@@ -956,6 +957,12 @@ components:
           type: number
         karma:
           type: number
+        trusted:
+          type: boolean
+          description: >-
+            Whether this identity has been manually granted trusted status by
+            a moderator. Trusted identities bypass the credibility-based
+            throttle on CVM registration and repositioning.
         createdAt:
           type: string
           format: date-time
@@ -966,6 +973,7 @@ components:
         - identity
         - credibility
         - karma
+        - trusted
     IdentUpdateDto:
       type: object
       properties:

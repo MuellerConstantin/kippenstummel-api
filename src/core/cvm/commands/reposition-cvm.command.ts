@@ -15,7 +15,7 @@ import {
   OutOfReachError,
   ThrottledError,
 } from 'src/lib/models';
-import { CredibilityService } from 'src/core/ident/services';
+import { CredibilityService, IdentService } from 'src/core/ident/services';
 import { calculateDistanceInKm, constants } from 'src/lib';
 import { LockService } from 'src/infrastructure/multithreading/services/lock.service';
 
@@ -38,6 +38,7 @@ export class RepositionCvmCommandHandler implements ICommandHandler {
     private readonly lockService: LockService,
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     private readonly credibilityService: CredibilityService,
+    private readonly identService: IdentService,
     @InjectModel(Repositioning.name)
     private readonly repositioningModel: Model<Repositioning>,
   ) {}
@@ -171,6 +172,10 @@ export class RepositionCvmCommandHandler implements ICommandHandler {
   }
 
   async shouldThrottle(identity: string): Promise<boolean> {
+    if (await this.identService.isTrusted(identity)) {
+      return false;
+    }
+
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
 

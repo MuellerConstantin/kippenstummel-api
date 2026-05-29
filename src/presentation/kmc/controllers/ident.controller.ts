@@ -1,13 +1,20 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
   Param,
+  Patch,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { JwtGuard } from 'src/presentation/common/controllers';
-import { GetAllIdentQueryDto, IdentInfoDto, IdentPageDto } from './dtos';
+import {
+  GetAllIdentQueryDto,
+  IdentInfoDto,
+  IdentPageDto,
+  UpdateIdentDto,
+} from './dtos';
 import { IdentService } from 'src/core/ident/services';
 
 @Controller({ path: '/kmc/ident', version: '1' })
@@ -41,6 +48,16 @@ export class IdentController {
   async getById(@Param('id') id: string): Promise<IdentInfoDto> {
     const result = await this.identService.getIdentity(id);
     return result;
+  }
+
+  @Patch('/:id')
+  async updateById(
+    @Param('id') id: string,
+    @Body() body: UpdateIdentDto,
+  ): Promise<void> {
+    if (typeof body.trusted === 'boolean') {
+      await this.identService.setTrusted(id, body.trusted);
+    }
   }
 
   @Delete('/:id')
