@@ -23,3 +23,10 @@ export interface IdentInfo {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export interface IdentProfile {
+  identity: string;
+  displayName?: string;
+  karma: number;
+  trusted: boolean;
+}

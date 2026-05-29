@@ -20,6 +20,7 @@ import { IdentCreatedEvent, IdentRemovedEvent } from '../events';
 import { RsqlToMongoQueryResult } from 'src/presentation/common/controllers/filter';
 import { IdentDocument } from '../repositories/schemas/ident.schema';
 import { constants } from 'src/lib';
+import { IdentProfile } from '../models/ident.model';
 
 @Injectable()
 export class IdentService {
@@ -373,16 +374,7 @@ export class IdentService {
     }
   }
 
-  async getLeaderboardMembers(pageable: Pageable): Promise<
-    Page<{
-      identity: string;
-      displayName?: string;
-      karma: number;
-      credibility: number;
-      createdAt: Date;
-      updatedAt: Date;
-    }>
-  > {
+  async getLeaderboardMembers(pageable: Pageable): Promise<Page<IdentProfile>> {
     const { page, perPage } = pageable;
     const skip = page * perPage;
 
@@ -421,10 +413,8 @@ export class IdentService {
       {
         $project: {
           identity: 1,
-          createdAt: 1,
-          updatedAt: 1,
+          trusted: 1,
           karma: '$karma.amount',
-          credibility: '$credibility.rating',
           displayName: {
             $cond: [
               {
@@ -441,16 +431,7 @@ export class IdentService {
     ] satisfies PipelineStage[];
 
     const [content, countResult] = await Promise.all([
-      this.identModel
-        .aggregate<{
-          identity: string;
-          displayName?: string;
-          karma: number;
-          credibility: number;
-          createdAt: Date;
-          updatedAt: Date;
-        }>(pipeline)
-        .exec(),
+      this.identModel.aggregate<IdentProfile>(pipeline).exec(),
 
       this.identModel
         .aggregate<{
@@ -467,9 +448,7 @@ export class IdentService {
         identity: ident.identity,
         displayName: ident.displayName || undefined,
         karma: ident.karma,
-        credibility: ident.credibility,
-        createdAt: ident.createdAt,
-        updatedAt: ident.updatedAt,
+        trusted: ident.trusted,
       })),
       info: {
         page,

@@ -25,6 +25,7 @@ import {
 import { IdentGuard } from './ident.guard';
 import { Identity } from './ident.decorator';
 import { CaptchaScope } from './captcha-scope.decorator';
+import { IdentProfilePageDto } from './dtos/ident.dto';
 
 @Controller({ path: 'ident', version: '1' })
 export class IdentController {
@@ -86,7 +87,7 @@ export class IdentController {
   @Get('/leaderboard')
   async getLeaderboard(
     @Query() queryParams: GetAllLeaderboardMembersQueryDto,
-  ): Promise<any> {
+  ): Promise<IdentProfilePageDto> {
     const { page, perPage } = queryParams;
 
     const pageable = {
@@ -101,6 +102,7 @@ export class IdentController {
         identity: member.identity,
         displayName: member.displayName,
         karma: member.karma,
+        trusted: member.trusted,
       })),
       info: result.info,
     };

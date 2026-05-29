@@ -16,5 +16,23 @@ export interface IdentInfoDto {
   createdAt?: Date;
   updatedAt?: Date;
   credibility: number;
+  trusted: boolean;
   karma: number;
+}
+
+export interface IdentProfileDto {
+  identity: string;
+  displayName?: string;
+  karma: number;
+  trusted: boolean;
+}
+
+export interface IdentProfilePageDto {
+  content: IdentProfileDto[];
+  info: {
+    page: number;
+    perPage: number;
+    totalElements: number;
+    totalPages: number;
+  };
 }
