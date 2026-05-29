@@ -67,7 +67,7 @@ fall outside what swarm intelligence alone can resolve reliably.
 
 The API exposes three separate layers, versioned under `/v1/`.
 
-### Public API
+### Web API
 
 Partially authenticated via anonymous identity token. Provides all endpoints
 required for discovering, registering, repositioning, voting on, and reporting
