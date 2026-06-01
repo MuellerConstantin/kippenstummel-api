@@ -7,6 +7,7 @@ import { CommonPresentationModule } from './presentation/common/common.presentat
 import { CvmPresentationModule } from './presentation/cvm/cvm.presentation.module';
 import { KmcPresentationModule } from './presentation/kmc/kmc.presentation.module';
 import { IdentPresentationModule } from './presentation/ident/ident.presentation.module';
+import { TelemetryInfrastructureModule } from './infrastructure/telemetry';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 
@@ -54,6 +55,7 @@ import { InjectQueue } from '@nestjs/bullmq';
     CvmPresentationModule,
     KmcPresentationModule,
     IdentPresentationModule,
+    TelemetryInfrastructureModule,
   ],
   controllers: [],
   providers: [],

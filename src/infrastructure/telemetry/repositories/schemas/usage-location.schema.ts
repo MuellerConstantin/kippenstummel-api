@@ -19,3 +19,6 @@ export class UsageLocation {
 }
 
 export const UsageLocationSchema = SchemaFactory.createForClass(UsageLocation);
+
+UsageLocationSchema.index({ bucket: 1, date: 1 }, { unique: true });
+UsageLocationSchema.index({ date: 1 });

@@ -1,1 +1,5 @@
-export { UsageLocation, UsageLocationSchema } from './usage-location.schema';
+export {
+  UsageLocation,
+  UsageLocationSchema,
+  UsageLocationDocument,
+} from './usage-location.schema';

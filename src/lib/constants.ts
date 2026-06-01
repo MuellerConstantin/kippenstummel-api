@@ -169,6 +169,35 @@ const MARKED_FOR_DELETION_THRESHOLD = -8;
  */
 const IDENT_LAST_ACTIVE_DELAY = 15;
 
+/**
+ * Geohash precision for usage-location buckets. Precision 5 ~= 4.9km x 4.9km
+ * cells — coarse enough to preserve k-anonymity, fine enough for city-scale
+ * heat maps.
+ */
+const TELEMETRY_GEOHASH_PRECISION = 5;
+
+/**
+ * TTL in seconds for the per-bucket-per-fingerprint dedup key in Redis.
+ * One hour means at most one count per (bucket, fingerprint) per hour.
+ */
+const TELEMETRY_DEDUP_TTL_SECONDS = 60 * 60;
+
+/**
+ * TTL in seconds for the daily fingerprint salt in Redis. Slightly more than
+ * 24h so the previous day's salt remains readable through clock-skew windows.
+ */
+const TELEMETRY_SALT_TTL_SECONDS = 60 * 60 * 26;
+
+/**
+ * Redis key prefix for the daily fingerprint salt.
+ */
+const TELEMETRY_SALT_KEY_PREFIX = 'telemetry:salt:';
+
+/**
+ * Redis key prefix for usage-location dedup entries.
+ */
+const TELEMETRY_DEDUP_KEY_PREFIX = 'telemetry:usage-location:';
+
 export {
   MAX_PAGE_SIZE,
   DEFAULT_CVM_VOTE_IMPACT,
@@ -191,4 +220,9 @@ export {
   getRepositionLimitByCredibility,
   MARKED_FOR_DELETION_THRESHOLD,
   IDENT_LAST_ACTIVE_DELAY,
+  TELEMETRY_GEOHASH_PRECISION,
+  TELEMETRY_DEDUP_TTL_SECONDS,
+  TELEMETRY_SALT_TTL_SECONDS,
+  TELEMETRY_SALT_KEY_PREFIX,
+  TELEMETRY_DEDUP_KEY_PREFIX,
 };
