@@ -505,8 +505,13 @@ export class IdentService {
 
   private async getNewIdentsPerDay(lastNDays: number) {
     const now = new Date();
-    const startDate = new Date();
-    startDate.setDate(now.getDate() - lastNDays + 1);
+    const startDate = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() - lastNDays + 1,
+      ),
+    );
 
     const queryResult = await this.identModel
       .aggregate<{
@@ -524,7 +529,6 @@ export class IdentService {
               $dateToString: {
                 format: '%Y-%m-%d',
                 date: '$issuedAt',
-                timezone: 'Europe/Berlin',
               },
             },
             count: { $sum: 1 },
@@ -537,8 +541,13 @@ export class IdentService {
     const result = new Map(queryResult.map(({ _id, count }) => [_id, count]));
 
     const history = Array.from({ length: lastNDays }, (_, index) => {
-      const date = new Date();
-      date.setDate(now.getDate() - lastNDays + 1 + index);
+      const date = new Date(
+        Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate() - lastNDays + 1 + index,
+        ),
+      );
       const key = date.toISOString().split('T')[0];
 
       return {
