@@ -138,6 +138,10 @@ export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
       }
     }
 
+    if (selector === 'imported') {
+      value = (value === 'true') as unknown as string;
+    }
+
     return super.transformExpression(selector, operator, value);
   }
 }
