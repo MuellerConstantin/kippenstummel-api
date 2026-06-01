@@ -1,4 +1,5 @@
 import { Module, ValidationPipe } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { TerminusModule } from '@nestjs/terminus';
@@ -9,6 +10,7 @@ import {
   JwtStrategy,
   JwtGuard,
   HealthController,
+  TrackUsageLocationInterceptor,
 } from './controllers';
 import { InvalidPayloadError } from 'src/lib/models/error';
 import { ValidationError } from 'class-validator';
@@ -100,6 +102,10 @@ import { SecurityInfrastructureModule } from 'src/infrastructure/security/securi
           return new InvalidPayloadError(flatErrors);
         },
       }),
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TrackUsageLocationInterceptor,
     },
   ],
   exports: [MulterModule],

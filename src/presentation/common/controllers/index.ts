@@ -5,3 +5,6 @@ export { JwtStrategy } from './jwt.strategy';
 export { JwtGuard } from './jwt.guard';
 export { RsqlToMongoTransformer } from './filter';
 export { HealthController } from './health.controller';
+export { TrackUsageLocation } from './track-usage-location.decorator';
+export type { LocationExtractor } from './track-usage-location.decorator';
+export { TrackUsageLocationInterceptor } from './track-usage-location.interceptor';

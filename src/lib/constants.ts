@@ -198,6 +198,13 @@ const TELEMETRY_SALT_KEY_PREFIX = 'telemetry:salt:';
  */
 const TELEMETRY_DEDUP_KEY_PREFIX = 'telemetry:usage-location:';
 
+/**
+ * Minimum zoom level at which a map request is tracked as a usage-location
+ * signal. Below this, the visible bbox spans many geohash buckets so the
+ * center is not meaningful — tracking would just produce noise.
+ */
+const TELEMETRY_TRACKING_MIN_ZOOM = 12;
+
 export {
   MAX_PAGE_SIZE,
   DEFAULT_CVM_VOTE_IMPACT,
@@ -225,4 +232,5 @@ export {
   TELEMETRY_SALT_TTL_SECONDS,
   TELEMETRY_SALT_KEY_PREFIX,
   TELEMETRY_DEDUP_KEY_PREFIX,
+  TELEMETRY_TRACKING_MIN_ZOOM,
 };

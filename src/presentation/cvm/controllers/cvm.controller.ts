@@ -44,6 +44,7 @@ import {
   IdentGuard,
   AnonymousGuard,
 } from 'src/presentation/ident/controllers';
+import { CvmWithinTrackUsageLocation } from './cvm-within-track-usage-location.decorator';
 import { Page } from 'src/lib/models';
 
 @Controller({ path: '/cvms', version: '1' })
@@ -55,6 +56,7 @@ export class CvmController {
 
   @Get('/within')
   @UseGuards(AnonymousGuard)
+  @CvmWithinTrackUsageLocation
   async getAllWithin(
     @Query() queryParams: GetAllCvmWithinQueryDto,
     @Identity() identity: string,
