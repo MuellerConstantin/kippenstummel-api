@@ -151,9 +151,22 @@ paths:
       tags:
         - Cvm
       summary: Returns all CVMs within a viewport.
-      description: >
+      description: |
         This query returns all CVMs within a given viewport. For performance reasons,
         the results are returned clustered.
+
+        ### Filtering
+
+        Supported fields and operators for the `filter` query parameter:
+
+        | Field | Operators |
+        |-------|-----------|
+        | `id` | `==`, `!=`, `=in=`, `=out=`, `=like=` |
+        | `score` | `==`, `!=`, `=in=`, `=out=`, `<`, `<=`, `>`, `>=` |
+        | `imported` | `==`, `!=` |
+        | `createdAt`, `updatedAt`, `lastVotedAt` | `==`, `!=`, `<`, `<=`, `>`, `>=` |
+        | `bbox` | `==` (value: `minLng,minLat,maxLng,maxLat`) |
+        | `registeredBy` | `==` |
       parameters:
         - name: bottomLeft
           in: query
@@ -221,8 +234,21 @@ paths:
       tags:
         - Cvm
       summary: Returns all CVMs (paginated).
-      description: >
+      description: |
         This query returns all cigarette vending machines in a paginated format.
+
+        ### Filtering
+
+        Supported fields and operators for the `filter` query parameter:
+
+        | Field | Operators |
+        |-------|-----------|
+        | `id` | `==`, `!=`, `=in=`, `=out=`, `=like=` |
+        | `score` | `==`, `!=`, `=in=`, `=out=`, `<`, `<=`, `>`, `>=` |
+        | `imported` | `==`, `!=` |
+        | `createdAt`, `updatedAt`, `lastVotedAt` | `==`, `!=`, `<`, `<=`, `>`, `>=` |
+        | `bbox` | `==` (value: `minLng,minLat,maxLng,maxLat`) |
+        | `registeredBy` | `==` |
       parameters:
         - name: page
           in: query
@@ -439,8 +465,21 @@ paths:
       tags:
         - Ident
       summary: Returns all identities (paginated).
-      description: >
+      description: |
         This query returns all user identities in a paginated format.
+
+        ### Filtering
+
+        Supported fields and operators for the `filter` query parameter:
+
+        | Field | Operators |
+        |-------|-----------|
+        | `identity` | `==`, `!=`, `=in=`, `=out=`, `=like=` |
+        | `displayName` | `==`, `!=`, `=in=`, `=out=`, `=like=` |
+        | `credibility` | `==`, `!=`, `=in=`, `=out=`, `<`, `<=`, `>`, `>=` |
+        | `karma` | `==`, `!=`, `=in=`, `=out=`, `<`, `<=`, `>`, `>=` |
+        | `createdAt` | `==`, `!=`, `<`, `<=`, `>`, `>=` |
+        | `trusted` | `==`, `!=` |
       parameters:
         - name: page
           in: query
@@ -755,6 +794,22 @@ paths:
       tags:
         - Stats
       summary: Returns CVM density statistics.
+      description: |
+        Returns CVM density statistics for the given viewport, aggregated into
+        grid cells based on the requested zoom level.
+
+        ### Filtering
+
+        Supported fields and operators for the `filter` query parameter:
+
+        | Field | Operators |
+        |-------|-----------|
+        | `id` | `==`, `!=`, `=in=`, `=out=`, `=like=` |
+        | `score` | `==`, `!=`, `=in=`, `=out=`, `<`, `<=`, `>`, `>=` |
+        | `imported` | `==`, `!=` |
+        | `createdAt`, `updatedAt`, `lastVotedAt` | `==`, `!=`, `<`, `<=`, `>`, `>=` |
+        | `bbox` | `==` (value: `minLng,minLat,maxLng,maxLat`) |
+        | `registeredBy` | `==` |
       parameters:
         - name: bottomLeft
           in: query
