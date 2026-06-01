@@ -132,9 +132,9 @@ info:
     url: https://www.mueller-constantin.de
     email: info@mueller-constantin.de
 servers:
-  - url: http://localhost:8080/api/v1
+  - url: http://localhost:8080/api/v1/kmc
     description: Development Server
-  - url: https://api.kippenstummel.de/api/v1
+  - url: https://api.kippenstummel.de/api/v1/kmc
     description: Production Server
 tags:
   - name: Cvm
@@ -215,7 +215,7 @@ paths:
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/429'
+          $ref: '#/components/responses/403'
   /cvms:
     get:
       tags:
@@ -274,15 +274,15 @@ paths:
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/429'
-  /cvms/{cvmId}:
+          $ref: '#/components/responses/403'
+  /cvms/{id}:
     get:
       tags:
         - Cvm
       summary: Returns a specific CVM.
       description: This query returns a specific CVM.
       parameters:
-        - name: cvmId
+        - name: id
           in: path
           required: true
           schema:
@@ -317,14 +317,14 @@ paths:
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/429'
+          $ref: '#/components/responses/403'
     delete:
       tags:
         - Cvm
       summary: Deletes a specific CVM.
       description: Deletes the cigarette vending machine with the given ID.
       parameters:
-        - name: cvmId
+        - name: id
           in: path
           required: true
           schema:
@@ -342,7 +342,7 @@ paths:
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/429'
+          $ref: '#/components/responses/403'
   /cvms/import/manual:
     post:
       tags:
@@ -373,7 +373,7 @@ paths:
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/429'
+          $ref: '#/components/responses/403'
         '422':
           $ref: '#/components/responses/422'
   /cvms/import/file:
@@ -404,7 +404,7 @@ paths:
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/429'
+          $ref: '#/components/responses/403'
         '422':
           $ref: '#/components/responses/422'
   /cvms/import/osm:
@@ -431,7 +431,7 @@ paths:
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/429'
+          $ref: '#/components/responses/403'
         '422':
           $ref: '#/components/responses/422'
   /ident:
@@ -486,7 +486,7 @@ paths:
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/429'
+          $ref: '#/components/responses/403'
   /ident/{id}:
     get:
       tags:
@@ -522,7 +522,7 @@ paths:
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/429'
+          $ref: '#/components/responses/403'
     patch:
       tags:
         - Ident
@@ -557,7 +557,7 @@ paths:
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/429'
+          $ref: '#/components/responses/403'
     delete:
       tags:
         - Ident
@@ -581,7 +581,7 @@ paths:
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/429'
+          $ref: '#/components/responses/403'
   /jobs/runs:
     get:
       tags:
@@ -617,7 +617,7 @@ paths:
                 $ref: '#/components/schemas/JobPageDto'
               example:
                 content:
-                  - jobId: 150
+                  - jobId: '150'
                     name: 'osm'
                     queue: 'cvm-import'
                     data:
@@ -646,7 +646,62 @@ paths:
         '401':
           $ref: '#/components/responses/401'
         '403':
-          $ref: '#/components/responses/429'
+          $ref: '#/components/responses/403'
+  /jobs/queues/{queue}/runs/{jobId}:
+    get:
+      tags:
+        - Jobs
+      summary: Returns a specific job run.
+      description: >
+        Returns a single job run identified by its queue name and job ID.
+      parameters:
+        - name: queue
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 'cvm-import'
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: '150'
+      responses:
+        '200':
+          description: Successfully fetched the job run.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobDto'
+              example:
+                jobId: '150'
+                name: 'osm'
+                queue: 'cvm-import'
+                data:
+                  region: 'Karlsruhe, Baden-Württemberg'
+                status: 'completed'
+                result:
+                  imported: 120
+                failedReason: null
+                attemptsMade: 1
+                timestamp: 2025-09-16T12:00:00.000Z
+                finishedOn: 2025-09-16T12:05:00.000Z
+                logs:
+                  - 'Started job at 12:00'
+                  - 'Finished successfully'
+                createdAt: 2025-09-16T11:59:59.000Z
+                updatedAt: 2025-09-16T12:05:01.000Z
+        '500':
+          $ref: '#/components/responses/500'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
   /stats/cvms:
     get:
       tags:
@@ -718,7 +773,7 @@ paths:
           required: true
           schema:
             type: integer
-            minimum: 8
+            minimum: 0
             maximum: 18
             example: 12
         - name: filter
@@ -944,6 +999,7 @@ components:
         - latitude
         - longitude
         - score
+        - imported
         - recentlyReported
         - createdAt
         - updatedAt
@@ -1096,7 +1152,7 @@ components:
       type: object
       properties:
         jobId:
-          type: integer
+          type: string
         queue:
           type: string
         name:
