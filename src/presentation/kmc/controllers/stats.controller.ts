@@ -9,6 +9,8 @@ import {
   AggregatedJobStatsDto,
   GetCvmDensityQueryDto,
   CvmDensityStatsPointDto,
+  GetUsageDensityQueryDto,
+  UsageDensityStatsPointDto,
 } from './dtos';
 import {
   GetTotalRegistrationStatsQuery,
@@ -22,6 +24,7 @@ import {
 import { IdentService } from 'src/core/ident/services';
 import { JobHistoryService } from 'src/infrastructure/scheduling/services';
 import { GetCvmDensityQuery } from 'src/core/cvm/queries/get-density-stats.query';
+import { UsageLocationService } from 'src/infrastructure/telemetry';
 
 @Controller({ path: '/kmc/stats', version: '1' })
 @UseGuards(JwtGuard)
@@ -30,6 +33,7 @@ export class StatsController {
     private readonly queryBus: QueryBus,
     private readonly identService: IdentService,
     private readonly jobHistoryService: JobHistoryService,
+    private readonly usageLocationService: UsageLocationService,
   ) {}
 
   @Get('/cvms')
@@ -72,6 +76,29 @@ export class StatsController {
       GetCvmDensityQuery,
       CvmDensityStatsPointProjection[]
     >(query);
+  }
+
+  @Get('/usage-density')
+  async getUsageDensity(
+    @Query() queryParams: GetUsageDensityQueryDto,
+  ): Promise<UsageDensityStatsPointDto[]> {
+    const bottomLeft = {
+      lng: queryParams.bottomLeftCoordinates[0],
+      lat: queryParams.bottomLeftCoordinates[1],
+    };
+    const topRight = {
+      lng: queryParams.topRightCoordinates[0],
+      lat: queryParams.topRightCoordinates[1],
+    };
+
+    const points = await this.usageLocationService.getDensity({
+      bottomLeft,
+      topRight,
+      zoom: queryParams.zoom,
+      lastNDays: queryParams.lastNDays,
+    });
+
+    return points;
   }
 
   @Get('/votes')

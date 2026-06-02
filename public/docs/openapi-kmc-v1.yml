@@ -855,6 +855,64 @@ paths:
           $ref: '#/components/responses/422'
         '500':
           $ref: '#/components/responses/500'
+  /stats/usage-density:
+    get:
+      tags:
+        - Stats
+      summary: Returns map usage-location density statistics.
+      description: |
+        Returns the user-access density for the given viewport over the last
+        `lastNDays` days, aggregated by geohash bucket. The result resolution
+        adapts to the requested zoom level — coarser at low zoom, native
+        ~5 km cells at zoom 10 and above.
+      parameters:
+        - name: bottomLeft
+          in: query
+          required: true
+          schema:
+            type: string
+            format: geo-coordinate
+        - name: topRight
+          in: query
+          required: true
+          schema:
+            type: string
+            format: geo-coordinate
+        - name: zoom
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 18
+            example: 12
+        - name: lastNDays
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 365
+            default: 14
+            example: 30
+      responses:
+        '200':
+          description: Successfully fetched usage-location density statistics.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UsageDensityStatsPointDto'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '422':
+          $ref: '#/components/responses/422'
+        '500':
+          $ref: '#/components/responses/500'
   /stats/votes:
     get:
       tags:
@@ -1424,6 +1482,21 @@ components:
         - totalRunLastNDays
         - runHistory
     CvmDensityStatsPointDto:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: geo-coordinate
+        longitude:
+          type: number
+          format: geo-coordinate
+        count:
+          type: integer
+      required:
+        - latitude
+        - longitude
+        - count
+    UsageDensityStatsPointDto:
       type: object
       properties:
         latitude:

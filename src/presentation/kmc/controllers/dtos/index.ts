@@ -10,6 +10,7 @@ export {
   AggregatedIdentStatsDto,
   AggregatedJobStatsDto,
   CvmDensityStatsPointDto,
+  UsageDensityStatsPointDto,
 } from './stats.dto';
 export { GetStatsQueryDto } from './get-stats-query.dto';
 export { GetAllIdentQueryDto } from './get-all-ident-query.dto';
@@ -21,3 +22,4 @@ export { JobDto } from './job.dto';
 export { JobPageDto } from './job-page.dto';
 export { ImportOsmDto } from './import-osm.dto';
 export { GetCvmDensityQueryDto } from './get-cvm-density-query.dto';
+export { GetUsageDensityQueryDto } from './get-usage-density-query.dto';
