@@ -57,9 +57,15 @@ export class UsageLocationService {
       }
 
       const date = new Date().toISOString().slice(0, 10);
+      const center = this.fingerprintService.decodeBucketCenter(bucket);
       await this.usageLocationModel.updateOne(
         { bucket, date },
-        { $inc: { count: 1 } },
+        {
+          $inc: { count: 1 },
+          $setOnInsert: {
+            center: { type: 'Point', coordinates: [center.lng, center.lat] },
+          },
+        },
         { upsert: true },
       );
     } catch (err) {

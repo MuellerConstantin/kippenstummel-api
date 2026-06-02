@@ -9,6 +9,11 @@ export class TelemetryFingerprintService {
     return ngeohash.encode(lat, lng, TELEMETRY_GEOHASH_PRECISION);
   }
 
+  decodeBucketCenter(bucket: string): { lng: number; lat: number } {
+    const { latitude, longitude } = ngeohash.decode(bucket);
+    return { lng: longitude, lat: latitude };
+  }
+
   computeFingerprintHash(salt: Buffer, parts: ReadonlyArray<string>): string {
     const hash = createHash('sha256');
     hash.update(salt);
