@@ -520,7 +520,7 @@ export class IdentService {
       }>([
         {
           $match: {
-            issuedAt: { $gte: startDate, $lte: now },
+            createdAt: { $gte: startDate, $lte: now },
           },
         },
         {
@@ -528,7 +528,7 @@ export class IdentService {
             _id: {
               $dateToString: {
                 format: '%Y-%m-%d',
-                date: '$issuedAt',
+                date: '$createdAt',
               },
             },
             count: { $sum: 1 },
