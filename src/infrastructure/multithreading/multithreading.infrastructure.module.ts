@@ -2,7 +2,7 @@ import { Module, Global, OnApplicationShutdown, Inject } from '@nestjs/common';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 import { LockService } from './services/lock.service';
 import Redis from 'ioredis';
-import Redlock from 'redlock';
+import Redlock, { CompatibleRedisClient } from 'redlock';
 
 @Global()
 @Module({
@@ -18,7 +18,10 @@ import Redlock from 'redlock';
     {
       provide: 'MULTITHREADING_REDLOCK',
       useFactory: (redis: Redis) => {
-        return new Redlock([redis], {
+        // ioredis flattens array-style command arguments at runtime, so it is
+        // compatible with redlock. Its `eval` overloads just don't match the
+        // node-redis shaped signature `CompatibleRedisClient` declares.
+        return new Redlock([redis as unknown as CompatibleRedisClient], {
           retryCount: 10,
           retryDelay: 100,
           retryJitter: 50,
