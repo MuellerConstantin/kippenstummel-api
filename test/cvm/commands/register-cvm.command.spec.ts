@@ -74,6 +74,12 @@ describe('RegisterCvmCommandHandler', () => {
     aggregate.longitude = 8.40395;
   });
 
+  // The Cvm/Vote providers hand out the shared Mongoose Model class, so spies
+  // set on it outlive the testing module that beforeEach rebuilds.
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('Should register a new CVM', async () => {
     // Simulates another registration 75 meters away
     const command = new RegisterCvmCommand(
