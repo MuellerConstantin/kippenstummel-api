@@ -42,6 +42,7 @@ describe('Captcha', () => {
         pause: jest.fn(),
         close: jest.fn(),
         upsertJobScheduler: jest.fn(),
+        removeJobScheduler: jest.fn(),
       })
       .overrideProvider(getQueueToken('credibility-computation'))
       .useValue({
@@ -49,6 +50,7 @@ describe('Captcha', () => {
         pause: jest.fn(),
         close: jest.fn(),
         upsertJobScheduler: jest.fn(),
+        removeJobScheduler: jest.fn(),
       })
       .overrideProvider(getQueueToken('karma-computation'))
       .useValue({
@@ -56,6 +58,7 @@ describe('Captcha', () => {
         pause: jest.fn(),
         close: jest.fn(),
         upsertJobScheduler: jest.fn(),
+        removeJobScheduler: jest.fn(),
       })
       .overrideProvider(getQueueToken('cvm-import'))
       .useValue({
@@ -63,6 +66,7 @@ describe('Captcha', () => {
         pause: jest.fn(),
         close: jest.fn(),
         upsertJobScheduler: jest.fn(),
+        removeJobScheduler: jest.fn(),
       })
       .overrideProvider(getQueueToken('job-management'))
       .useValue({
@@ -70,6 +74,7 @@ describe('Captcha', () => {
         pause: jest.fn(),
         close: jest.fn(),
         upsertJobScheduler: jest.fn(),
+        removeJobScheduler: jest.fn(),
       })
       .overrideProvider(getQueueToken('cvm-management'))
       .useValue({
@@ -77,6 +82,7 @@ describe('Captcha', () => {
         pause: jest.fn(),
         close: jest.fn(),
         upsertJobScheduler: jest.fn(),
+        removeJobScheduler: jest.fn(),
       })
       .overrideProvider(TileComputationConsumer)
       .useValue({})

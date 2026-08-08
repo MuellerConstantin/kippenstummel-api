@@ -43,6 +43,7 @@ describe('Ident', () => {
         pause: jest.fn(),
         close: jest.fn(),
         upsertJobScheduler: jest.fn(),
+        removeJobScheduler: jest.fn(),
       })
       .overrideProvider(getQueueToken('credibility-computation'))
       .useValue({
@@ -50,6 +51,7 @@ describe('Ident', () => {
         pause: jest.fn(),
         close: jest.fn(),
         upsertJobScheduler: jest.fn(),
+        removeJobScheduler: jest.fn(),
       })
       .overrideProvider(getQueueToken('karma-computation'))
       .useValue({
@@ -57,6 +59,7 @@ describe('Ident', () => {
         pause: jest.fn(),
         close: jest.fn(),
         upsertJobScheduler: jest.fn(),
+        removeJobScheduler: jest.fn(),
       })
       .overrideProvider(getQueueToken('cvm-import'))
       .useValue({
@@ -64,6 +67,7 @@ describe('Ident', () => {
         pause: jest.fn(),
         close: jest.fn(),
         upsertJobScheduler: jest.fn(),
+        removeJobScheduler: jest.fn(),
       })
       .overrideProvider(getQueueToken('job-management'))
       .useValue({
@@ -71,6 +75,7 @@ describe('Ident', () => {
         pause: jest.fn(),
         close: jest.fn(),
         upsertJobScheduler: jest.fn(),
+        removeJobScheduler: jest.fn(),
       })
       .overrideProvider(getQueueToken('cvm-management'))
       .useValue({
@@ -78,6 +83,7 @@ describe('Ident', () => {
         pause: jest.fn(),
         close: jest.fn(),
         upsertJobScheduler: jest.fn(),
+        removeJobScheduler: jest.fn(),
       })
       .overrideProvider(TileComputationConsumer)
       .useValue({})
