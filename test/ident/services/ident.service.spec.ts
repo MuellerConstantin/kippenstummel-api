@@ -11,6 +11,8 @@ const identities = new Map<string, Ident>();
 identities.set('4c12ee89-4672-44dd-a23c-29c1ace369b2', {
   identity: '4c12ee89-4672-44dd-a23c-29c1ace369b2',
   secret: '0xCAFEBABE',
+  trusted: false,
+  lastActiveAt: new Date(),
   createdAt: new Date(),
   updatedAt: new Date(),
   karma: {
