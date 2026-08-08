@@ -40,6 +40,9 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     needs: validate
+    # Jest has been known to hang on open handles here; fail fast instead of
+    # letting the job idle until GitHub's 360 minute default kicks in.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5

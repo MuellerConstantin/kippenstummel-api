@@ -127,6 +127,7 @@ describe('Captcha', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const res = await request(app.getHttpServer())
       .get('/api/v1/captcha')
+      .query({ scope: 'registration' })
       .expect(200);
 
     expect(res.body).toHaveProperty('id');
