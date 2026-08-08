@@ -1,0 +1,5 @@
+# Force LF in the working tree on every platform. Without this, a Windows
+# checkout (core.autocrlf=true) produces CRLF files that Prettier's default
+# `endOfLine: "lf"` reports as unformatted — making `npm run format` fail
+# locally while passing in CI.
+* text=auto eol=lf
