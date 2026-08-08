@@ -1,12 +1,18 @@
 name: Build and publish Docker image to GHCR
+
 on:
   push:
     tags:
-      - 'v*'
+      - "v*.*.*"
   workflow_dispatch:
+
 jobs:
+  validate:
+    uses: ./.github/workflows/validate.yml
+
   build-and-publish:
     name: Build and Push to GitHub Container Registry
+    needs: validate
     runs-on: ubuntu-latest
     permissions:
       contents: read

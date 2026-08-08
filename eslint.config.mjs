@@ -6,7 +6,16 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['eslint.config.mjs', 'migrations/**', 'migrate-mongo-config.js'],
+    ignores: [
+      'eslint.config.mjs',
+      'migrations/**',
+      'migrate-mongo-config.js',
+      'dist/**',
+      'coverage/**',
+      'logs/**',
+      'test-load/.venv/**',
+      'test-load/reports/**',
+    ],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

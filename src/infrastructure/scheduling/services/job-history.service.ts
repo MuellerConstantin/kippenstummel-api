@@ -116,9 +116,9 @@ export class JobHistoryService {
       }
 
       // Fetch active jobs in a single call
-      const activeJobs: Job[] = (await queue.getActive()) as Job[];
-      const waitingJobs: Job[] = (await queue.getWaiting()) as Job[];
-      const delayedJobs: Job[] = (await queue.getDelayed()) as Job[];
+      const activeJobs: Job[] = await queue.getActive();
+      const waitingJobs: Job[] = await queue.getWaiting();
+      const delayedJobs: Job[] = await queue.getDelayed();
 
       const aliveIds = new Set<string>();
 
