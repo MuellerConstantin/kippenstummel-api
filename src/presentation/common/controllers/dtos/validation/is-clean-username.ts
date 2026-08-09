@@ -45,15 +45,29 @@ function deduplicateChars(input: string): string {
   return input.replace(/(.)\1+/g, '$1');
 }
 
+/**
+ * Removes a run of one repeated character from either end, so that padding
+ * like `xXnaziXx` or `___fick___` no longer pushes a short term out of the
+ * anchored positions. A single leading or trailing character is left alone,
+ * which is what keeps ordinary words intact — Strasse and Fluss both end in a
+ * run, but stripping it never exposes a blocked term they do not already
+ * carry at their edge.
+ */
+function stripPaddingRuns(input: string): string {
+  return input.replace(/^(.)\1+/, '').replace(/(.)\1+$/, '');
+}
+
 function getCandidates(input: string): string[] {
-  return [
-    ...new Set([
-      input.toLowerCase(),
-      normalizeWord(input),
-      deduplicateChars(normalizeWord(input)),
-      deduplicateChars(normalizeWordPhonetic(input)),
-    ]),
+  const forms = [
+    input.toLowerCase(),
+    normalizeWord(input),
+    deduplicateChars(normalizeWord(input)),
+    deduplicateChars(normalizeWordPhonetic(input)),
   ];
+
+  return [...new Set([...forms, ...forms.map(stripPaddingRuns)])].filter(
+    Boolean,
+  );
 }
 
 const blockedTerms = file

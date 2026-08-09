@@ -105,6 +105,35 @@ describe('IsCleanUsername', () => {
     await expect(isClean(username)).resolves.toBe(false);
   });
 
+  // Padding a short term moves it out of the anchored positions, so the
+  // candidates include a variant with one repeated-character run removed from
+  // either end.
+  it.each([
+    ['xXnaziXx'],
+    ['zzznaziZZZ'],
+    ['---nazi---'],
+    ['__ass__'],
+    ['oooassooo'],
+    ['nnnhurennn'],
+  ])('Should reject the decorated username %s', async (username) => {
+    await expect(isClean(username)).resolves.toBe(false);
+  });
+
+  // German words that carry a repeated character at an edge. Stripping the run
+  // must not expose a blocked term that was not already there.
+  it.each([
+    ['aachen'],
+    ['fluss'],
+    ['kuss'],
+    ['schloss'],
+    ['schiff'],
+    ['kamm'],
+    ['anna'],
+    ['otto'],
+  ])('Should still accept %s', async (username) => {
+    await expect(isClean(username)).resolves.toBe(true);
+  });
+
   it('Should reject a blocked term', async () => {
     await expect(isClean(sample)).resolves.toBe(false);
   });
