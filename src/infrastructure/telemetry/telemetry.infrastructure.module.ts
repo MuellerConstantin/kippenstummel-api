@@ -1,4 +1,4 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, Inject, Module, OnApplicationShutdown } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 import { UsageLocation, UsageLocationSchema } from './repositories';
@@ -31,4 +31,17 @@ import Redis from 'ioredis';
   ],
   exports: [UsageLocationService],
 })
-export class TelemetryInfrastructureModule {}
+export class TelemetryInfrastructureModule implements OnApplicationShutdown {
+  constructor(
+    @Inject('TELEMETRY_REDIS_CLIENT')
+    private readonly redisClient: Redis,
+  ) {}
+
+  async onApplicationShutdown() {
+    try {
+      await this.redisClient.quit();
+    } catch {
+      this.redisClient.disconnect();
+    }
+  }
+}
