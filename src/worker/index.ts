@@ -1,11 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 import { WorkerModule } from './worker.module';
 
 async function bootstrap() {
   const logger = WinstonModule.createLogger({
-    level: process.env.LOG_LEVEL || 'debug',
+    level: process.env.LOG_LEVEL || 'info',
     transports: [
       new winston.transports.Console({
         format: winston.format.combine(
@@ -19,8 +20,14 @@ async function bootstrap() {
           ),
         ),
       }),
-      new winston.transports.File({
-        filename: `${process.env.LOG_DIR || './logs'}/kippenstummel-worker-${Date.now()}.log`,
+      new DailyRotateFile({
+        filename: `${process.env.LOG_DIR || './logs'}/kippenstummel-worker-%DATE%`,
+        extension: '.log',
+        auditFile: `${process.env.LOG_DIR || './logs'}/.kippenstummel-worker-audit.json`,
+        datePattern: 'YYYY-MM-DD',
+        maxSize: '20m',
+        maxFiles: '14d',
+        zippedArchive: true,
         format: winston.format.combine(
           winston.format.timestamp(),
           winston.format.json(),
