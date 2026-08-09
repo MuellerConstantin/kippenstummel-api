@@ -8,3 +8,4 @@ export { HealthController } from './health.controller';
 export { TrackUsageLocation } from './track-usage-location.decorator';
 export type { LocationExtractor } from './track-usage-location.decorator';
 export { TrackUsageLocationInterceptor } from './track-usage-location.interceptor';
+export { RequestLoggingMiddleware } from './request-logging.middleware';

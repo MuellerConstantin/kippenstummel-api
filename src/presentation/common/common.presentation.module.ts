@@ -1,4 +1,9 @@
-import { Module, ValidationPipe } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  ValidationPipe,
+} from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
@@ -11,6 +16,7 @@ import {
   JwtGuard,
   HealthController,
   TrackUsageLocationInterceptor,
+  RequestLoggingMiddleware,
 } from './controllers';
 import { InvalidPayloadError } from 'src/lib/models/error';
 import { ValidationError } from 'class-validator';
@@ -110,4 +116,8 @@ import { SecurityInfrastructureModule } from 'src/infrastructure/security/securi
   ],
   exports: [MulterModule],
 })
-export class CommonPresentationModule {}
+export class CommonPresentationModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestLoggingMiddleware).forRoutes('*');
+  }
+}

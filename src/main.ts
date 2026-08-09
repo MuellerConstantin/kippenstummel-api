@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
+import { requestIdFormat } from './infrastructure/logging';
 import { AppModule } from './app.module';
 import {
   ApiExceptionFilter,
@@ -17,6 +18,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: WinstonModule.createLogger({
       level: process.env.LOG_LEVEL || 'info',
+      format: requestIdFormat(),
       transports: [
         new winston.transports.Console({
           format: winston.format.combine(
