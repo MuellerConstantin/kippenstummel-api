@@ -165,7 +165,7 @@ paths:
         | `score` | `==`, `!=`, `=in=`, `=out=`, `<`, `<=`, `>`, `>=` |
         | `imported` | `==`, `!=` |
         | `createdAt`, `updatedAt`, `lastVotedAt` | `==`, `!=`, `<`, `<=`, `>`, `>=` |
-        | `bbox` | `==` (value: `minLng,minLat,maxLng,maxLat`) |
+        | `bbox` | `==` (value must be quoted: `bbox=='minLng,minLat,maxLng,maxLat'`) |
         | `registeredBy` | `==` |
       parameters:
         - name: bottomLeft
@@ -247,7 +247,7 @@ paths:
         | `score` | `==`, `!=`, `=in=`, `=out=`, `<`, `<=`, `>`, `>=` |
         | `imported` | `==`, `!=` |
         | `createdAt`, `updatedAt`, `lastVotedAt` | `==`, `!=`, `<`, `<=`, `>`, `>=` |
-        | `bbox` | `==` (value: `minLng,minLat,maxLng,maxLat`) |
+        | `bbox` | `==` (value must be quoted: `bbox=='minLng,minLat,maxLng,maxLat'`) |
         | `registeredBy` | `==` |
       parameters:
         - name: page
@@ -808,7 +808,7 @@ paths:
         | `score` | `==`, `!=`, `=in=`, `=out=`, `<`, `<=`, `>`, `>=` |
         | `imported` | `==`, `!=` |
         | `createdAt`, `updatedAt`, `lastVotedAt` | `==`, `!=`, `<`, `<=`, `>`, `>=` |
-        | `bbox` | `==` (value: `minLng,minLat,maxLng,maxLat`) |
+        | `bbox` | `==` (value must be quoted: `bbox=='minLng,minLat,maxLng,maxLat'`) |
         | `registeredBy` | `==` |
       parameters:
         - name: bottomLeft

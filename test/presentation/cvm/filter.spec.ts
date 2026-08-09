@@ -60,11 +60,14 @@ describe('RsqlToMongoCvmTransformer', () => {
       });
     });
 
+    // The rules themselves live in parseBoundingBox and are covered in
+    // test/lib/bbox.spec.ts. These cases only assert that the transformer
+    // relays a rejection as a filter error rather than passing it to Mongo.
     it.each([
-      ["bbox=='8.0,48.0,9.0'"],
-      ["bbox=='a,b,c,d'"],
-      ["bbox=='8.0,48.0,9.0,north'"],
-    ])('Should reject malformed coordinates in %s', (rsql) => {
+      ["bbox=='8.0,48.0,9.0'", 'a malformed box'],
+      ["bbox=='8.0,48.0,181.0,49.0'", 'an out of range box'],
+      ["bbox=='9.0,49.0,8.0,48.0'", 'a reversed box'],
+    ])('Should reject %s (%s)', (rsql) => {
       expect(() => transformer.transform(rsql)).toThrow(
         InvalidFilterQueryError,
       );

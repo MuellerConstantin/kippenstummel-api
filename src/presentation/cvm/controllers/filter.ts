@@ -3,6 +3,7 @@ import {
   InvalidFilterQueryError,
   UnsupportedFilterFieldError,
 } from 'src/lib/models';
+import { parseBoundingBox } from 'src/lib';
 
 export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
   constructor() {
@@ -94,9 +95,9 @@ export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
         );
       }
 
-      const [minLng, minLat, maxLng, maxLat] = value.split(',').map(Number);
+      const bbox = parseBoundingBox(value);
 
-      if ([minLng, minLat, maxLng, maxLat].some(isNaN)) {
+      if (!bbox) {
         throw new InvalidFilterQueryError(
           new Error('Invalid bbox coordinates'),
         );
@@ -106,8 +107,8 @@ export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
         position: {
           $geoWithin: {
             $box: [
-              [minLng, minLat],
-              [maxLng, maxLat],
+              [bbox.minLng, bbox.minLat],
+              [bbox.maxLng, bbox.maxLat],
             ],
           },
         },

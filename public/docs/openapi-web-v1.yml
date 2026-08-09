@@ -510,7 +510,7 @@ paths:
         | `score` | `==`, `!=`, `=in=`, `=out=`, `<`, `<=`, `>`, `>=` |
         | `imported` | `==`, `!=` |
         | `createdAt`, `updatedAt`, `lastVotedAt` | `==`, `!=`, `<`, `<=`, `>`, `>=` |
-        | `bbox` | `==` (value: `minLng,minLat,maxLng,maxLat`) |
+        | `bbox` | `==` (value must be quoted: `bbox=='minLng,minLat,maxLng,maxLat'`) |
       parameters:
         - name: bottomLeft
           in: query
@@ -586,7 +586,7 @@ paths:
         | `score` | `==`, `!=`, `=in=`, `=out=`, `<`, `<=`, `>`, `>=` |
         | `imported` | `==`, `!=` |
         | `createdAt`, `updatedAt`, `lastVotedAt` | `==`, `!=`, `<`, `<=`, `>`, `>=` |
-        | `bbox` | `==` (value: `minLng,minLat,maxLng,maxLat`) |
+        | `bbox` | `==` (value must be quoted: `bbox=='minLng,minLat,maxLng,maxLat'`) |
       security: []
       parameters:
         - name: page
