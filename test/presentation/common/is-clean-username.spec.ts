@@ -26,8 +26,8 @@ const blockedTerms = fs
   .map((term) => term.trim().toLowerCase())
   .filter((term) => /^[a-z]{5,}$/.test(term));
 
-// Fuzzy matching only kicks in from five characters, so a shorter sample would
-// exercise a different code path than intended.
+// Terms under five characters go down the anchored path instead of plain
+// substring matching, so a shorter sample would exercise different code.
 const sample = blockedTerms[0];
 
 // Digits that normalizeWord folds back into letters.
@@ -52,17 +52,58 @@ describe('IsCleanUsername', () => {
     },
   );
 
-  // Known false positives, pinned so they stay visible. The fuzzy matcher
-  // allows a Levenshtein distance of max(1, floor(length * 0.2)), which for a
-  // five letter term is 1 -- close enough that ordinary words collide with it.
-  // "kippenstummel" trips on the "pens" in kip-pens-tummel, so the project's
-  // own name is not a usable username.
-  it.each([['kippenstummel'], ['wanderer'], ['zeppelin']])(
-    'Should currently reject %s as a false positive',
+  // Ordinary German words that carry a blocked term in the middle. Matching
+  // short terms anywhere used to reject all of these.
+  it.each([
+    ['kippenstummel'],
+    ['wanderer'],
+    ['zeppelin'],
+    ['strasse'],
+    ['klasse'],
+    ['tasse'],
+    ['wasser'],
+    ['kasse'],
+    ['masse'],
+    ['passen'],
+    ['eichhoernchen'],
+    ['rohheit'],
+    ['sternenhimmel'],
+    ['wolkenkratzer'],
+  ])('Should accept the ordinary word %s', async (username) => {
+    await expect(isClean(username)).resolves.toBe(true);
+  });
+
+  // Anchoring is deliberately blunt: a short term at the start or end of a
+  // name still counts, so these stay blocked. Accepted as the price of
+  // catching "assmaster" and "dumbass" without a per-term allow list, and
+  // pinned here so the cost stays visible.
+  it.each([
+    ['fussball'],
+    ['handball'],
+    ['basketball'],
+    ['federball'],
+    ['gasse'],
+    ['gasthaus'],
+    ['siegen'],
+    ['heilbronn'],
+    ['heilig'],
+  ])(
+    'Should still reject %s, a known remaining false positive',
     async (username) => {
       await expect(isClean(username)).resolves.toBe(false);
     },
   );
+
+  it.each([
+    ['assmaster', 'a short term at the start'],
+    ['dumbass', 'a short term at the end'],
+    ['nazischwein', 'a short term compounded'],
+    ['fickfresse', 'a short term compounded'],
+    ['hurensohn', 'a short term compounded'],
+    ['arschloch', 'a longer term'],
+  ])('Should reject %s (%s)', async (username) => {
+    await expect(isClean(username)).resolves.toBe(false);
+  });
 
   it('Should reject a blocked term', async () => {
     await expect(isClean(sample)).resolves.toBe(false);

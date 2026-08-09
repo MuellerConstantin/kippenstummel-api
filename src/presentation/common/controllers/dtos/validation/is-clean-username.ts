@@ -8,7 +8,18 @@ const file = fs.readFileSync(
   'utf8',
 );
 
-const MIN_FUZZY_LENGTH = 5;
+/**
+ * Terms shorter than this are only matched at the start or end of a name.
+ */
+const MIN_SUBSTRING_LENGTH = 5;
+
+/**
+ * Terms shorter than this are never matched fuzzily. The budget below allows a
+ * Levenshtein distance of 1 for anything under ten characters, which on a five
+ * letter term is loose enough for ordinary words to collide with it.
+ */
+const MIN_FUZZY_LENGTH = 7;
+
 const FUZZY_PERCENT = 0.2;
 
 function normalizeWord(input: string): string {
@@ -52,6 +63,10 @@ const blockedTerms = file
   .map(normalizeWord);
 
 function matchesBlockedTerm(candidate: string, word: string): boolean {
+  if (word.length < MIN_SUBSTRING_LENGTH) {
+    return candidate.startsWith(word) || candidate.endsWith(word);
+  }
+
   if (candidate.includes(word)) {
     return true;
   }
