@@ -6,8 +6,10 @@ import { runWithRequestContext } from 'src/infrastructure/logging';
 /*
  * Health endpoints are polled continuously by the container orchestrator and
  * would drown out everything else, so they are logged at debug level only.
+ * Middleware runs before routing, so these are the full paths including the
+ * global prefix, not the ones declared on the controller.
  */
-const LOW_PRIORITY_PATHS = ['/live', '/ready'];
+const LOW_PRIORITY_PATHS = ['/api/live', '/api/ready'];
 
 @Injectable()
 export class RequestLoggingMiddleware implements NestMiddleware {
