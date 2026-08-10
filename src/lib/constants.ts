@@ -7,6 +7,26 @@ const MAX_TILE_ZOOM = 18;
 const DYNAMIC_CLUSTERING_ZOOM_LIMIT = 12;
 
 /**
+ * Largest map viewport, in kilometres per edge, a client is expected to display
+ * at MAX_TILE_ZOOM. The allowance doubles for every zoom level below that,
+ * mirroring how map scale halves per zoom step. Keeping the bbox close to what
+ * a real viewport shows is what makes bulk extraction of the dataset expensive:
+ * an overly generous allowance lets a single request cover ground no user ever
+ * sees at that zoom level.
+ */
+const MAX_VIEWPORT_EDGE_KM = 5;
+
+/**
+ * Length of one degree in kilometres, taken as the equatorial circumference
+ * divided by 360. The earth is not a sphere, so a degree of latitude actually
+ * ranges from about 110.6 km at the equator to 111.7 km at the poles. That
+ * spread is well below the safety margin baked into MAX_VIEWPORT_EDGE_KM, so a
+ * single average is good enough here. The length of a degree of longitude is
+ * derived from this via the cosine of the latitude.
+ */
+const KM_PER_DEGREE_LATITUDE = 111.32;
+
+/**
  * Rules for the registration cooldown period in minutes based on credibility.
  */
 const REGISTRATION_COOLDOWN_RULES: {
@@ -213,6 +233,8 @@ export {
   MIN_TILE_ZOOM,
   MAX_TILE_ZOOM,
   DYNAMIC_CLUSTERING_ZOOM_LIMIT,
+  MAX_VIEWPORT_EDGE_KM,
+  KM_PER_DEGREE_LATITUDE,
   SAME_CVM_RADIUS,
   NEARBY_CVM_RADIUS,
   CVM_VOTE_DELAY,

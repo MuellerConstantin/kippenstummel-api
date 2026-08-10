@@ -3,6 +3,7 @@ import {
   ValidatorConstraintInterface,
   ValidationArguments,
 } from 'class-validator';
+import { constants } from 'src/lib';
 
 @ValidatorConstraint({ name: 'IsBBoxValid', async: false })
 export class IsBBoxValidConstraint implements ValidatorConstraintInterface {
@@ -58,12 +59,29 @@ export class IsBBoxValidConstraint implements ValidatorConstraintInterface {
       west: bottomLeft[0],
     };
 
-    const width = bbox.east - bbox.west;
-    const height = bbox.north - bbox.south;
+    const maxEdgeKm =
+      constants.MAX_VIEWPORT_EDGE_KM *
+      Math.pow(2, constants.MAX_TILE_ZOOM - zoom);
 
-    const maxBBoxSize = 360 * Math.pow(0.7, zoom);
+    /*
+     * A degree of longitude covers less ground the further it sits from the
+     * equator, so the edge of the box closest to the equator is the one where
+     * it spans the most kilometres. Deriving the conversion from that edge
+     * keeps the widest part of the box within budget.
+     */
+    const referenceLatitude = Math.min(
+      Math.abs(bbox.north),
+      Math.abs(bbox.south),
+    );
+    const kmPerDegreeLongitude =
+      constants.KM_PER_DEGREE_LATITUDE *
+      Math.cos((referenceLatitude * Math.PI) / 180);
 
-    if (width > maxBBoxSize || height > maxBBoxSize) {
+    const widthKm = (bbox.east - bbox.west) * kmPerDegreeLongitude;
+    const heightKm =
+      (bbox.north - bbox.south) * constants.KM_PER_DEGREE_LATITUDE;
+
+    if (widthKm > maxEdgeKm || heightKm > maxEdgeKm) {
       return false;
     }
 

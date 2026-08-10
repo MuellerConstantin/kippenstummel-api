@@ -13,8 +13,10 @@ function check(bottomLeft: string, topRight: string, zoom: number): boolean {
 }
 
 describe('IsBBoxValidConstraint', () => {
-  // The limit is 360 * 0.7^zoom degrees per edge.
-  const maxEdge = (zoom: number) => 360 * Math.pow(0.7, zoom);
+  // The edge budget is a viewport allowance in kilometres: 5 km at zoom 18,
+  // doubling for every level zoomed out. Expressed in degrees of latitude for
+  // the cases below, which all use a north-south edge.
+  const maxEdge = (zoom: number) => (5 * Math.pow(2, 18 - zoom)) / 111.32;
 
   it('Should accept a box well inside the limit for its zoom level', () => {
     expect(check('48.0,8.0', '48.1,8.1', 12)).toBe(true);
@@ -37,13 +39,13 @@ describe('IsBBoxValidConstraint', () => {
     // two decimal strings, so the comparison sits inside floating point noise.
     const edge = maxEdge(10) * 0.999;
 
-    expect(check('48.0,8.0', `${48 + edge},${8 + edge}`, 10)).toBe(true);
+    expect(check('48.0,8.0', `${48 + edge},8.01`, 10)).toBe(true);
   });
 
   it('Should reject a box just over the limit', () => {
     const edge = maxEdge(10) * 1.001;
 
-    expect(check('48.0,8.0', `${48 + edge},${8 + edge}`, 10)).toBe(false);
+    expect(check('48.0,8.0', `${48 + edge},8.01`, 10)).toBe(false);
   });
 
   it('Should grow stricter as the zoom level increases', () => {
@@ -62,5 +64,21 @@ describe('IsBBoxValidConstraint', () => {
     // topRight south-west of bottomLeft yields negative width and height,
     // which are never greater than the limit. Documented, not endorsed.
     expect(check('49.0,9.0', '48.0,8.0', 18)).toBe(true);
+  });
+
+  it('Should cap the box at a viewport sized area on the highest zoom level', () => {
+    // ~4.5 km tall, within the 5 km budget at zoom 18.
+    expect(check('48.0,8.0', '48.04,8.04', 18)).toBe(true);
+
+    // ~56 km tall. Below the previous limit of 0.586 degrees, so this used to
+    // be accepted, and is what made bulk extraction of the dataset cheap.
+    expect(check('48.0,8.0', '48.5,8.5', 18)).toBe(false);
+  });
+
+  it('Should allow a wider span east to west than north to south', () => {
+    // At 60 degrees north a degree of longitude covers roughly half of what a
+    // degree of latitude covers, so the same budget permits twice the span.
+    expect(check('60.0,10.0', '60.02,10.07', 18)).toBe(true);
+    expect(check('60.0,10.0', '60.07,10.02', 18)).toBe(false);
   });
 });
