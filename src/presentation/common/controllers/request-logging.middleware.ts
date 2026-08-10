@@ -34,6 +34,8 @@ export class RequestLoggingMiddleware implements NestMiddleware {
           path: originalUrl,
           statusCode,
           durationMs,
+          ip: request.ip,
+          userAgent: request.headers['user-agent'],
         };
 
         if (LOW_PRIORITY_PATHS.includes(request.path)) {
