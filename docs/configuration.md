@@ -36,9 +36,10 @@ The following configuration options are available:
 
 The following configuration options are available:
 
-| Environment Variable | Description                                          | Required |
-| -------------------- | ---------------------------------------------------- | -------- |
-| PORT                 | The port the service is running on. Default is 8080. | true     |
+| Environment Variable | Description                                                                                                                                                                                                                                                                                                                                                                                                        | Required |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| PORT                 | The port the service is running on. Default is 8080.                                                                                                                                                                                                                                                                                                                                                               | true     |
+| TRUST_PROXY          | Comma separated list of proxy addresses to trust when deriving the client address from the X-Forwarded-For header. Accepts subnets such as `172.18.0.0/16` and the shorthands `loopback`, `linklocal` and `uniquelocal`. For a service behind a proxy on a docker network, `loopback, linklocal, uniquelocal` is the usual value. Unset means the header is ignored and the address of the immediate peer is used. | false    |
 
 ### Security Configuration
 

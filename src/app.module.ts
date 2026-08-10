@@ -30,6 +30,7 @@ import { InjectQueue } from '@nestjs/bullmq';
           .valid('development', 'production', 'test', 'staging')
           .required(),
         PORT: Joi.number().default(8080),
+        TRUST_PROXY: Joi.string().optional(),
         MONGO_URI: Joi.string().uri().required(),
         REDIS_URI: Joi.string().uri().required(),
         JWT_SECRET: Joi.string().required(),
