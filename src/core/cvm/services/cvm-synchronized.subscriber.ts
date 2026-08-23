@@ -5,6 +5,7 @@ import {
 } from '@ocoda/event-sourcing';
 import { CvmSynchronizedEvent } from '../events';
 import { CvmReadModelSynchronizer } from '../repositories';
+import type { CvmImportSource } from '../models';
 
 @EventSubscriber(CvmSynchronizedEvent)
 export class CvmSynchronizedEventSubscriber implements IEventSubscriber {
@@ -15,6 +16,7 @@ export class CvmSynchronizedEventSubscriber implements IEventSubscriber {
   async handle(envelope: EventEnvelope<CvmSynchronizedEvent>) {
     const aggregateId = envelope.payload.cvmId as string;
     const forcedScore = envelope.payload.forcedScore as number;
+    const source = envelope.payload.source as CvmImportSource;
     const forcedPosition = envelope.payload.position as {
       longitude: number;
       latitude: number;
@@ -24,6 +26,7 @@ export class CvmSynchronizedEventSubscriber implements IEventSubscriber {
       aggregateId,
       forcedPosition.longitude,
       forcedPosition.latitude,
+      source,
       forcedScore,
     );
 

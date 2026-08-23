@@ -112,6 +112,7 @@ export class GetAllWithinQueryHandler
           latitude: item.position.coordinates[1],
           score: item.cvm.score,
           imported: item.cvm.imported,
+          source: item.cvm.source,
           recentlyReported: reportCounts[
             (item.cvm as CvmDocument)._id.toString()
           ] || {
@@ -227,6 +228,7 @@ export class GetAllWithinQueryHandler
           latitude: item.geometry.coordinates[1],
           score: item.properties.cvm.score,
           imported: item.properties.cvm.imported,
+          source: item.properties.cvm.source,
           recentlyReported: reportCounts[
             (item.properties.cvm as CvmDocument)._id.toString()
           ] || {
@@ -321,6 +323,7 @@ export class GetAllWithinQueryHandler
           latitude: item.geometry.coordinates[1],
           score: item.properties.cvm.score,
           imported: item.properties.cvm.imported,
+          source: item.properties.cvm.source,
           recentlyReported: reportCounts[
             (item.properties.cvm as CvmDocument)._id.toString()
           ] || {

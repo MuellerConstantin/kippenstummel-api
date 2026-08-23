@@ -69,6 +69,7 @@ export class GetAllQueryHandler
           latitude: cvm.position.coordinates[1],
           score: cvm.score,
           imported: cvm.imported,
+          source: cvm.source,
           recentlyReported: reportCounts[cvm._id.toString()] || {
             missing: 0,
             spam: 0,
@@ -106,6 +107,7 @@ export class GetAllQueryHandler
           latitude: cvm.position.coordinates[1],
           score: cvm.score,
           imported: cvm.imported,
+          source: cvm.source,
           recentlyReported: reportCounts[cvm._id.toString()] || {
             missing: 0,
             spam: 0,

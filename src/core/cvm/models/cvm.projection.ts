@@ -1,9 +1,12 @@
+import type { CvmSource } from './cvm-source.model';
+
 export interface CvmProjection {
   id: string;
   longitude: number;
   latitude: number;
   score: number;
   imported: boolean;
+  source: CvmSource;
   alreadyVoted?: 'upvote' | 'downvote';
   recentlyReported: {
     missing: number;

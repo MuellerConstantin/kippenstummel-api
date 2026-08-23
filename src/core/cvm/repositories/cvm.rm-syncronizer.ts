@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cvm, Repositioning, Vote, Report } from './schemas';
 import { Model } from 'mongoose';
 import { InconsistentReadModelError } from 'src/lib/models';
+import type { CvmImportSource, CvmSource } from '../models/cvm-source.model';
 
 @Injectable()
 export class CvmReadModelSynchronizer {
@@ -82,6 +83,7 @@ export class CvmReadModelSynchronizer {
     cvmId: string,
     longitude: number,
     latitude: number,
+    source: CvmImportSource,
     initialScore?: number,
   ): Promise<void> {
     await this.cvmModel.create({
@@ -92,6 +94,7 @@ export class CvmReadModelSynchronizer {
       },
       score: initialScore ?? 0,
       imported: true,
+      source,
       markedForDeletion: false,
       markedForDeletionAt: null,
     });
@@ -111,6 +114,7 @@ export class CvmReadModelSynchronizer {
       },
       score: 0,
       imported: false,
+      source: 'community',
       markedForDeletion: false,
       markedForDeletionAt: null,
       registeredBy: creatorIdentity,
@@ -161,6 +165,7 @@ export class CvmReadModelSynchronizer {
     cvmId: string,
     longitude: number,
     latitude: number,
+    source: CvmSource,
   ): Promise<void> {
     await this.cvmModel.create({
       aggregateId: cvmId,
@@ -170,6 +175,7 @@ export class CvmReadModelSynchronizer {
       },
       score: 0,
       imported: false,
+      source,
       markedForDeletion: false,
       markedForDeletionAt: null,
       registeredBy: null,
@@ -180,8 +186,10 @@ export class CvmReadModelSynchronizer {
     cvmId: string,
     longitude: number,
     latitude: number,
+    source: CvmImportSource,
     forcedScore?: number,
   ): Promise<void> {
+    // A synchronization replaces the data and with it the recorded origin
     const result = await this.cvmModel.findOneAndUpdate(
       { aggregateId: cvmId },
       {
@@ -191,6 +199,7 @@ export class CvmReadModelSynchronizer {
             type: 'Point',
             coordinates: [longitude, latitude],
           },
+          source,
         },
       },
       { new: true },

@@ -5,6 +5,7 @@ import { Job } from 'bullmq';
 import { CommandBus } from '@ocoda/event-sourcing';
 import { JobHistoryService } from 'src/infrastructure/scheduling/services';
 import { ImportCvmsCommand } from 'src/core/cvm/commands';
+import type { CvmImportSource } from 'src/core/cvm/models';
 
 @Processor('cvm-import')
 export class CvmImportConsumer extends WorkerHost {
@@ -26,6 +27,7 @@ export class CvmImportConsumer extends WorkerHost {
               filename: string;
               mimetype: string;
               encoding: string;
+              source: CvmImportSource;
             },
             void,
             string
@@ -38,7 +40,10 @@ export class CvmImportConsumer extends WorkerHost {
       case 'manual': {
         return this.importManual(
           job as Job<
-            { cvms: { longitude: number; latitude: number; score: number }[] },
+            {
+              cvms: { longitude: number; latitude: number; score: number }[];
+              source: CvmImportSource;
+            },
             void,
             string
           >,
@@ -54,6 +59,7 @@ export class CvmImportConsumer extends WorkerHost {
         filename: string;
         mimetype: string;
         encoding: string;
+        source: CvmImportSource;
       },
       void,
       string
@@ -73,7 +79,7 @@ export class CvmImportConsumer extends WorkerHost {
 
     await fs.promises.unlink(job.data.path);
 
-    const command = new ImportCvmsCommand(content);
+    const command = new ImportCvmsCommand(content, job.data.source);
     await this.commandBus.execute<ImportCvmsCommand>(command);
 
     await job.log(`Imported ${content.length} CVMs from file`);
@@ -189,7 +195,8 @@ export class CvmImportConsumer extends WorkerHost {
         return cvms;
       });
 
-    const command = new ImportCvmsCommand(cvms);
+    // Fetched from Overpass directly, so the origin is structurally fixed
+    const command = new ImportCvmsCommand(cvms, 'osm');
     await this.commandBus.execute<ImportCvmsCommand>(command);
 
     await job.log(`Imported ${cvms.length} CVMs from OSM`);
@@ -197,7 +204,10 @@ export class CvmImportConsumer extends WorkerHost {
 
   async importManual(
     job: Job<
-      { cvms: { longitude: number; latitude: number; score: number }[] },
+      {
+        cvms: { longitude: number; latitude: number; score: number }[];
+        source: CvmImportSource;
+      },
       void,
       string
     >,
@@ -207,7 +217,7 @@ export class CvmImportConsumer extends WorkerHost {
       'CvmImportConsumer',
     );
 
-    const command = new ImportCvmsCommand(job.data.cvms);
+    const command = new ImportCvmsCommand(job.data.cvms, job.data.source);
     await this.commandBus.execute<ImportCvmsCommand>(command);
 
     await job.log(`Imported ${job.data.cvms.length} CVMs from manual records`);

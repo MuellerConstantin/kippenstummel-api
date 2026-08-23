@@ -8,6 +8,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CvmAggregate, CvmId } from '../models';
+import type { CvmImportSource } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
 import { constants } from 'src/lib';
@@ -19,6 +20,11 @@ export class ImportCvmsCommand implements ICommand {
       latitude: number;
       score?: number;
     }[],
+    /**
+     * The declared origin of the imported data, recorded on both newly imported and
+     * synchronized CVMs.
+     */
+    public readonly source: CvmImportSource,
   ) {}
 }
 
@@ -50,6 +56,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
         const aggregate = CvmAggregate.import(
           cvm.longitude,
           cvm.latitude,
+          command.source,
           cvm.score,
         );
         await this.cvmEventStoreRepository.save(aggregate);
@@ -61,6 +68,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
           longitude: cvm.longitude,
           latitude: cvm.latitude,
           score: cvm.score,
+          source: command.source,
         });
         await this.cvmEventStoreRepository.save(aggregate!);
       }

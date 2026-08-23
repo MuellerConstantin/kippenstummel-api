@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import { type CvmSource, CVM_SOURCES } from '../../models/cvm-source.model';
 
 export type CvmDocument = HydratedDocument<Cvm>;
 
@@ -30,6 +31,12 @@ export class Cvm {
 
   @Prop()
   imported!: boolean;
+
+  /**
+   * The origin of the data this CVM currently holds.
+   */
+  @Prop({ type: String, enum: CVM_SOURCES, required: true })
+  source!: CvmSource;
 
   @Prop()
   markedForDeletion!: boolean;

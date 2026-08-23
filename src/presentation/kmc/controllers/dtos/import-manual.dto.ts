@@ -4,6 +4,7 @@ import {
   IsLongitude,
   IsLatitude,
   IsDefined,
+  IsIn,
   Min,
   Max,
   ValidateNested,
@@ -11,6 +12,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { constants } from 'src/lib';
+import { type CvmImportSource, CVM_IMPORT_SOURCES } from 'src/core/cvm/models';
 
 export class ImportManualCvmDto {
   @IsDefined()
@@ -36,4 +38,12 @@ export class ImportManualDto {
   @ValidateNested({ each: true })
   @Type(() => ImportManualCvmDto)
   public cvms!: ImportManualCvmDto[];
+
+  /**
+   * Where the submitted records originate from. Asked for explicitly because the
+   * endpoint cannot tell an own survey from an OpenStreetMap extract.
+   */
+  @IsDefined()
+  @IsIn(CVM_IMPORT_SOURCES)
+  public source!: CvmImportSource;
 }

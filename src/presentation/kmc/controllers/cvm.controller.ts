@@ -25,6 +25,7 @@ import {
   GetAllCvmWithinQueryDto,
   CvmClusterDto,
   CvmDto,
+  ImportFileDto,
   ImportOsmDto,
   ImportManualDto,
 } from './dtos';
@@ -111,6 +112,7 @@ export class CvmController {
   async import(@Body() body: ImportManualDto): Promise<void> {
     await this.cvmImportQueue.add('manual', {
       cvms: body.cvms,
+      source: body.source,
     });
   }
 
@@ -128,17 +130,24 @@ export class CvmController {
         .build({ exceptionFactory: () => new InvalidImportFileError() }),
     )
     file: Express.Multer.File,
+    @Body() body: ImportFileDto,
   ) {
     await this.cvmImportQueue.add('file', {
       path: file.path,
       filename: file.filename,
       mimetype: file.mimetype,
       encoding: file.encoding,
+      source: body.source,
     });
   }
 
   @Post('/import/osm')
   async importOsm(@Body() body: ImportOsmDto): Promise<void> {
+    /*
+     * The OSM import fetches from Overpass itself, so unlike the manual and file
+     * imports its origin is structurally fixed and not up to the caller.
+     */
+
     await this.cvmImportQueue.add('osm', {
       region: body.region,
     });

@@ -48,6 +48,7 @@ export class GetByIdQueryHandler
       latitude: result.position.coordinates[1],
       score: result.score,
       imported: result.imported,
+      source: result.source,
       recentlyReported: reportCounts[result._id.toString()] || {
         missing: 0,
         spam: 0,

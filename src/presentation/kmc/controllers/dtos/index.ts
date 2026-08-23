@@ -1,6 +1,7 @@
 export { CvmPageDto } from './cvm-page.dto';
 export { GetAllCvmQueryDto } from './get-all-cvm-query.dto';
 export { ImportManualDto } from './import-manual.dto';
+export { ImportFileDto } from './import-file.dto';
 export { GetAllCvmWithinQueryDto } from './get-all-cvm-within-query.dto';
 export { CvmClusterDto } from './cvm-cluster.dto';
 export { CvmDto } from './cvm.dto';
