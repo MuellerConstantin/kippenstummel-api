@@ -5,6 +5,22 @@ import { Cvm, CvmDocument } from '../repositories';
 import { InjectModel } from '@nestjs/mongoose';
 import { IQuery, IQueryHandler, QueryHandler } from '@ocoda/event-sourcing';
 
+/**
+ * Number of grid cells a map tile is divided into per axis, as a power of two.
+ *
+ * A tile spans 360 / 2^zoom degrees and is rendered 512 px wide, so a cell of
+ * 360 / 2^(zoom + n) degrees is always 512 / 2^n pixels on screen — the zoom
+ * cancels out. The exponent therefore picks a fixed screen resolution for the
+ * rollup, not a fixed ground resolution.
+ *
+ * At n = 3 a cell was 64 px, which put barely five cells across a dashboard
+ * panel: the viewport shrinks at exactly the rate the grid does, so every zoom
+ * level returned the same handful of blobs. n = 5 puts a cell at 16 px, fine
+ * enough that zooming in resolves structure, while keeping the response
+ * bounded — a 320 px wide panel yields at most ~20 x 20 cells.
+ */
+const GRID_CELLS_PER_TILE_EXPONENT = 5;
+
 export class GetCvmDensityQuery implements IQuery {
   constructor(
     public readonly bottomLeft: { longitude: number; latitude: number },
@@ -23,7 +39,7 @@ export class GetCvmDensityQueryHandler
   ) {}
 
   private zoomToGridSize(zoom: number): number {
-    return 360 / Math.pow(2, zoom + 3);
+    return 360 / Math.pow(2, zoom + GRID_CELLS_PER_TILE_EXPONENT);
   }
 
   public async execute(
