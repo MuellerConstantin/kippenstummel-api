@@ -219,6 +219,7 @@ paths:
                     inactive: 0
                     inaccessible: 0
                   imported: true
+                  source: osm
                   createdAt: 2025-09-16T15:03:20.567Z
                   updatedAt: 2025-09-16T15:03:20.567Z
         '500':
@@ -286,6 +287,7 @@ paths:
                       inactive: 0
                       inaccessible: 0
                     imported: false
+                    source: community
                     createdAt: 2025-09-16T15:03:20.567Z
                     updatedAt: 2025-09-16T15:03:20.567Z
                 info:
@@ -332,6 +334,7 @@ paths:
                   inactive: 0
                   inaccessible: 0
                 imported: false
+                source: community
                 createdAt: 2025-09-16T15:03:20.567Z
                 updatedAt: 2025-09-16T15:03:20.567Z
         '500':
@@ -389,6 +392,7 @@ paths:
                 - longitude: 8.6410001
                   latitude: 48.8075001
                   score: -2
+              source: operator
       responses:
         '204':
           description: Successfully queued manual import.
@@ -418,8 +422,20 @@ paths:
                 file:
                   type: string
                   format: binary
+                source:
+                  type: string
+                  enum: [osm, operator]
+                  description: >-
+                    Where the uploaded records originate from. This is the origin
+                    of the data itself, not the channel it arrived through, and is
+                    asked for explicitly because the endpoint cannot tell an own
+                    survey from an OpenStreetMap extract.
+              required:
+                - file
+                - source
             example:
               file: (binary json file)
+              source: operator
       responses:
         '204':
           description: Successfully queued file import.
@@ -1101,6 +1117,13 @@ components:
             - inaccessible
         imported:
           type: boolean
+        source:
+          type: string
+          enum: [osm, operator, community]
+          description: >-
+            Where the data this CVM currently holds originates from. Imports and
+            synchronizations overwrite it, so this describes where the record
+            stands today rather than everything that ever touched it.
         createdAt:
           type: string
           format: date-time
@@ -1113,6 +1136,7 @@ components:
         - longitude
         - score
         - imported
+        - source
         - recentlyReported
         - createdAt
         - updatedAt
@@ -1184,8 +1208,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ImportManualCvmDto'
+        source:
+          type: string
+          enum: [osm, operator]
+          description: >-
+            Where the submitted records originate from. This is the origin of the
+            data itself, not the channel it arrived through, and is asked for
+            explicitly because the endpoint cannot tell an own survey from an
+            OpenStreetMap extract.
       required:
         - cvms
+        - source
     ImportOsmDto:
       type: object
       properties:
