@@ -61,4 +61,4 @@ export class Cvm {
 export const CvmSchema = SchemaFactory.createForClass(Cvm);
 
 CvmSchema.index({ position: '2dsphere' });
-CvmSchema.index({ aggregate_id: 1 });
+CvmSchema.index({ aggregateId: 1 });
