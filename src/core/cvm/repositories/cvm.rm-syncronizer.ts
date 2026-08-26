@@ -25,6 +25,11 @@ export class CvmReadModelSynchronizer {
         { aggregateId: cvmId },
         {
           $inc: { score: -scoreChange },
+          /*
+           * Raised rather than overwritten, so a late subscriber cannot pull
+           * the timestamp backwards.
+           */
+          $max: { lastVotedAt: new Date() },
         },
         { new: true },
       )
@@ -220,6 +225,11 @@ export class CvmReadModelSynchronizer {
         { aggregateId: cvmId },
         {
           $inc: { score: scoreChange },
+          /*
+           * Raised rather than overwritten, so a late subscriber cannot pull
+           * the timestamp backwards.
+           */
+          $max: { lastVotedAt: new Date() },
         },
         { new: true },
       )

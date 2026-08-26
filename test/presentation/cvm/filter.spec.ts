@@ -74,33 +74,25 @@ describe('RsqlToMongoCvmTransformer', () => {
     });
   });
 
-  it('Should switch to an aggregation for the computed lastVotedAt field', () => {
-    const result = transformer.transform('lastVotedAt>=2026-01-01');
-
-    expect(result.useAggregate).toBe(true);
-
-    // Narrowed by the assertion above; the pipeline has to look the votes up,
-    // compute the field and only then filter on it.
-    if (result.useAggregate) {
-      expect(result.pipeline).toEqual([
-        {
-          $lookup: {
-            from: 'votes',
-            localField: '_id',
-            foreignField: 'cvm',
-            as: '_votes',
-          },
-        },
-        { $addFields: { lastVotedAt: { $max: '$_votes.createdAt' } } },
-        { $project: { _votes: 0 } },
-        { $match: { lastVotedAt: { $gte: new Date('2026-01-01') } } },
-      ]);
-    }
+  // The field is denormalized onto the read model by the synchronizer, so it
+  // filters like any other date column. It used to be computed from the votes
+  // collection, which forced an aggregation with a lookup per CVM.
+  it('Should match the denormalized lastVotedAt field directly', () => {
+    expect(transformer.transform('lastVotedAt>=2026-01-01')).toEqual({
+      useAggregate: false,
+      filter: { lastVotedAt: { $gte: new Date('2026-01-01') } },
+    });
   });
 
-  it('Should combine an allowed field with a computed one', () => {
-    const result = transformer.transform('score>=5;lastVotedAt>=2026-01-01');
-
-    expect(result.useAggregate).toBe(true);
+  it('Should combine lastVotedAt with another allowed field', () => {
+    expect(transformer.transform('score>=5;lastVotedAt>=2026-01-01')).toEqual({
+      useAggregate: false,
+      filter: {
+        $and: [
+          { score: { $gte: 5 } },
+          { lastVotedAt: { $gte: new Date('2026-01-01') } },
+        ],
+      },
+    });
   });
 });

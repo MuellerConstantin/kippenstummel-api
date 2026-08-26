@@ -6,20 +6,6 @@ import {
 import { parseBoundingBox } from 'src/lib';
 
 export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
-  constructor() {
-    super([
-      {
-        collection: 'votes',
-        localField: '_id',
-        foreignField: 'cvm',
-        as: '_votes',
-        computedFields: {
-          lastVotedAt: { $max: '$_votes.createdAt' },
-        },
-      },
-    ]);
-  }
-
   protected isSupported(field: string, operator: string) {
     if (
       field === 'id' &&
@@ -123,15 +109,11 @@ export class RsqlToMongoCvmTransformer extends RsqlToMongoTransformer {
       value = Number(value);
     }
 
-    if (selector === 'lastVotedAt') {
-      if (Array.isArray(value)) {
-        value = value.map((v) => new Date(v) as unknown as string);
-      } else if (typeof value === 'string') {
-        value = new Date(value) as unknown as string;
-      }
-    }
-
-    if (selector === 'createdAt' || selector === 'updatedAt') {
+    if (
+      selector === 'createdAt' ||
+      selector === 'updatedAt' ||
+      selector === 'lastVotedAt'
+    ) {
       if (Array.isArray(value)) {
         value = value.map((v) => new Date(v) as unknown as string);
       } else if (typeof value === 'string') {

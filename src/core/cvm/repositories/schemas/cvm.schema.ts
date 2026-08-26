@@ -29,6 +29,13 @@ export class Cvm {
   @Prop()
   score!: number;
 
+  /**
+   * When this CVM was last voted on. Denormalized from the `votes` collection
+   * by the read model synchronizer.
+   */
+  @Prop()
+  lastVotedAt?: Date;
+
   @Prop()
   imported!: boolean;
 
