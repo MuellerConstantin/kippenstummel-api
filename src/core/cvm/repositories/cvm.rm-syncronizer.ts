@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cvm, Repositioning, Vote, Report } from './schemas';
 import { Model } from 'mongoose';
 import { InconsistentReadModelError } from 'src/lib/models';
-import type { CvmImportSource, CvmSource } from '../models/cvm-source.model';
+import type { CvmImportSource } from '../models/cvm-source.model';
 
 @Injectable()
 export class CvmReadModelSynchronizer {
@@ -19,6 +19,7 @@ export class CvmReadModelSynchronizer {
     cvmId: string,
     voterIdentity: string | null,
     scoreChange: number,
+    occurredOn: Date = new Date(),
   ): Promise<void> {
     const result = await this.cvmModel
       .findOneAndUpdate(
@@ -29,7 +30,7 @@ export class CvmReadModelSynchronizer {
            * Raised rather than overwritten, so a late subscriber cannot pull
            * the timestamp backwards.
            */
-          $max: { lastVotedAt: new Date() },
+          $max: { lastVotedAt: occurredOn },
         },
         { new: true },
       )
@@ -39,12 +40,19 @@ export class CvmReadModelSynchronizer {
       throw new InconsistentReadModelError();
     }
 
-    await this.voteModel.create({
-      identity: voterIdentity,
-      cvm: result._id,
-      impact: scoreChange,
-      type: 'downvote',
-    });
+    await this.voteModel.create(
+      [
+        {
+          identity: voterIdentity,
+          cvm: result._id,
+          impact: scoreChange,
+          type: 'downvote',
+          createdAt: occurredOn,
+          updatedAt: occurredOn,
+        },
+      ],
+      { timestamps: false },
+    );
   }
 
   async applyReposition(
@@ -52,6 +60,7 @@ export class CvmReadModelSynchronizer {
     editorIdentity: string | null,
     longitude: number,
     latitude: number,
+    occurredOn: Date = new Date(),
   ): Promise<void> {
     const result = await this.cvmModel
       .findOneAndUpdate(
@@ -74,14 +83,21 @@ export class CvmReadModelSynchronizer {
       throw new InconsistentReadModelError();
     }
 
-    await this.repositioningModel.create({
-      identity: editorIdentity,
-      cvm: result._id,
-      position: {
-        type: 'Point',
-        coordinates: [longitude, latitude],
-      },
-    });
+    await this.repositioningModel.create(
+      [
+        {
+          identity: editorIdentity,
+          cvm: result._id,
+          position: {
+            type: 'Point',
+            coordinates: [longitude, latitude],
+          },
+          createdAt: occurredOn,
+          updatedAt: occurredOn,
+        },
+      ],
+      { timestamps: false },
+    );
   }
 
   async applyImport(
@@ -90,19 +106,27 @@ export class CvmReadModelSynchronizer {
     latitude: number,
     source: CvmImportSource,
     initialScore?: number,
+    occurredOn: Date = new Date(),
   ): Promise<void> {
-    await this.cvmModel.create({
-      aggregateId: cvmId,
-      position: {
-        type: 'Point',
-        coordinates: [longitude, latitude],
-      },
-      score: initialScore ?? 0,
-      imported: true,
-      source,
-      markedForDeletion: false,
-      markedForDeletionAt: null,
-    });
+    await this.cvmModel.create(
+      [
+        {
+          aggregateId: cvmId,
+          position: {
+            type: 'Point',
+            coordinates: [longitude, latitude],
+          },
+          score: initialScore ?? 0,
+          imported: true,
+          source,
+          markedForDeletion: false,
+          markedForDeletionAt: null,
+          createdAt: occurredOn,
+          updatedAt: occurredOn,
+        },
+      ],
+      { timestamps: false },
+    );
   }
 
   async applyRegister(
@@ -110,20 +134,28 @@ export class CvmReadModelSynchronizer {
     longitude: number,
     latitude: number,
     creatorIdentity: string | null,
+    occurredOn: Date = new Date(),
   ): Promise<void> {
-    await this.cvmModel.create({
-      aggregateId: cvmId,
-      position: {
-        type: 'Point',
-        coordinates: [longitude, latitude],
-      },
-      score: 0,
-      imported: false,
-      source: 'community',
-      markedForDeletion: false,
-      markedForDeletionAt: null,
-      registeredBy: creatorIdentity,
-    });
+    await this.cvmModel.create(
+      [
+        {
+          aggregateId: cvmId,
+          position: {
+            type: 'Point',
+            coordinates: [longitude, latitude],
+          },
+          score: 0,
+          imported: false,
+          source: 'community',
+          markedForDeletion: false,
+          markedForDeletionAt: null,
+          registeredBy: creatorIdentity,
+          createdAt: occurredOn,
+          updatedAt: occurredOn,
+        },
+      ],
+      { timestamps: false },
+    );
   }
 
   async applyRemove(cvmId: string): Promise<void> {
@@ -132,6 +164,15 @@ export class CvmReadModelSynchronizer {
         aggregateId: cvmId,
       })
     )?._id;
+
+    /*
+     * Without an entry there is nothing to detach, and the filters below would
+     * be cast to `{}` — Mongoose drops undefined values from a filter, which
+     * would turn each of them into a deletion of the entire collection.
+     */
+    if (!documentId) {
+      return;
+    }
 
     await this.voteModel.deleteMany({ cvm: documentId });
 
@@ -148,6 +189,7 @@ export class CvmReadModelSynchronizer {
     cvmId: string,
     reporterIdentity: string | null,
     type: string,
+    occurredOn: Date = new Date(),
   ): Promise<void> {
     const result = await this.cvmModel
       .findOne({
@@ -159,32 +201,18 @@ export class CvmReadModelSynchronizer {
       throw new InconsistentReadModelError();
     }
 
-    await this.reportModel.create({
-      identity: reporterIdentity,
-      cvm: result._id,
-      type,
-    });
-  }
-
-  async applyRestore(
-    cvmId: string,
-    longitude: number,
-    latitude: number,
-    source: CvmSource,
-  ): Promise<void> {
-    await this.cvmModel.create({
-      aggregateId: cvmId,
-      position: {
-        type: 'Point',
-        coordinates: [longitude, latitude],
-      },
-      score: 0,
-      imported: false,
-      source,
-      markedForDeletion: false,
-      markedForDeletionAt: null,
-      registeredBy: null,
-    });
+    await this.reportModel.create(
+      [
+        {
+          identity: reporterIdentity,
+          cvm: result._id,
+          type,
+          createdAt: occurredOn,
+          updatedAt: occurredOn,
+        },
+      ],
+      { timestamps: false },
+    );
   }
 
   async applySync(
@@ -219,6 +247,7 @@ export class CvmReadModelSynchronizer {
     cvmId: string,
     voterIdentity: string | null,
     scoreChange: number,
+    occurredOn: Date = new Date(),
   ): Promise<void> {
     const result = await this.cvmModel
       .findOneAndUpdate(
@@ -229,7 +258,7 @@ export class CvmReadModelSynchronizer {
            * Raised rather than overwritten, so a late subscriber cannot pull
            * the timestamp backwards.
            */
-          $max: { lastVotedAt: new Date() },
+          $max: { lastVotedAt: occurredOn },
         },
         { new: true },
       )
@@ -239,12 +268,19 @@ export class CvmReadModelSynchronizer {
       throw new InconsistentReadModelError();
     }
 
-    await this.voteModel.create({
-      identity: voterIdentity,
-      cvm: result._id,
-      impact: scoreChange,
-      type: 'upvote',
-    });
+    await this.voteModel.create(
+      [
+        {
+          identity: voterIdentity,
+          cvm: result._id,
+          impact: scoreChange,
+          type: 'upvote',
+          createdAt: occurredOn,
+          updatedAt: occurredOn,
+        },
+      ],
+      { timestamps: false },
+    );
   }
 
   async applyCreatorRemove(identity: string): Promise<void> {

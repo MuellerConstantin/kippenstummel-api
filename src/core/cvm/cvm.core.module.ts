@@ -14,6 +14,7 @@ import {
   Report,
   ReportSchema,
   CvmReadModelSynchronizer,
+  CvmReadModelReplayer,
 } from './repositories';
 import {
   RegisterCvmCommandHandler,
@@ -109,6 +110,7 @@ import { MultithreadingInfrastructureModule } from 'src/infrastructure/multithre
     CvmDeletionMarkedEventSubscriber,
     CvmDeletionUnmarkedEventSubscriber,
     CvmReadModelSynchronizer,
+    CvmReadModelReplayer,
   ],
   exports: [CvmTileService],
 })
