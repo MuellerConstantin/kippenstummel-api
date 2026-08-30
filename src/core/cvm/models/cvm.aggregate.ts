@@ -18,7 +18,7 @@ import {
   CvmDeletionUnmarkedEvent,
 } from '../events';
 import { constants } from 'src/lib';
-import type { CvmImportSource, CvmSource } from './cvm-source.model';
+import type { CvmImportSource } from './cvm-source.model';
 
 export class CvmId extends UUID {}
 
@@ -36,7 +36,6 @@ export class CvmAggregate extends AggregateRoot {
   private _latitude!: number;
   private _score!: number;
   private _imported!: boolean;
-  private _source!: CvmSource;
   private _recentReports: ReportEntry[] = [];
   private _markedForDeletion = false;
   private _markedForDeletionAt?: Date;
@@ -62,13 +61,6 @@ export class CvmAggregate extends AggregateRoot {
 
   public get imported(): boolean {
     return this._imported;
-  }
-
-  /**
-   * The origin of the data this CVM currently holds.
-   */
-  public get source(): CvmSource {
-    return this._source;
   }
 
   public get recentReports(): ReportEntry[] {
@@ -105,10 +97,6 @@ export class CvmAggregate extends AggregateRoot {
 
   public set imported(imported: boolean) {
     this._imported = imported;
-  }
-
-  public set source(source: CvmSource) {
-    this._source = source;
   }
 
   public set recentReports(recentReports: ReportEntry[]) {
@@ -193,20 +181,6 @@ export class CvmAggregate extends AggregateRoot {
       throw new Error('Invalid forced score');
     }
 
-    if (this._removed) {
-      this.applyEvent(
-        new CvmRestoredEvent(
-          this.id.value,
-          {
-            longitude: data.longitude ?? this.longitude,
-            latitude: data.latitude ?? this.latitude,
-          },
-          data.source,
-        ),
-      );
-      return;
-    }
-
     this.applyEvent(
       new CvmSynchronizedEvent(
         this.id.value,
@@ -274,16 +248,7 @@ export class CvmAggregate extends AggregateRoot {
       throw new Error('CVM has not been removed');
     }
 
-    this.applyEvent(
-      new CvmRestoredEvent(
-        this.id.value,
-        {
-          longitude: this.longitude,
-          latitude: this.latitude,
-        },
-        this._source,
-      ),
-    );
+    this.applyEvent(new CvmRestoredEvent(this.id.value));
   }
 
   public static register(
@@ -339,7 +304,6 @@ export class CvmAggregate extends AggregateRoot {
     this._latitude = event.position.latitude;
     this._score = 0;
     this._imported = false;
-    this._source = 'community';
   }
 
   @EventHandler(CvmImportedEvent)
@@ -349,7 +313,6 @@ export class CvmAggregate extends AggregateRoot {
     this._latitude = event.position.latitude;
     this._score = event.initialScore ?? 0;
     this._imported = true;
-    this._source = event.source;
   }
 
   @EventHandler(CvmSynchronizedEvent)
@@ -365,8 +328,6 @@ export class CvmAggregate extends AggregateRoot {
     if (event.forcedScore !== undefined) {
       this._score = event.forcedScore;
     }
-
-    this._source = event.source;
   }
 
   @EventHandler(CvmUpvotedEvent)
@@ -427,9 +388,9 @@ export class CvmAggregate extends AggregateRoot {
   }
 
   @EventHandler(CvmRestoredEvent)
-  onCvmRestoredEvent(event: CvmRestoredEvent): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onCvmRestoredEvent(_: CvmRestoredEvent): void {
     this._removed = false;
-    this._source = event.source;
   }
 
   @EventHandler(CvmDeletionMarkedEvent)

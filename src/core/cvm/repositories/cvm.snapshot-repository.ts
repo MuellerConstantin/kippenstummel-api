@@ -4,7 +4,6 @@ import {
   SnapshotRepository,
 } from '@ocoda/event-sourcing';
 import { CvmAggregate, CvmId } from '../models';
-import type { CvmSource } from '../models/cvm-source.model';
 
 @Snapshot(CvmAggregate, { name: 'cvm', interval: 5 })
 export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
@@ -14,7 +13,6 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
     latitude,
     score,
     imported,
-    source,
     recentReports,
     removed,
     markedForDeletion,
@@ -26,7 +24,6 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
       latitude,
       score,
       imported,
-      source,
       recentReports,
       removed,
       markedForDeletion,
@@ -40,7 +37,6 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
     latitude,
     score,
     imported,
-    source,
     recentReports,
     removed,
     markedForDeletion,
@@ -53,7 +49,6 @@ export class CvmSnapshotRepository extends SnapshotRepository<CvmAggregate> {
     aggregate.latitude = latitude as number;
     aggregate.score = score as number;
     aggregate.imported = imported as boolean;
-    aggregate.source = source as CvmSource;
     aggregate.recentReports = recentReports as [];
     aggregate.removed = removed as boolean;
     aggregate.markedForDeletion = markedForDeletion as boolean;
