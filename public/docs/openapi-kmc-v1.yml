@@ -167,6 +167,7 @@ paths:
         | `createdAt`, `updatedAt`, `lastVotedAt` | `==`, `!=`, `<`, `<=`, `>`, `>=` |
         | `bbox` | `==` (value must be quoted: `bbox=='minLng,minLat,maxLng,maxLat'`) |
         | `registeredBy` | `==` |
+        | `sources` | `==`, `!=`, `=in=`, `=out=` (matches if the origin is in the set) |
       parameters:
         - name: bottomLeft
           in: query
@@ -219,7 +220,7 @@ paths:
                     inactive: 0
                     inaccessible: 0
                   imported: true
-                  source: osm
+                  sources: [osm]
                   createdAt: 2025-09-16T15:03:20.567Z
                   updatedAt: 2025-09-16T15:03:20.567Z
         '500':
@@ -250,6 +251,7 @@ paths:
         | `createdAt`, `updatedAt`, `lastVotedAt` | `==`, `!=`, `<`, `<=`, `>`, `>=` |
         | `bbox` | `==` (value must be quoted: `bbox=='minLng,minLat,maxLng,maxLat'`) |
         | `registeredBy` | `==` |
+        | `sources` | `==`, `!=`, `=in=`, `=out=` (matches if the origin is in the set) |
       parameters:
         - name: page
           in: query
@@ -287,7 +289,7 @@ paths:
                       inactive: 0
                       inaccessible: 0
                     imported: false
-                    source: community
+                    sources: [community]
                     createdAt: 2025-09-16T15:03:20.567Z
                     updatedAt: 2025-09-16T15:03:20.567Z
                 info:
@@ -334,7 +336,7 @@ paths:
                   inactive: 0
                   inaccessible: 0
                 imported: false
-                source: community
+                sources: [community]
                 createdAt: 2025-09-16T15:03:20.567Z
                 updatedAt: 2025-09-16T15:03:20.567Z
         '500':
@@ -826,6 +828,7 @@ paths:
         | `createdAt`, `updatedAt`, `lastVotedAt` | `==`, `!=`, `<`, `<=`, `>`, `>=` |
         | `bbox` | `==` (value must be quoted: `bbox=='minLng,minLat,maxLng,maxLat'`) |
         | `registeredBy` | `==` |
+        | `sources` | `==`, `!=`, `=in=`, `=out=` (matches if the origin is in the set) |
       parameters:
         - name: bottomLeft
           in: query
@@ -1117,13 +1120,16 @@ components:
             - inaccessible
         imported:
           type: boolean
-        source:
-          type: string
-          enum: [osm, operator, community]
+        sources:
+          type: array
+          items:
+            type: string
+            enum: [osm, operator, community]
           description: >-
-            Where the data this CVM currently holds originates from. Imports and
-            synchronizations overwrite it, so this describes where the record
-            stands today rather than everything that ever touched it.
+            Every origin that has contributed data to this CVM. An import or
+            synchronization adds its declared origin, a registration and a
+            repositioning add `community`. The set only ever grows, so it answers
+            what has flowed into the record rather than who wrote it last.
         createdAt:
           type: string
           format: date-time
@@ -1136,7 +1142,7 @@ components:
         - longitude
         - score
         - imported
-        - source
+        - sources
         - recentlyReported
         - createdAt
         - updatedAt
