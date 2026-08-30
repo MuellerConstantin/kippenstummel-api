@@ -11,7 +11,7 @@ import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
 export class CleanupCvmsCommand implements ICommand {
-  constructor(public readonly markedForDeletionSince: Date) {}
+  constructor(public readonly markedForDeletionBefore: Date) {}
 }
 
 @CommandHandler(CleanupCvmsCommand)
@@ -24,8 +24,8 @@ export class CleanupCvmsCommandHandler implements ICommandHandler {
 
   async execute(command: CleanupCvmsCommand): Promise<void> {
     const cvms = await this.cvmModel.find({
-      markedForDeletionSince: {
-        $lt: command.markedForDeletionSince,
+      markedForDeletionAt: {
+        $lt: command.markedForDeletionBefore,
       },
       markedForDeletion: true,
     });
