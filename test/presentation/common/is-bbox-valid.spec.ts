@@ -1,18 +1,39 @@
 import { ValidationArguments } from 'class-validator';
 import { IsBBoxValidConstraint } from 'src/presentation/common/controllers/dtos/validation/is-bbox-valid';
 
-// The constraint reads bottomLeft/topRight/zoom off the sibling properties of
-// the validated object, so the value passed to validate() is irrelevant.
+// The constraint reads the corners and the zoom off the sibling properties
+// named in its arguments, so the value passed to validate() is irrelevant.
 function check(bottomLeft: string, topRight: string, zoom: number): boolean {
   const constraint = new IsBBoxValidConstraint();
   const args = {
     object: { bottomLeft, topRight, zoom },
+    constraints: ['bottomLeft', 'topRight', 'zoom'],
   } as unknown as ValidationArguments;
 
   return constraint.validate(null, args);
 }
 
 describe('IsBBoxValidConstraint', () => {
+  it('Should read the viewport from the named properties', () => {
+    const constraint = new IsBBoxValidConstraint();
+    const args = {
+      object: { swLeft: '48.0,8.0', neRight: '48.1,8.1', level: 12 },
+      constraints: ['swLeft', 'neRight', 'level'],
+    } as unknown as ValidationArguments;
+
+    expect(constraint.validate(null, args)).toBe(true);
+  });
+
+  it('Should reject a viewport whose properties are missing', () => {
+    const constraint = new IsBBoxValidConstraint();
+    const args = {
+      object: {},
+      constraints: ['bottomLeft', 'topRight', 'zoom'],
+    } as unknown as ValidationArguments;
+
+    expect(constraint.validate(null, args)).toBe(false);
+  });
+
   // The edge budget is a viewport allowance in kilometres: 5 km at zoom 18,
   // doubling for every level zoomed out. Expressed in degrees of latitude for
   // the cases below, which all use a north-south edge.

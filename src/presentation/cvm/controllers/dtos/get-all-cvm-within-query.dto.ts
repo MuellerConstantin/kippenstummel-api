@@ -14,11 +14,11 @@ import { RsqlToMongoCvmTransformer } from 'src/presentation/cvm/controllers';
 
 export class GetAllCvmWithinQueryDto {
   @IsLatLong()
-  @Validate(IsBBoxValidConstraint)
+  @Validate(IsBBoxValidConstraint, ['bottomLeft', 'topRight', 'zoom'])
   public bottomLeft!: string;
 
   @IsLatLong()
-  @Validate(IsBBoxValidConstraint)
+  @Validate(IsBBoxValidConstraint, ['bottomLeft', 'topRight', 'zoom'])
   public topRight!: string;
 
   @IsNumber()

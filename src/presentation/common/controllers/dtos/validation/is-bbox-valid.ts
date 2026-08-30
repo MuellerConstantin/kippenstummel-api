@@ -7,17 +7,25 @@ import { constants } from 'src/lib';
 
 @ValidatorConstraint({ name: 'IsBBoxValid', async: false })
 export class IsBBoxValidConstraint implements ValidatorConstraintInterface {
-  validate(obj: any, args: ValidationArguments) {
-    const { zoom } = args.object as { zoom: number };
-    const bottomLeftCoordinates =
-      IsBBoxValidConstraint.getBottomLeftCoordinates(args.object);
-    const topRightCoordinates = IsBBoxValidConstraint.getTopRightCoordinates(
-      args.object,
-    );
+  /**
+   * Checks the viewport formed by the three sibling properties named in the
+   * constraint arguments, as `[bottomLeft, topRight, zoom]`.
+   */
+  validate(value: any, args: ValidationArguments) {
+    const { bottomLeft, topRight, zoom } =
+      IsBBoxValidConstraint.getViewport(args);
+
+    if (
+      typeof bottomLeft !== 'string' ||
+      typeof topRight !== 'string' ||
+      typeof zoom !== 'number'
+    ) {
+      return false;
+    }
 
     return IsBBoxValidConstraint.isValidBBox(
-      bottomLeftCoordinates,
-      topRightCoordinates,
+      IsBBoxValidConstraint.parseCorner(bottomLeft),
+      IsBBoxValidConstraint.parseCorner(topRight),
       zoom,
     );
   }
@@ -27,15 +35,30 @@ export class IsBBoxValidConstraint implements ValidatorConstraintInterface {
     return 'bounding box size is too big for the zoom level';
   }
 
-  private static getBottomLeftCoordinates(obj: any): [number, number] {
-    const { bottomLeft } = obj as { bottomLeft: string };
-    const [latitude, longitude] = bottomLeft.split(',').map(Number);
-    return [longitude, latitude];
+  private static getViewport(args: ValidationArguments): {
+    bottomLeft: unknown;
+    topRight: unknown;
+    zoom: unknown;
+  } {
+    const [bottomLeftProperty, topRightProperty, zoomProperty] =
+      args.constraints as [string, string, string];
+    const object = args.object as Record<string, unknown>;
+
+    return {
+      bottomLeft: object[bottomLeftProperty],
+      topRight: object[topRightProperty],
+      zoom: object[zoomProperty],
+    };
   }
 
-  private static getTopRightCoordinates(obj: any): [number, number] {
-    const { topRight } = obj as { topRight: string };
-    const [latitude, longitude] = topRight.split(',').map(Number);
+  /**
+   * Splits a `latitude,longitude` corner into `[longitude, latitude]`.
+   *
+   * @param corner The corner as it arrives on the query string.
+   * @returns The corner as a longitude/latitude pair.
+   */
+  private static parseCorner(corner: string): [number, number] {
+    const [latitude, longitude] = corner.split(',').map(Number);
     return [longitude, latitude];
   }
 
