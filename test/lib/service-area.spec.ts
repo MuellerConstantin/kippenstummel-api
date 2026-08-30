@@ -22,9 +22,8 @@ describe('isWithinServiceArea', () => {
     });
 
     /*
-     * The everyday failure this guards against: a client that reports its
-     * coordinates the wrong way round. Karlsruhe with its axes exchanged is a
-     * well-formed pair that lands in Somalia.
+     * Swapped axes produce a well-formed pair that the individual latitude and
+     * longitude checks accept, so the area test is the only one that catches it.
      */
     it('rejects a coordinate whose latitude and longitude are swapped', () => {
       expect(isWithinServiceArea(8.404, 49.0092)).toBe(true);

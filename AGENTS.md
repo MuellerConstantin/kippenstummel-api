@@ -26,6 +26,13 @@ Kippenstummel is a crowd-sourced map of cigarette vending machines (CVMs). The
 core use case is simple: users report CVM locations, and the community
 collectively verifies and maintains their accuracy over time.
 
+**Coverage**
+The platform serves the DACH region only — Germany, Austria and Switzerland.
+This is a business decision, not a technical limit: coordinates outside that
+area are rejected on registration, repositioning and import. Treat it as given
+and do not widen or narrow it on your own; if a change to the covered area
+seems warranted, raise it rather than acting on it.
+
 **Map & Discovery**
 The map displays all registered CVMs, clustered at lower zoom levels for
 clarity. Each machine is represented by a badge-coded marker reflecting its
@@ -189,3 +196,10 @@ and aggregated platform statistics.
 - Don't fix what you didn't break – scope changes strictly to what was asked. No opportunistic refactors, formatting fixes, or "while I'm here" changes. But if
   you find something feel free to tell me.
 - One task at a time – complete and verify the current task before moving to the next. Don't batch unrelated changes in one go.
+- Comments explain the code and the decisions behind it – why an approach was
+  chosen over an alternative, what a non-obvious constraint is, what would break
+  if it were done differently. They are not the place for business rationale,
+  market reasoning, measurements, or the discussion that led to a change. Those
+  belong in the commit message, the docs or the issue. In particular: do not
+  carry justifications from our conversation into the code just because they
+  were convincing at the time.

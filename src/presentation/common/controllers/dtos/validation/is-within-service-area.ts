@@ -13,15 +13,13 @@ export class IsWithinServiceAreaConstraint
    * Checks the coordinate formed by the two sibling properties named in the
    * constraint arguments, as `[longitude, latitude]`.
    *
-   * Neither half is the offending one — Paris falls outside on its longitude,
-   * Rome on its latitude, and a swapped pair on both — so the constraint sits
-   * on both properties and reads them off the object rather than validating
-   * whichever value it happens to be attached to.
+   * Neither half is invalid on its own — only the pair can fall outside — so
+   * the constraint sits on both properties and reads them off the object
+   * rather than validating whichever value it happens to be attached to.
    *
-   * The properties are named rather than assumed, so a payload carrying more
-   * than one coordinate can constrain exactly the one that describes a machine:
-   * a reposition also reports where the editor stands, and the coverage does
-   * not apply to that.
+   * The properties are named rather than assumed because a payload may carry
+   * more than one coordinate, and only the one describing a machine is
+   * constrained.
    */
   validate(value: any, args: ValidationArguments) {
     const { longitude, latitude } =
