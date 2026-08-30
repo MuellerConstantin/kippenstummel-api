@@ -5,6 +5,7 @@ import { Job } from 'bullmq';
 import { CommandBus } from '@ocoda/event-sourcing';
 import { JobHistoryService } from 'src/infrastructure/scheduling/services';
 import { ImportCvmsCommand } from 'src/core/cvm/commands';
+import { describeResponseFailure } from 'src/lib';
 import type { CvmImportSource } from 'src/core/cvm/models';
 
 @Processor('cvm-import')
@@ -102,7 +103,11 @@ export class CvmImportConsumer extends WorkerHost {
 
       const response = await fetch(url.toString());
       if (!response.ok) {
-        throw new Error(`Failed to fetch OSM area ID for region "${region}"`);
+        const details = await describeResponseFailure(response);
+
+        throw new Error(
+          `Failed to fetch OSM area ID for region "${region}": ${details}`,
+        );
       }
 
       const data = (await response.json()) as {
@@ -162,7 +167,9 @@ export class CvmImportConsumer extends WorkerHost {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch OSM data', { cause: response });
+        const details = await describeResponseFailure(response);
+
+        throw new Error(`Failed to fetch OSM data: ${details}`);
       }
 
       const data = (await response.json()) as {
