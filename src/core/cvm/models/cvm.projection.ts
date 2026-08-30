@@ -6,7 +6,7 @@ export interface CvmProjection {
   latitude: number;
   score: number;
   imported: boolean;
-  source: CvmSource;
+  sources: CvmSource[];
   alreadyVoted?: 'upvote' | 'downvote';
   recentlyReported: {
     missing: number;

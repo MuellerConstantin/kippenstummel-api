@@ -40,10 +40,10 @@ export class Cvm {
   imported!: boolean;
 
   /**
-   * The origin of the data this CVM currently holds.
+   * Every origin that has contributed data to this CVM.
    */
-  @Prop({ type: String, enum: CVM_SOURCES, required: true })
-  source!: CvmSource;
+  @Prop({ type: [String], enum: CVM_SOURCES, required: true })
+  sources!: CvmSource[];
 
   @Prop()
   markedForDeletion!: boolean;

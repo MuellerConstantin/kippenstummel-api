@@ -74,6 +74,8 @@ export class CvmReadModelSynchronizer {
               coordinates: [longitude, latitude],
             },
           },
+          // The corrected coordinate is contributed data, so its origin joins the set
+          $addToSet: { sources: 'community' },
         },
         { new: true },
       )
@@ -118,7 +120,7 @@ export class CvmReadModelSynchronizer {
           },
           score: initialScore ?? 0,
           imported: true,
-          source,
+          sources: [source],
           markedForDeletion: false,
           markedForDeletionAt: null,
           createdAt: occurredOn,
@@ -146,7 +148,7 @@ export class CvmReadModelSynchronizer {
           },
           score: 0,
           imported: false,
-          source: 'community',
+          sources: ['community'],
           markedForDeletion: false,
           markedForDeletionAt: null,
           registeredBy: creatorIdentity,
@@ -222,7 +224,11 @@ export class CvmReadModelSynchronizer {
     source: CvmImportSource,
     forcedScore?: number,
   ): Promise<void> {
-    // A synchronization replaces the data and with it the recorded origin
+    /*
+     * A synchronization replaces the data, but it does not replace where the
+     * record has been fed from before — the origin joins the set instead of
+     * overwriting it.
+     */
     const result = await this.cvmModel.findOneAndUpdate(
       { aggregateId: cvmId },
       {
@@ -232,8 +238,8 @@ export class CvmReadModelSynchronizer {
             type: 'Point',
             coordinates: [longitude, latitude],
           },
-          source,
         },
+        $addToSet: { sources: source },
       },
       { new: true },
     );

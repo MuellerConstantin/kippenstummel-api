@@ -7,6 +7,22 @@ export class RsqlToMongoKmcCvmTransformer extends RsqlToMongoCvmTransformer {
       return true;
     }
 
+    /*
+     * Mongo matches an array field against a scalar by element, so equality on
+     * `sources` asks whether an origin has ever contributed to the record and
+     * `=in=` asks it for a list of them. No coercion is needed, the values are
+     * plain strings.
+     */
+    if (
+      field === 'sources' &&
+      (operator === '==' ||
+        operator === '!=' ||
+        operator === '=in=' ||
+        operator === '=out=')
+    ) {
+      return true;
+    }
+
     return super.isSupported(field, operator);
   }
 }

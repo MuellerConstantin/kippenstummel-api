@@ -6,7 +6,7 @@ export interface CvmDto {
   latitude: number;
   score: number;
   imported: boolean;
-  source: CvmSource;
+  sources: CvmSource[];
   recentlyReported: {
     missing: number;
     spam: number;
