@@ -24,14 +24,14 @@ describe('IsBBoxValidConstraint', () => {
     expect(constraint.validate(null, args)).toBe(true);
   });
 
-  it('Should reject a viewport whose properties are missing', () => {
+  it('Should abstain when the viewport is not fully formed, leaving the format checks to report', () => {
     const constraint = new IsBBoxValidConstraint();
     const args = {
       object: {},
       constraints: ['bottomLeft', 'topRight', 'zoom'],
     } as unknown as ValidationArguments;
 
-    expect(constraint.validate(null, args)).toBe(false);
+    expect(constraint.validate(null, args)).toBe(true);
   });
 
   // The edge budget is a viewport allowance in kilometres: 5 km at zoom 18,

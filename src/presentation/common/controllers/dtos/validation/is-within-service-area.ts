@@ -3,7 +3,11 @@ import {
   ValidatorConstraintInterface,
   ValidationArguments,
 } from 'class-validator';
-import { isWithinServiceArea } from 'src/lib';
+import {
+  isValidLatitude,
+  isValidLongitude,
+  isWithinServiceArea,
+} from 'src/lib';
 
 @ValidatorConstraint({ name: 'IsWithinServiceArea', async: false })
 export class IsWithinServiceAreaConstraint
@@ -20,13 +24,22 @@ export class IsWithinServiceAreaConstraint
    * The properties are named rather than assumed because a payload may carry
    * more than one coordinate, and only the one describing a machine is
    * constrained.
+   *
+   * A pair that is not a coordinate at all passes here: the coverage has
+   * nothing to say about it, and reporting it as out of area would mask the
+   * format error that actually describes the problem.
    */
   validate(value: any, args: ValidationArguments) {
     const { longitude, latitude } =
       IsWithinServiceAreaConstraint.getCoordinate(args);
 
-    if (typeof longitude !== 'number' || typeof latitude !== 'number') {
-      return false;
+    if (
+      typeof longitude !== 'number' ||
+      typeof latitude !== 'number' ||
+      !isValidLongitude(longitude) ||
+      !isValidLatitude(latitude)
+    ) {
+      return true;
     }
 
     return isWithinServiceArea(longitude, latitude);

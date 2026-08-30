@@ -15,12 +15,17 @@ export class IsBBoxValidConstraint implements ValidatorConstraintInterface {
     const { bottomLeft, topRight, zoom } =
       IsBBoxValidConstraint.getViewport(args);
 
+    /*
+     * A viewport that is not fully formed passes here: its size cannot be
+     * judged, and reporting it as too large would mask the format error that
+     * actually describes the problem.
+     */
     if (
       typeof bottomLeft !== 'string' ||
       typeof topRight !== 'string' ||
       typeof zoom !== 'number'
     ) {
-      return false;
+      return true;
     }
 
     return IsBBoxValidConstraint.isValidBBox(

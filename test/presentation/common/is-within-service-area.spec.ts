@@ -40,9 +40,12 @@ describe('IsWithinServiceAreaConstraint', () => {
     expect(check(object, ['editorLongitude', 'editorLatitude'])).toBe(false);
   });
 
-  it('Should reject when either half is missing or not a number', () => {
-    expect(check({ longitude: 13.405 })).toBe(false);
-    expect(check({ latitude: 52.52 })).toBe(false);
-    expect(check({ longitude: '13.405', latitude: 52.52 })).toBe(false);
+  // A pair that is not a coordinate is left to the format validators, so the
+  // area check must not add an error of its own on top of theirs.
+  it('Should abstain when the pair is not a coordinate', () => {
+    expect(check({ longitude: 13.405 })).toBe(true);
+    expect(check({ latitude: 52.52 })).toBe(true);
+    expect(check({ longitude: '13.405', latitude: 52.52 })).toBe(true);
+    expect(check({ longitude: 13.405, latitude: 999 })).toBe(true);
   });
 });
