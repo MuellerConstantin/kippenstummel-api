@@ -8,6 +8,8 @@ import { ImportCvmsCommand } from 'src/core/cvm/commands';
 import { describeResponseFailure } from 'src/lib';
 import type { CvmImportSource } from 'src/core/cvm/models';
 
+const USER_AGENT = 'Kippenstummel-API/1.0 (info@mueller-constantin.de)';
+
 @Processor('cvm-import')
 export class CvmImportConsumer extends WorkerHost {
   constructor(
@@ -101,7 +103,10 @@ export class CvmImportConsumer extends WorkerHost {
       url.searchParams.append('format', 'json');
       url.searchParams.append('limit', '1');
 
-      const response = await fetch(url.toString());
+      const response = await fetch(url.toString(), {
+        headers: { 'User-Agent': USER_AGENT },
+      });
+
       if (!response.ok) {
         const details = await describeResponseFailure(response);
 
@@ -162,6 +167,7 @@ export class CvmImportConsumer extends WorkerHost {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': USER_AGENT,
         },
         body: new URLSearchParams({ data: query }),
       });
