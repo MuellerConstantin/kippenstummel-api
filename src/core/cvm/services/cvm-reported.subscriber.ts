@@ -51,17 +51,11 @@ export class CvmReportedEventSubscriber implements IEventSubscriber {
     });
 
     if (result!.registeredBy) {
-      const untokenizedRegisteredBy = (await this.piiService.untokenizePii(
-        result!.registeredBy,
-      )) as string | null;
-
-      if (untokenizedRegisteredBy) {
-        await this.karmaComputationQueue.add('recompute', {
-          targetIdentity: untokenizedRegisteredBy,
-          cvmId: aggregateId,
-          action: 'report_received',
-        });
-      }
+      await this.karmaComputationQueue.add('recompute', {
+        targetIdentity: result!.registeredBy,
+        cvmId: aggregateId,
+        action: 'report_received',
+      });
     }
   }
 }
