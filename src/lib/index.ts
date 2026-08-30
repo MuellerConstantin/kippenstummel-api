@@ -5,6 +5,7 @@ export {
   isValidLongitude,
   type BoundingBox,
 } from './bbox';
+export { isWithinServiceArea } from './service-area';
 export { calculateEwma } from './metrics';
 export * as constants from './constants';
 export { deepCopy } from './copy';

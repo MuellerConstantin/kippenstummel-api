@@ -11,7 +11,8 @@ import { CvmAggregate, CvmId } from '../models';
 import type { CvmImportSource } from '../models';
 import { CvmEventStoreRepository } from '../repositories';
 import { Cvm } from '../repositories/schemas';
-import { constants } from 'src/lib';
+import { constants, isWithinServiceArea } from 'src/lib';
+import { Logger } from '@nestjs/common';
 
 export class ImportCvmsCommand implements ICommand {
   constructor(
@@ -30,6 +31,8 @@ export class ImportCvmsCommand implements ICommand {
 
 @CommandHandler(ImportCvmsCommand)
 export class ImportCvmsCommandHandler implements ICommandHandler {
+  private readonly logger = new Logger(ImportCvmsCommandHandler.name);
+
   constructor(
     private readonly cvmEventStoreRepository: CvmEventStoreRepository,
     @InjectModel(Cvm.name) private readonly cvmModel: Model<Cvm>,
@@ -37,7 +40,29 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
   ) {}
 
   async execute(command: ImportCvmsCommand): Promise<void> {
-    const operations = command.cvms.map(async (cvm) => {
+    /*
+     * An import is a bulk operation, so entries outside the covered area are
+     * dropped rather than failing the whole job — one stray record should not
+     * cost the other thousands. They are counted out loud, because a region
+     * that yields nothing but skipped entries is a mistake worth noticing.
+     */
+    const cvms = command.cvms.filter((cvm) =>
+      isWithinServiceArea(cvm.longitude, cvm.latitude),
+    );
+
+    const skipped = command.cvms.length - cvms.length;
+
+    if (skipped > 0) {
+      this.logger.warn(
+        `Skipped ${skipped} of ${command.cvms.length} imported CVMs outside the covered service area`,
+      );
+    }
+
+    if (cvms.length === 0) {
+      return;
+    }
+
+    const operations = cvms.map(async (cvm) => {
       const result = await this.cvmModel
         .findOne({
           position: {
@@ -88,7 +113,7 @@ export class ImportCvmsCommandHandler implements ICommandHandler {
         return acc;
       }, []);
 
-    const batches = chunkArray(command.cvms, 1000);
+    const batches = chunkArray(cvms, 1000);
 
     for (const batch of batches) {
       await this.tileComputationQueue.add('precompute', {

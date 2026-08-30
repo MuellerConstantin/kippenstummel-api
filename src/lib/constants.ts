@@ -27,6 +27,34 @@ const MAX_VIEWPORT_EDGE_KM = 5;
 const KM_PER_DEGREE_LATITUDE = 111.32;
 
 /**
+ * A rectangular region the service accepts coordinates in.
+ */
+type ServiceAreaBounds = {
+  name: string;
+  minLongitude: number;
+  maxLongitude: number;
+  minLatitude: number;
+  maxLatitude: number;
+};
+
+/**
+ * The regions Kippenstummel covers. A coordinate outside all of them never
+ * reaches the domain.
+ *
+ * This is a list rather than a single box so that widening the coverage is a
+ * change to data instead of to code.
+ */
+const SERVICE_AREA: ServiceAreaBounds[] = [
+  {
+    name: 'DACH',
+    minLongitude: 5.87,
+    maxLongitude: 17.16,
+    minLatitude: 45.82,
+    maxLatitude: 55.06,
+  },
+];
+
+/**
  * Rules for the registration cooldown period in minutes based on credibility.
  */
 const REGISTRATION_COOLDOWN_RULES: {
@@ -255,4 +283,7 @@ export {
   TELEMETRY_SALT_KEY_PREFIX,
   TELEMETRY_DEDUP_KEY_PREFIX,
   TELEMETRY_TRACKING_MIN_ZOOM,
+  SERVICE_AREA,
 };
+
+export type { ServiceAreaBounds };
